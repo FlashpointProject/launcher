@@ -1,6 +1,6 @@
+import { InitRendererData } from '@shared/IPC';
 import { OpenDialogOptions } from 'electron';
 import { IMainWindowExternal } from '../src/shared/interfaces';
-import { InitRendererData } from '@shared/IPC';
 
 /** Custom modifications made by this project */
 
@@ -12,11 +12,10 @@ declare global {
     showItemInFolder: (path: string) => void;
     showOpenDialog: (opts: OpenDialogOptions) => Promise<string[] | undefined>;
     writeClipboardText: (text: string) => void;
-    restart: () => void;
+    relaunch: () => void;
     protocolReady: () => void;
     registerProtocol: (enabled: boolean) => Promise<void>;
     toggleDevTools: () => void;
-    enableMainOutput: () => void;
     minimize: () => void;
     maximize: () => void;
     close: () => void;

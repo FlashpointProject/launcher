@@ -9,7 +9,7 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
+import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
 import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData, updateGame } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
@@ -59,6 +59,7 @@ import { LogsPage } from './pages/LogsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { TagCategoriesPage } from './pages/TagCategoriesPage';
 import { TagsPage } from './pages/TagsPage';
+import { UnrecoverableErrorPage } from './pages/UnrecoverableErrorPage';
 import { setPageTitle } from './PageTitle';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
 import { RandomGames } from './RandomGames';
@@ -122,7 +123,6 @@ export function App() {
   const strings = useAppSelector(state => state.main.lang);
   const stopRender = useAppSelector(state => state.main.stopRender);
   const socketOpen = useAppSelector(state => state.main.socketOpen);
-  const mainOutput = useAppSelector(state => state.main.mainOutput);
   const openDialogs = useAppSelector(state => state.main.openDialogs);
   const loadedAll = useAppSelector(state => state.main.loadedAll);
   const downloadOpen = useAppSelector(state => state.main.downloadOpen);
@@ -140,6 +140,7 @@ export function App() {
   const dynamicThemeFileList = useAppSelector(selectDynamicThemes);
   const remoteModules = useAppSelector(selectRemoteModules);
   const customRoutes = useAppSelector(state => state.main.displaySettings.customRoutes);
+  const unrecoverableError = useAppSelector(state => state.main.unrecoverableError);
   const currentView = useView();
   const firstBrowsePageViewName = useAppSelector(state => Object.keys(state.search.views).find(v => v !== GENERAL_VIEW_ID));
   const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar && !hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
@@ -196,10 +197,6 @@ export function App() {
     initApp(dispatch);
   }
 
-  const copyCrashLog = () => {
-    navigator.clipboard.writeText(mainOutput || '');
-  };
-
   const getGameBrowserDivWidth = () => {
     if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
     if (!contentRef.current) { throw new Error('"game-browser" div is missing.'); }
@@ -222,6 +219,12 @@ export function App() {
 
   const isBrowsePage = location.pathname.startsWith(Paths.BROWSE);
 
+  if (unrecoverableError) {
+    return (
+      <UnrecoverableErrorPage error={unrecoverableError}/>
+    );
+  }
+
   return (
     <LangContext.Provider value={strings}>
       <DynamicThemeProvider fileList={dynamicThemeFileList} >
@@ -235,31 +238,10 @@ export function App() {
             {!stopRender ? (
               <>
                 {/* Backend Crash Log and Report */}
-                {!socketOpen && !mainOutput && (
+                {!socketOpen && (
                   <FloatingContainer>
                     <div className='main-output-header'>Disconnected from Backend</div>
                     <div>Reconnecting...</div>
-                  </FloatingContainer>
-                )}
-                {mainOutput && (
-                  <FloatingContainer>
-                    <div className='main-output-header'>Backend Crash Log</div>
-                    <div className='main-output-content'>{mainOutput}</div>
-                    <div className='main-output-buttons'>
-                      <SimpleButton
-                        value={'Copy Crash Log'}
-                        onClick={copyCrashLog} />
-                      { window.electronAPI !== undefined && (
-                        <SimpleButton
-                          value={'Restart Launcher'}
-                          onClick={() => {
-                            dispatch(setMainState({
-                              quitting: true
-                            }));
-                            window.electronAPI?.restart();
-                          }} />
-                      )}
-                    </div>
                   </FloatingContainer>
                 )}
                 {/* First Open Dialog */}
@@ -606,6 +588,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
       dispatch(addLoaded([BackInit.EXTENSIONS]));
     });
   };
+
+  window.Shared.back.register(BackOut.UNRECOVERABLE_ERROR, (event, error) => {
+    dispatch(setUnrecoverableError(error));
+  });
 
   window.Shared.back.register(BackOut.TOAST, (event, toastId, content, data) => {
     if (!toastId) {

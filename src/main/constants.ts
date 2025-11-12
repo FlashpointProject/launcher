@@ -8,8 +8,6 @@ export enum WindowIPC {
   WINDOW_CLOSE    = 'window-close',
   /** Sent whenever a flashpoint:// protocol is run */
   PROTOCOL        = 'protocol',
-  /** Sends Main Process output to renderer */
-  MAIN_OUTPUT     = 'main-output'
 }
 
 /** IPC channels for everything else */
@@ -19,6 +17,7 @@ export enum CustomIPC {
   SHOW_SAVE_DIALOG = 'show-save-dialog',
   SHOW_OPEN_DIALOG = 'show-open-dialog',
   REGISTER_PROTOCOL = 'register-protocol',
+  RELOAD_FULL = 'reload-full',
   RELOAD_WINDOW = 'reload-window',
   OPEN_EXTERNAL = 'open-external',
   SHOW_FILE_IN_FOLDER = 'show-file-in-folder',

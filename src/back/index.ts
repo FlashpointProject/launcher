@@ -7,6 +7,7 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
+  UnrecoverableError,
   createErrorProxy, deepCopy,
   removeFileExtension,
   stringifyArray
@@ -298,7 +299,6 @@ async function main() {
 
 function getArgs() {
   // Parse command line arguments
-  console.log(process.argv);
   const { values: args } = parseArgs({
     args: process.argv.slice(2),
     options: {
@@ -365,6 +365,28 @@ function getArgs() {
   return args;
 }
 
+function registerExceptionCatchers() {
+  const excepted = (error: UnrecoverableError) => {
+    state.socketServer.broadcast(BackOut.UNRECOVERABLE_ERROR, error);
+  };
+
+  process.on('uncaughtException', (error, origin) => {
+    if (error instanceof Error) {
+      excepted({
+        header: origin === 'uncaughtException' ?  'Uncaught Exception' : 'Unhandled Rejection',
+        message: error.message,
+        type: error.name,
+        stackTrace: error.stack
+      });
+    } else {
+      excepted({
+        header: 'Uncaught Exception',
+        message: `${error}`,
+      });
+    }
+  });
+}
+
 async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   console.log(`--- Build Version: ${VERSION} ---`);
   console.log('Back - Initializing...');
@@ -396,6 +418,7 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   state.socketServer.register(BackIn.GET_START_TIME, () => {
     return state.startTime;
   });
+  registerExceptionCatchers();
 
   log.info('Launcher', 'Starting Flashpoint Launcher');
 

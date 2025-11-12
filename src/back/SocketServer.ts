@@ -1,13 +1,13 @@
 import { BackState, OpenExternalFunc, ShowMessageBoxBroadcastFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
-import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
+import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_all, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
+import { VERBOSE } from '.';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 import { createNewDialog } from './util/dialog';
-import { VERBOSE } from '.';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -214,6 +214,10 @@ export class SocketServer {
 
   public unregister(type: BackIn): void {
     api_unregister(this.api, type);
+  }
+
+  public unregisterAll(): void {
+    api_unregister_all(this.api);
   }
 
   public registerAny(callback: AnyCallback<MsgEvent, BackIn>): void {

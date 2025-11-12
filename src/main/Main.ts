@@ -177,6 +177,12 @@ export function main(init: Init): void {
     ipcMain.handle(CustomIPC.REGISTER_PROTOCOL, async (event, register) => {
       return setProtocolRegistrationState(register);
     });
+    ipcMain.on(CustomIPC.RELOAD_FULL, async (event) => {
+      if (state.backProc) {
+        await killProcess(state.backProc);
+      }
+      app.relaunch();
+    });
     ipcMain.on(CustomIPC.RELOAD_WINDOW, async (event) => {
       // Tell back to ignore exit call for 1000ms
       state.socket.request(BackIn.PREP_RELOAD_WINDOW)
@@ -259,13 +265,11 @@ export function main(init: Init): void {
         if (state.backProc.stdout) {
           state.backProc.stdout.on('data', (chunk) => {
             process.stdout.write(chunk);
-            state.output += chunk.toString();
           });
         }
         if (state.backProc.stderr) {
           state.backProc.stderr.on('data', (chunk) => {
             process.stderr.write(chunk);
-            state.output += chunk.toString();
           });
         }
         const initHandler = (message: any) => {
@@ -522,10 +526,6 @@ export function main(init: Init): void {
         contextIsolation: true,
       },
     });
-    // Enable crash reporter
-    ipcMain.on(WindowIPC.MAIN_OUTPUT, () => {
-      window.webContents.send(WindowIPC.MAIN_OUTPUT, state.output);
-    });
     // Add protocol report func
     ipcMain.on(WindowIPC.PROTOCOL, () => {
       if (init.protocol) {
@@ -649,4 +649,22 @@ export function main(init: Init): void {
   }
 
   function noop() { /* Do nothing. */ }
+}
+
+async function killProcess(proc: ChildProcess) {
+  if (!proc || proc.killed) {
+    return;
+  }
+
+  return new Promise((resolve) => {
+    proc.on('exit', resolve);
+    proc.kill('SIGTERM');
+
+    // Force kill after timeout
+    setTimeout(() => {
+      if (!proc.killed) {
+        proc.kill('SIGKILL');
+      }
+    }, 3000);
+  });
 }

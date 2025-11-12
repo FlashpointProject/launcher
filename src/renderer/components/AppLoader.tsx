@@ -96,10 +96,10 @@ const onInit = async (data: InitRendererData) => {
         event.preventDefault();
       }
     });
-    // Reload window with CTRL+SHIFT+R
+    // Restart application
     window.addEventListener('keypress', (event) => {
       if (event.ctrlKey && event.shiftKey && event.code === 'KeyR') {
-        window.electronAPI?.restart();
+        window.electronAPI?.relaunch();
         event.preventDefault();
       }
     });
@@ -155,12 +155,7 @@ window.Shared = {
 
   isBackRemote: createErrorProxy('isBackRemote'),
 
-  back: new SocketClient(WebSocket, () => {
-    // Ask to send output to renderer if backend crashes
-    if (window.electronAPI !== undefined) {
-      window.electronAPI.enableMainOutput();
-    }
-  }),
+  back: new SocketClient(WebSocket),
 
   fileServerPort: -1,
 

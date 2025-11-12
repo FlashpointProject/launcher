@@ -3,7 +3,7 @@ import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackIn, BackInit } from '@shared/back/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
-import { deepCopy, recursiveReplace } from '@shared/Util';
+import { deepCopy, recursiveReplace, UnrecoverableError } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { AppExtConfigData, ComponentStatus, CreditsData, DialogFieldProps, DialogState, ExtensionContribution, Game, GameData, GameMetadataSource, GameOfTheDay, IExtensionDescription, ILogoSet, IService, ITheme, LangContainer, LangFile, MetaUpdateState, PlatformAppPathSuggestions, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import { CustomRoute, DisplaySettings, DisplaySettingsGameSidebarAction, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
@@ -35,6 +35,7 @@ export type ResolveDialogActionData = {
 }
 
 export type MainState = {
+  unrecoverableError?: UnrecoverableError;
   gotdList: GameOfTheDay[] | undefined;
   libraries: string[];
   serverNames: string[];
@@ -114,8 +115,6 @@ export type MainState = {
   busyGames: string[];
   /** State of the Socket connection */
   socketOpen: boolean;
-  /** Main Proc output (when requested) */
-  mainOutput?: string;
   /** List of components from FPM */
   componentStatuses: ComponentStatus[];
   /** In the process of quitting, suspend all action */
@@ -490,6 +489,11 @@ const mainSlice = createSlice({
       } else {
         state.extensions[existingIdx] = payload;
       }
+    },
+    setUnrecoverableError(state: MainState, { payload }: PayloadAction<UnrecoverableError>) {
+      console.error('Unrecoverable Error');
+      console.error(payload);
+      state.unrecoverableError = payload;
     }
   },
 });
@@ -523,6 +527,7 @@ export const { setMainState,
   updatePlaylist,
   updateMetadataSource,
   addNewExtension,
+  setUnrecoverableError,
 } = mainSlice.actions;
 export default mainSlice.reducer;
 

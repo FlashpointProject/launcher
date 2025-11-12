@@ -3259,8 +3259,6 @@ declare module 'flashpoint-launcher-renderer' {
     busyGames: string[];
     /** State of the Socket connection */
     socketOpen: boolean;
-    /** Main Proc output (when requested) */
-    mainOutput?: string;
     /** List of components from FPM */
     componentStatuses: ComponentStatus[];
     /** In the process of quitting, suspend all action */

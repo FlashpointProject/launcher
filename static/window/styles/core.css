@@ -3804,3 +3804,34 @@ body {
   margin-left: 0.55rem;
   margin-right: 0.55rem;
 }
+
+/** -- Unrecoverable Error Page -- */
+
+.unrecoverable-error-page {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  overflow: auto;
+}
+
+.unrecoverable-error-header {
+  font-size: 2em;
+}
+
+.unrecoverable-error-stack-trace {
+  max-height: 50vh;
+  max-width: 80vw;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.unrecoverable-error-buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.unrecoverable-error-buttons > :not(:first-child) {
+  margin-left: 0.5rem;
+}

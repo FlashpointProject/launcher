@@ -1,5 +1,6 @@
 import { GameSearch, GameSearchOffset } from '@fparchive/flashpoint-archive';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
+import { UnrecoverableError } from '@shared/Util';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCuration, ContentTree } from '@shared/curate/types';
 import { LogoSet } from '@shared/extensions/interfaces';
@@ -323,7 +324,9 @@ export enum BackOut {
 
   UPDATE_GAME,
 
-  FPFSS_ACTION
+  FPFSS_ACTION,
+
+  UNRECOVERABLE_ERROR
 }
 
 export const BackRes = {
@@ -595,6 +598,8 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_GAME]: (game: Game) => void;
 
   [BackOut.FPFSS_ACTION]: (extId: string) => FpfssUser | undefined;
+
+  [BackOut.UNRECOVERABLE_ERROR]: (error: UnrecoverableError) => void;
 }>
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;

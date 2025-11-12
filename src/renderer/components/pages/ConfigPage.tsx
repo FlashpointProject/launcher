@@ -629,7 +629,7 @@ export function ConfigPage() {
       flashpointPath,
     }).then(() => {
       if (window.electronAPI !== undefined) {
-        window.electronAPI.restart();
+        window.electronAPI.relaunch();
       } else {
         window.location.reload();
       }

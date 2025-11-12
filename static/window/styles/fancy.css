@@ -1612,3 +1612,15 @@ body {
   border: 0;
   border-top: 2px solid var(--layout__menu-separator);
 }
+
+/** -- Unrecoverable Error Page -- */
+
+.unrecoverable-error-stack-trace {
+  max-height: 50vh;
+  max-width: 80vw;
+  padding: 0.2rem;
+  border: 1px solid var(--layout__home-page-box-border);
+  background-color: var(--layout__home-page-box-background);
+  overflow: auto;
+  white-space: pre-wrap;
+}

@@ -65,6 +65,12 @@ export function api_unregister<
   }
 }
 
+export function api_unregister_all(
+  api: SocketAPIData<any, any, any>
+): void {
+  api.registered = {};
+}
+
 export function api_register_any<
   T extends T_BASE,
   U extends U_BASE<T>,
