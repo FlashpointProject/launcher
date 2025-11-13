@@ -3,7 +3,7 @@ import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState } from '@renderer/store/main/slice';
-import { GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
+import { forceSearch, GENERAL_VIEW_ID, selectGame, setSearchText } from '@renderer/store/search/slice';
 import { findGameDragEventDataGrid, getExtremeIconURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
 import { BackIn } from '@shared/back/types';
@@ -368,27 +368,32 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
 
 export function HomePageComponentExtras(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
+  const dispatch = useAppDispatch();
+  const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
   const minimized = useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('extras'));
   const logoVersion = useAppSelector(state => state.main.logoVersion);
-  const viewObj = useAppSelector((state) => state.search.views);
+  const firstValidView = useAppSelector((state) => {
+    for (const key in state.search.views) {
+      if (key !== GENERAL_VIEW_ID && !key.startsWith('!fpfss')) {
+        return key;
+      }
+    }
+    return null;
+  });
   const platforms = useAppSelector(state => state.main.suggestions.platforms);
   const allStrings = useLocalization();
   const strings = allStrings.home;
-
-  const views = Object.keys(viewObj);
-  let viewName = '';
-  for (const view of views) {
-    if (view !== GENERAL_VIEW_ID) {
-      viewName = view;
-      break;
-    }
-  }
-
   const onSearchPlatform = (platform: string) => {
-    searchActions.setSearchText({
-      view: viewName,
-      text: `platform:"${platform}"`
-    });
+    if (firstValidView !== null) {
+      dispatch(setSearchText({
+        view: firstValidView,
+        text: `platform:"${platform}"`
+      }));
+      dispatch(forceSearch({
+        view: firstValidView,
+        useCustomViews,
+      }));
+    }
   };
 
   const sortedPlatforms = [...platforms].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -408,7 +413,7 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
             <Link
               key={idx}
               className='home-page__platform-entry'
-              to={joinLibraryRoute(viewName)}
+              to={joinLibraryRoute(firstValidView || GENERAL_VIEW_ID)}
               onClick={() => onSearchPlatform(platform)}>
               <div
                 className='home-page__platform-entry__logo'
