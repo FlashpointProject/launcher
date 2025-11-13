@@ -546,7 +546,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
       const total = await fpDatabase.countGames();
       const cats = await fpDatabase.findAllTagCategories();
-      markGameSave();
+      markGameSave(state.config.flashpointPath);
       state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total, state.preferences.gameMetadataSources[sourceIdx]);
       state.socketServer.broadcast(BackOut.TOAST, 'sync', 'Update Complete', {
         type: 'success',
@@ -835,7 +835,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
     await fpDatabase.saveGames(data);
-    markGameSave();
+    markGameSave(state.config.flashpointPath);
   });
 
   state.socketServer.register(BackIn.SAVE_GAME, async (event, game) => {
@@ -855,7 +855,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       //   info.game.activeGameConfigOwner = undefined;
       // }
       const savedGame = await fpDatabase.saveGame(game);
-      markGameSave();
+      markGameSave(state.config.flashpointPath);
       broadcastGameUpdate(state, game.id);
       return savedGame;
     } catch (err) {

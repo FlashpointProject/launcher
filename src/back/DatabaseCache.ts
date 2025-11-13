@@ -13,6 +13,7 @@ type TagCache = {
   tagCount: number;
 };
 
+const cacheKeyList: string[] = [];
 let gameSaved = false;
 let tagCache: TagCache | null = null;
 
@@ -91,7 +92,6 @@ type GameStringCache = {
 };
 
 async function loadStringCache(key: string, cachePath: string): Promise<GameStringCache> {
-  log.info('Cache', `Loading ${key} string cache from ${cachePath}`);
   try {
     const cache = await readJsonFile(cachePath);
     if (typeof cache?.gameCount !== 'number' ||
@@ -123,8 +123,16 @@ async function loadStringCache(key: string, cachePath: string): Promise<GameStri
   }
 }
 
-export function markGameSave() {
+export function markGameSave(fpPath: string) {
   gameSaved = true;
+  for (const key of cacheKeyList) {
+    const cachePath = path.join(fpPath, 'Cache', `${key}.json`);
+    try {
+      fs.unlinkSync(cachePath);
+    } catch {
+      // Doesn't exist or being edited, ignore
+    }
+  }
 }
 
 async function saveStringCache(cachePath: string, gameCount: number, filterKey: string, data: string[]) {
@@ -141,6 +149,7 @@ function getStringCachedDataFactory(
   doSearch: (search: GameSearch) => Promise<string[]>
 ): (state: BackState, tagFilters: TagFilterGroup[]) => Promise<string[]> {
   let cache: GameStringCache | null = null;
+  cacheKeyList.push(key);
 
   return async (state, tagFilters) => {
     console.log('Loading cache for ' + key);
@@ -152,20 +161,15 @@ function getStringCachedDataFactory(
       cache = await loadStringCache(key, cachePath);
     }
 
-    console.log('Checked existing cache for ' + key);
-
     return databaseReady()
     .then(async (db) => {
       const gameCount = await db.countGames();
-      if (gameSaved || cache!.gameCount === gameCount && cache!.filterKey === flatKey) {
+      if (!gameSaved && cache!.gameCount === gameCount && cache!.filterKey === flatKey) {
         // Same game count and filter key, pretty accurate cache
-        console.log('Returning existing cache for ' + key);
         return cache!.data;
       }
-      console.log('Rebuilding cache for ' + key);
       const search = getTaggedSearch(tagFilters);
       const data = await doSearch(search);
-      console.log('Saving cache for ' + key);
       await saveStringCache(cachePath, gameCount, flatKey, data);
       return data;
     });
