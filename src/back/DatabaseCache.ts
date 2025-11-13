@@ -14,7 +14,7 @@ type TagCache = {
 };
 
 const cacheKeyList: string[] = [];
-let gameSaved = false;
+let gameSaveCount = 0;
 let tagCache: TagCache | null = null;
 
 async function loadTagCache(cachePath: string): Promise<void> {
@@ -124,7 +124,7 @@ async function loadStringCache(key: string, cachePath: string): Promise<GameStri
 }
 
 export function markGameSave(fpPath: string) {
-  gameSaved = true;
+  gameSaveCount += 1;
   for (const key of cacheKeyList) {
     const cachePath = path.join(fpPath, 'Cache', `${key}.json`);
     try {
@@ -149,6 +149,7 @@ function getStringCachedDataFactory(
   doSearch: (search: GameSearch) => Promise<string[]>
 ): (state: BackState, tagFilters: TagFilterGroup[]) => Promise<string[]> {
   let cache: GameStringCache | null = null;
+  let gameSaveCountLocal = gameSaveCount;
   cacheKeyList.push(key);
 
   return async (state, tagFilters) => {
@@ -164,10 +165,11 @@ function getStringCachedDataFactory(
     return databaseReady()
     .then(async (db) => {
       const gameCount = await db.countGames();
-      if (!gameSaved && cache!.gameCount === gameCount && cache!.filterKey === flatKey) {
-        // Same game count and filter key, pretty accurate cache
+      if (gameSaveCountLocal === gameSaveCount && cache!.gameCount === gameCount && cache!.filterKey === flatKey) {
+        // No new games saved, same game count and filter key, pretty accurate cache
         return cache!.data;
       }
+      gameSaveCountLocal = gameSaveCount;
       const search = getTaggedSearch(tagFilters);
       const data = await doSearch(search);
       await saveStringCache(cachePath, gameCount, flatKey, data);
@@ -176,6 +178,43 @@ function getStringCachedDataFactory(
   };
 }
 
+function getStringCachedDataTaglessFactory(
+  key: string,
+  doSearch: () => Promise<string[]>
+): (state: BackState) => Promise<string[]> {
+  let cache: GameStringCache | null = null;
+  let gameSaveCountLocal = gameSaveCount;
+  cacheKeyList.push(key);
+
+  return async (state) => {
+    console.log('Loading cache for ' + key);
+    const cachePath = path.join(state.config.flashpointPath, 'Cache', `${key}.json`);
+
+    if (cache === null) {
+      cache = await loadStringCache(key, cachePath);
+    }
+
+
+    return databaseReady()
+    .then(async (db) => {
+      const gameCount = await db.countGames();
+      if (gameSaveCountLocal === gameSaveCount && cache!.gameCount === gameCount) {
+        // No new games saved and same game count, pretty accurate cache
+        return cache!.data;
+      }
+      gameSaveCountLocal = gameSaveCount;
+      const data = await doSearch();
+      await saveStringCache(cachePath, gameCount, '', data);
+      return data;
+    });
+  };
+}
+
 export const getAllDevelopers = getStringCachedDataFactory('developers', (search) => fpDatabase.findAllGameDevelopers(search));
 export const getAllPublishers = getStringCachedDataFactory('publishers', (search) => fpDatabase.findAllGamePublishers(search));
 export const getAllSeries = getStringCachedDataFactory('series', (search) => fpDatabase.findAllGameSeries(search));
+
+export const getAllLibraries = getStringCachedDataTaglessFactory('libraries', () => fpDatabase.findAllGameLibraries());
+export const getAllStatuses = getStringCachedDataTaglessFactory('statuses', () => fpDatabase.findAllGameStatuses());
+export const getAllApplicationPaths = getStringCachedDataTaglessFactory('applicationPaths', () => fpDatabase.findAllGameApplicationPaths());
+export const getAllPlayModes = getStringCachedDataTaglessFactory('playModes', () => fpDatabase.findAllGamePlayModes());

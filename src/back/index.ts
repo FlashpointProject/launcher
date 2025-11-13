@@ -42,6 +42,7 @@ import { saveCurationFpfssInfo } from './curate/fpfss';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
+import { getAllApplicationPaths, getAllLibraries, getAllPlayModes, getAllStatuses } from './DatabaseCache';
 import { axios } from './dns';
 import { downloadGameData } from './download';
 import { Downloader } from './Downloader';
@@ -864,17 +865,18 @@ async function initialize() {
     state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to open database: ' + e);
   }
 
+  state.init[BackInit.DATABASE_READY] = true;
+
   // Populate unique values
   state.suggestions = {
     tags: [],
-    playMode: await fpDatabase.findAllGamePlayModes(),
+    playMode: await getAllPlayModes(state),
     platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
-    status: await fpDatabase.findAllGameStatuses(),
-    applicationPath: await fpDatabase.findAllGameApplicationPaths(),
-    library: await fpDatabase.findAllGameLibraries(),
+    status: await getAllStatuses(state),
+    applicationPath: await getAllApplicationPaths(state),
+    library: await getAllLibraries(state),
   };
 
-  state.init[BackInit.DATABASE_READY] = true;
   state.initEmitter.emit(BackInit.DATABASE_READY);
 
   // Check for Flashpoint Manager Updates

@@ -61,7 +61,7 @@ import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
-import { getAllDevelopers, getAllPublishers, getAllSeries, getTags, markGameSave } from './DatabaseCache';
+import { getAllApplicationPaths, getAllDevelopers, getAllLibraries, getAllPlayModes, getAllPublishers, getAllSeries, getAllStatuses, getTags, markGameSave } from './DatabaseCache';
 import { ExtConfigFile } from './ExtConfigFile';
 import { escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
@@ -242,7 +242,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async (event) => {
-    const libraries = await fpDatabase.findAllGameLibraries();
+    const libraries = await getAllLibraries(state);
 
     // Fetch update feed in background
     if (state.preferences.updateFeedUrl) {
@@ -537,11 +537,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       // Send out new suggestions and library lists
       state.suggestions = {
         tags: [],
-        playMode: await fpDatabase.findAllGamePlayModes(),
+        playMode: await getAllPlayModes(state),
         platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
-        status: await fpDatabase.findAllGameStatuses(),
-        applicationPath: await fpDatabase.findAllGameApplicationPaths(),
-        library: await fpDatabase.findAllGameLibraries(),
+        status: await getAllStatuses(state),
+        applicationPath: await getAllApplicationPaths(state),
+        library: await getAllLibraries(state),
       };
       state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
       const total = await fpDatabase.countGames();
@@ -590,11 +590,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
     const suggestions: GamePropSuggestions = {
       tags: [],
-      playMode: await fpDatabase.findAllGamePlayModes(),
+      playMode: await getAllPlayModes(state),
       platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
-      status: await fpDatabase.findAllGameStatuses(),
-      applicationPath: await fpDatabase.findAllGameApplicationPaths(),
-      library: await fpDatabase.findAllGameLibraries(),
+      status: await getAllStatuses(state),
+      applicationPath: await getAllApplicationPaths(state),
+      library: await getAllLibraries(state),
     };
     state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
     return {
