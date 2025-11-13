@@ -122,7 +122,7 @@
     "tagFilterGroupEditor": "مُعدّل مجموعات الفلترة"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "اللعبة اللي نوصّيو بيها اليوم",
     "updateHeader": "تحديث المُشغِّل",
     "currentVersion": "الإصدار الحالي",
     "nextVersion": "الإصدار التالي",
@@ -164,7 +164,7 @@
     "randomPicks": "إختيارات عشوائية",
     "rerollPicks": "أعِد إختيار القائمة",
     "componentUpdatesReady": "Install {0} software updates",
-    "componentUpToDate": "Flashpoint is up to date",
+    "componentUpToDate": "\"Flashpoint\" محدث",
     "lastUpdated": "Last Updated",
     "updateComplete": "التحديث خلص للبرنامج!"
   },
@@ -201,7 +201,7 @@
     "grid": "شكل شبكي",
     "searchResults": "نتائج البحث",
     "manual": "يساعد",
-    "layout": "Browser Layout",
+    "layout": "ثيم المتصفح",
     "openFlashpointManager": "Open Flashpoint Manager",
     "fpfssProfile": "عرض الملف الشخصي",
     "fpfssLogout": "Logout from FPFSS",
