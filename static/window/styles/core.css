@@ -3177,6 +3177,12 @@ body {
   font-weight: bold;
 }
 
+.main-output-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
 .main-output-content {
   margin: 0.2rem;
   padding: 0.1rem;

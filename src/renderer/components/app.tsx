@@ -240,8 +240,24 @@ export function App() {
                 {/* Backend Crash Log and Report */}
                 {!socketOpen && (
                   <FloatingContainer>
-                    <div className='main-output-header'>Disconnected from Backend</div>
-                    <div>Reconnecting...</div>
+                    <>
+                      <div className='main-output-header'>Disconnected from Backend</div>
+                      <div>Reconnecting...</div>
+                      { window.electronAPI !== undefined && (
+                        <div className='main-output-buttons'>
+                          <SimpleButton
+                            onClick={() => {
+                              window.electronAPI?.relaunch();
+                            }}
+                            value='Restart'/>
+                          <SimpleButton
+                            onClick={() => {
+                              window.electronAPI?.close();
+                            }}
+                            value='Exit'/>
+                        </div>
+                      )}
+                    </>
                   </FloatingContainer>
                 )}
                 {/* First Open Dialog */}

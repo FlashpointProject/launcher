@@ -1228,7 +1228,7 @@ declare module 'flashpoint-launcher' {
       publisher: boolean;
       series: boolean;
       ruffleSupport: boolean;
-      ext: Record<string, Record<string, bool | undefined> | undefined>;
+      ext: Record<string, Record<string, boolean | undefined> | undefined>;
     }
 
     type ExtOrder = {
@@ -1251,7 +1251,7 @@ declare module 'flashpoint-launcher' {
       series: Record<string, AdvancedFilterToggle>;
       ruffleSupport: Record<string, AdvancedFilterToggle>;
       ext: {
-        bools: Record<string, Record<string, bool> | undefined>;
+        bools: Record<string, Record<string, boolean> | undefined>;
         toggles: Record<string, Record<string, Record<string, AdvancedFilterToggle>> | undefined>;
       };
       andToggles: AdvancedFilterAndToggles;
@@ -2870,24 +2870,17 @@ declare module 'flashpoint-launcher' {
       extId: string;
       value: Contributions[T];
     }
-
-    type Task = {
-      id: string;
-      name: string;
-      status: string;
-      finished: boolean;
-      error?: string;
-      progress?: number;
-    }
 }
 
 declare module 'flashpoint-launcher-renderer' {
   import { CancelToken } from 'axios';
   import {
     AdvancedFilter,
+    AdvancedFilterToggle,
     AppExtConfigData,
     AppPreferencesData,
     ComponentStatus,
+    Content,
     CreditsData,
     CurateGroup,
     CurationState,
@@ -2897,7 +2890,9 @@ declare module 'flashpoint-launcher-renderer' {
     Game,
     GameData,
     GameOfTheDay,
-    GameOrderBy, GameOrderReverse,
+    GameOrderBy,
+    GameOrderDirection,
+    GameOrderReverse,
     IExtensionDescription,
     ILogEntry,
     ILogoSet,
@@ -2910,6 +2905,7 @@ declare module 'flashpoint-launcher-renderer' {
     PlaylistGame,
     ResultsView,
     Tag,
+    TagCategory,
     Task,
     ViewGame,
   } from 'flashpoint-launcher';
@@ -3141,7 +3137,7 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type HistoryState = {
-    history: Location<any>[];
+    history: Location[];
     maxHistorySize: number;
   }
 
@@ -3200,16 +3196,14 @@ declare module 'flashpoint-launcher-renderer' {
     localeCode: string;
     /** Text to display on the dev console */
     devConsole: string;
-
     /** Random games for the Home page box */
     randomGames: ViewGame[];
     /** Whether we're currently requesting random games */
     requestingRandomGames: boolean;
     /** If the random games should be shifted when the request is complete. */
     shiftRandomGames: boolean;
-
-    /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
-    upgrades: UpgradeStage[];
+    /** UNUSED */
+    upgrades: any[];
     /** If the Random games have loaded - Masked as 'Games' */
     gamesDoneLoading: boolean;
     /** If upgrades files have loaded */
@@ -3376,7 +3370,7 @@ declare module 'flashpoint-launcher-renderer' {
   type LeftSidebarItem = {
     key: string;
     title: string;
-    icon?: JSX.Element;
+    icon?: React.JSX.Element;
   }
 
   type StateWrapperProps = {
@@ -3405,13 +3399,14 @@ declare module 'flashpoint-launcher-renderer' {
 
 declare module 'flashpoint-launcher-renderer-ext/utils' {
   import { Game } from 'flashpoint-launcher';
-  import { React } from 'react';
+  import { Pointer } from 'flashpoint-launcher-renderer';
+  import * as React from 'react';
 
   const getExtensionFileURL: (extId: string, filePath: string) => string;
   const getFileServerURL: () => string;
   const getPointer: (event: React.MouseEvent<any>) => Pointer;
   const idToGame: (gameId: string) => Promise<Game | null>;
-  const runCommand: (command: string, ...args?: any[]) => Promise<any>;
+  const runCommand: (command: string, ...args: any[]) => Promise<any>;
   const setExtensionEnabled: (extId: string, enabled: boolean) => void;
 }
 
@@ -3425,6 +3420,7 @@ declare module 'flashpoint-launcher-renderer-ext/search' {
 }
 
 declare module 'flashpoint-launcher-renderer-ext/components' {
+  import { Game } from 'flashpoint-launcher';
   import {
     BrowsePageDisplayGridProps,
     BrowsePageDisplayListProps,
@@ -3450,8 +3446,8 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   /** Sets the --width and --height css properties for any children */
   const SizeProvider: ComponentType<SizeProviderProps>;
   const RandomGames: ComponentType<RandomGamesProps>;
-  const BrowsePageDisplayList: ComponentType<BrowsePageDisplayListProps>;
-  const BrowsePageDisplayGrid: ComponentType<BrowsePageDisplayGridProps>;
+  const BrowsePageDisplayList: ComponentType<BrowsePageDisplayListProps<Game>>;
+  const BrowsePageDisplayGrid: ComponentType<BrowsePageDisplayGridProps<Game>>;
   /** Generic Left Sidebar */
   const LeftSidebar: ComponentType<LeftSidebarProps>;
   /** Like React Activity, hides the component instead of unmounting it to keep its state, however it does not preload the component */
@@ -3469,7 +3465,7 @@ declare module 'flashpoint-launcher-renderer-ext/hooks' {
 
   const useNavigate: () => NavigateFunction;
   const useLocation: () => Location;
-  const useAppDispatch: () => ThunkDispatch;
+  const useAppDispatch: () => ThunkDispatch<RootState, any, any>;
   const useAppSelector: TypedUseSelectorHook<RootState>;
   const useContextMenu: () => MenuContextStateProps;
   const useLocalization: () => LangContainer;

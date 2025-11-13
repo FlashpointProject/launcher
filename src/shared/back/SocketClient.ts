@@ -108,7 +108,7 @@ export class SocketClient<SOCKET extends BaseSocket> extends EventEmitter {
    *
    * @param count Number of current retries
    */
-  async reconnect(count = 1): Promise<void> {
+  async reconnect(): Promise<void> {
     if (this.keepOpen) {
       // Disconnect
       if (this.client.socket) {
@@ -119,7 +119,6 @@ export class SocketClient<SOCKET extends BaseSocket> extends EventEmitter {
 
       if (this.url) {
         // Connect
-        console.log(`Reconnecting to ${this.url} - Attempt ${count}`);
         return SocketClient.connect(this.socketCon, this.url, this.secret)
         .then(socket => {
           this.setSocket(socket);
@@ -128,18 +127,11 @@ export class SocketClient<SOCKET extends BaseSocket> extends EventEmitter {
           }
         })
         .catch(async (error) => {
-          if (count < 5) {
-            console.error(`Failed Connection Attempt: ${error}`);
-            await new Promise<void>(resolve => {
-              setTimeout(resolve, 2000);
-            });
-            return this.reconnect(count + 1);
-          } else {
-            console.error(`Reconnecting failed ${count} times, please restart the application.`);
-            if (this.onFatal) {
-              this.onFatal();
-            }
-          }
+          console.error(`Failed Connection Attempt: ${error}`);
+          await new Promise<void>(resolve => {
+            setTimeout(resolve, 2000);
+          });
+          return this.reconnect();
         });
       } else {
         console.error('No client url stored, cannot reconnect (Is this a host?)');
@@ -150,7 +142,7 @@ export class SocketClient<SOCKET extends BaseSocket> extends EventEmitter {
   private ensureConnection() {
     if (this.keepOpen) {
       if (this.url && (!this.client.socket || this.client.socket.readyState === this.socketCon.CLOSED)) {
-        console.log('Closed, try again');
+        console.log(`Reconnecting to ${this.url}...`);
         this.reconnect();
       }
     }
