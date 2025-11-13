@@ -3,7 +3,7 @@ import { startAppListening } from '@renderer/store/listenerMiddleware';
 import { BackIn } from '@shared/back/types';
 import { selectGame, selectPlaylist } from '../search/slice';
 import store from '../store';
-import { removePlaylistGame, RemovePlaylistGameAction, resolveDialog, ResolveDialogActionData } from './slice';
+import { addNewExtension, removeExtension, removePlaylistGame, RemovePlaylistGameAction, resolveDialog, ResolveDialogActionData, setMainState } from './slice';
 
 export function addMainMiddleware() {
   // Send dialog state to event handlers after reducer has finished
@@ -16,6 +16,17 @@ export function addMainMiddleware() {
         window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, action.payload.button);
         window.Shared.dialogResEvent.emit(dialog.id, dialog, action.payload.button);
       }
+    }
+  });
+
+  startAppListening({
+    matcher: isAnyOf(removeExtension, addNewExtension),
+    effect: async () => {
+      // Refetch extension contributions
+      window.Shared.back.request(BackIn.GET_RENDERER_EXTENSION_INFO)
+      .then((data) => {
+        store.dispatch(setMainState(data));
+      });
     }
   });
 

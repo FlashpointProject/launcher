@@ -5,6 +5,7 @@ import { IExtension } from '@shared/extensions/interfaces';
 import { fixSlashes } from '@shared/Util';
 import { parseVariableString } from '@shared/utils/VariableString';
 import { ZipExtractOptions } from 'flashpoint-launcher';
+import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'node:path';
 
@@ -29,6 +30,16 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
       }
     }
   });
+}
+
+export async function uninstallExtension(state: BackState, extId: string) {
+  console.log('finding ' + extId);
+  const ext = await state.extensionsService.getExtension(extId);
+  if (ext) {
+    await state.extensionsService.removeExtension(extId);
+    await fs.remove(ext.extensionPath);
+  }
+  state.socketServer.broadcast(BackOut.REMOVED_EXTENSION, extId);
 }
 
 export async function installExtension(state: BackState, filePath: string) {

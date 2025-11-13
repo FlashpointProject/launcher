@@ -1445,11 +1445,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (newState) {
         // Enable ext
         state.preferences.disabledExtensions = state.preferences.disabledExtensions.filter(c => c !== extId);
-        await state.extensionsService.unloadExtension(extId);
+        await state.extensionsService.loadExtension(extId);
       } else {
         // Disable ext
         state.preferences.disabledExtensions.push(extId);
-        await state.extensionsService.loadExtension(extId);
+        await state.extensionsService.unloadExtension(extId);
       }
       state.prefsQueue.push(() => {
         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);

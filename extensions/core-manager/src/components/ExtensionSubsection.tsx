@@ -3,7 +3,7 @@ import { useAppSelector } from 'flashpoint-launcher-renderer-ext/hooks';
 import { getExtensionFileURL, runCommand, setExtensionEnabled } from 'flashpoint-launcher-renderer-ext/utils';
 import { useEffect, useState } from 'react';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
-import { DownloadExtCommand } from '../commands';
+import { DownloadExtCommand, UninstallExtCommand } from '../commands';
 import { loadExtIndexUrl, ManagerExtensionInfo } from '../extensionLoader';
 
 export type ExtensionRowProps = {
@@ -14,6 +14,7 @@ export type ExtensionRowProps = {
 export function ExtensionSubsection() {
   const [availableExtensions, setAvailableExtensions] = useState<ManagerExtensionInfo[]>([]);
   const installedExtensions = useAppSelector(state => state.main.extensions);
+  console.log(installedExtensions);
   const disabledExtensions = useAppSelector(state => state.preferences.disabledExtensions);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export function ExtensionSubsection() {
 }
 
 export function ExtensionRow({ items, disabledExtensions, index, style }: RowComponentProps<ExtensionRowProps>) {
-  const { id, title, description, installed, newestVersion, iconUrl, getDownloadUrl, } = items[index];
+  const { id, title, description, installed, newestVersion, iconUrl, getDownloadUrl } = items[index];
   const [busy, setBusy] = useState(false);
   const canInstall = getDownloadUrl !== undefined;
   const enabled = !disabledExtensions.includes(id);
@@ -97,7 +98,16 @@ export function ExtensionRow({ items, disabledExtensions, index, style }: RowCom
         { !busy ? (
           <>
             { installed && (
-              <SimpleButton value={'Remove'}/>
+              <SimpleButton value={'Remove'} onClick={() => {
+                setBusy(true);
+                runCommand(UninstallExtCommand, id)
+                .catch((error) => {
+                  const errorString =  `Failed to uninstall extension: ${error}`;
+                  alert(errorString);
+                  log.error('Manager', errorString);
+                })
+                .finally(() => setBusy(false));
+              }}/>
             )}
             { canInstall && (
               <SimpleButton value={'Install'} onClick={() => {

@@ -162,6 +162,7 @@ export class ExtensionService {
         subscriptions: extData.subscriptions
       };
       if (entryPath) {
+        console.log('loading ' + entryPath);
         const extModule: ExtensionModule = this.require(entryPath);
         if (!extModule.activate) {
           throw new Error('No "activate" export found in extension module!');
@@ -203,6 +204,18 @@ export class ExtensionService {
     }
   }
 
+  public async removeExtension(id: string): Promise<void> {
+    await this.unloadExtension(id);
+    if (this.installedExtensionsReady.isOpen()) {
+      const extIdx = this._extensions.findIndex(e => e.id == id);
+      if (extIdx > -1) {
+        this._extensions.splice(extIdx);
+      } else {
+        log.error('Extensions', `Attempted removal of extension ${id}, but no extension with this ID found`);
+      }
+    }
+  }
+
   private async _unloadExtension(ext: IExtension): Promise<void> {
     const extData = this._extensionData[ext.id];
 
@@ -214,7 +227,7 @@ export class ExtensionService {
     const entryPath = getExtensionEntry(ext);
     if (entryPath) {
       try {
-        const extModule: ExtensionModule = await import(entryPath);
+        const extModule: ExtensionModule = this.require(entryPath);
         if (extModule.deactivate) {
           try {
             await extModule.deactivate.apply(global);

@@ -84,6 +84,12 @@ declare module 'flashpoint-launcher' {
   function installExtension(filePath: string): Promise<void>;
 
   /**
+   * Uninstalls an extension by its ID
+   * @param extId ID of extension
+   */
+  function uninstallExtension(extId: string): Promise<void>;
+
+  /**
      * Gets an extension configuration value given its key
      */
   function getExtConfigValue(key: string): any;

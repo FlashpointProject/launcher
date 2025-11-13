@@ -43,7 +43,7 @@ export function MenuProvider({ children }: MenuContextProps) {
   const htdocsFolderPath = useAppSelector(state => state.preferences.htdocsFolderPath);
   const dataPacksFolderPath = useAppSelector(state => state.preferences.dataPacksFolderPath);
   const imageFolderPath = useAppSelector(state => state.preferences.imageFolderPath);
-  const extContextButtons = useAppSelector(state => state.main.contextButtons);
+  const extContextButtonContribs = useAppSelector(state => state.main.contextButtons);
   const scale = useAppSelector(state => state.preferences.scaleValues.menuItem);
   const menuItemHeight = Math.floor(calcScale(menuDefHeight, scale));
   const navigate = useNavigate();
@@ -211,16 +211,17 @@ export function MenuProvider({ children }: MenuContextProps) {
               });
             });
           }
-        }, ...fpfssButtons, { type: 'separator' }
+        }, ...fpfssButtons
       ];
       contextButtons = contextButtons.concat(editingButtons);
     }
 
     // Add extension contexts
-    for (const contribution of extContextButtons) {
+    const extContextButtons: MenuItemType[] = [];
+    for (const contribution of extContextButtonContribs) {
       for (const contextButton of contribution.value) {
         if (contextButton.context === 'game') {
-          contextButtons.push({
+          extContextButtons.push({
             type: 'button',
             label: contextButton.name,
             onClick: () => {
@@ -237,6 +238,10 @@ export function MenuProvider({ children }: MenuContextProps) {
       }
     }
 
+    if (extContextButtons.length > 0) {
+      contextButtons.push({ type: 'separator' });
+      return contextButtons.concat(extContextButtons);
+    }
     return contextButtons;
   };
 

@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { commands, Disposable, ExtensionContext, installExtension, log, registerDisposable } from 'flashpoint-launcher';
+import { commands, Disposable, ExtensionContext, installExtension, log, registerDisposable, uninstallExtension } from 'flashpoint-launcher';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { DownloadExtCommand } from './commands';
+import { DownloadExtCommand, UninstallExtCommand } from './commands';
 
 export async function activate(context: ExtensionContext): Promise<void> {
   const register = (disp: Disposable) => {
@@ -30,6 +30,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
       log.info('Downloaded Extension Archive from ' + url);
 
       await installExtension(tempFilepath);
+    })
+  );
+
+  register(
+    commands.registerCommand(UninstallExtCommand, async (extId: string) => {
+      log.info('Uninstalling Extension ' + extId);
+
+      await uninstallExtension(extId);
     })
   );
 }

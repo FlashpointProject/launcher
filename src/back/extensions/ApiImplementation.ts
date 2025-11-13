@@ -5,7 +5,7 @@ import { loadCurationIndexImage } from '@back/curate/parse';
 import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCurationContent } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
 import { downloadGameData } from '@back/download';
-import { installExtension as installExtensionUtil, unzipFile as unzipFileUtil } from '@back/extensions/util';
+import { installExtension as installExtensionUtil, uninstallExtension as uninstallExtensionUtil, unzipFile as unzipFileUtil } from '@back/extensions/util';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
 import { awaitDialog } from '@back/util/dialog';
@@ -94,6 +94,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const installExtension = (filePath: string) => {
     return installExtensionUtil(state, filePath);
+  };
+
+  const uninstallExtension = (extId: string) => {
+    return uninstallExtensionUtil(state, extId);
   };
 
   const registerDataProvider = (provider: flashpoint.GameDataProvider): void => {
@@ -686,6 +690,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile,
     installExtension,
+    uninstallExtension,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
     onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.extEvent(extManifest.displayName || extManifest.name),

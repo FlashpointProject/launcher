@@ -485,6 +485,12 @@ const mainSlice = createSlice({
         };
       }
     },
+    removeExtension(state: MainState, { payload }: PayloadAction<string>) {
+      const existingIdx = state.extensions.findIndex(e => e.id === payload);
+      if (existingIdx !== -1) {
+        state.extensions.splice(existingIdx);
+      }
+    },
     addNewExtension(state: MainState, { payload }: PayloadAction<IExtensionDescription>) {
       const existingIdx = state.extensions.findIndex(e => e.id === payload.id);
       if (existingIdx === -1) {
@@ -529,6 +535,7 @@ export const { setMainState,
   setUpdateInfo,
   updatePlaylist,
   updateMetadataSource,
+  removeExtension,
   addNewExtension,
   setUnrecoverableError,
 } = mainSlice.actions;
