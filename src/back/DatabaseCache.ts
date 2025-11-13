@@ -1,9 +1,11 @@
-import { Tag, TagFilterGroup } from 'flashpoint-launcher';
-import { databaseReady } from '.';
-import { BackState } from './types';
-import * as path from 'node:path';
-import * as fs from 'fs-extra';
+import { GameSearch } from '@fparchive/flashpoint-archive';
 import { readJsonFile } from '@shared/Util';
+import { Tag, TagFilterGroup } from 'flashpoint-launcher';
+import * as fs from 'fs-extra';
+import * as path from 'node:path';
+import { databaseReady, fpDatabase } from '.';
+import { BackState } from './types';
+import { getTaggedSearch } from './util/search';
 
 type TagCache = {
   tags: Tag[];
@@ -11,6 +13,7 @@ type TagCache = {
   tagCount: number;
 };
 
+let gameSaved = false;
 let tagCache: TagCache | null = null;
 
 async function loadTagCache(cachePath: string): Promise<void> {
@@ -80,3 +83,95 @@ export async function getTags(state: BackState, tagFilters: TagFilterGroup[]): P
 function getFilterKey(tagFilters: string[]) {
   return tagFilters.sort().join(';');
 }
+
+type GameStringCache = {
+  gameCount: number;
+  filterKey: string;
+  data: string[]
+};
+
+async function loadStringCache(key: string, cachePath: string): Promise<GameStringCache> {
+  log.info('Cache', `Loading ${key} string cache from ${cachePath}`);
+  try {
+    const cache = await readJsonFile(cachePath);
+    if (typeof cache?.gameCount !== 'number' ||
+      typeof cache?.filterKey !== 'string' ||
+      typeof cache?.data !== 'object'
+    ) {
+      // Invalid cache data at a glance, wipe
+      log.warn('Cache', `${key} cache data was invalid, ignoring...`);
+      return {
+        gameCount: 0,
+        filterKey: '',
+        data: []
+      };
+    }
+    return cache;
+  } catch (err: any) {
+    if (err.code !== 'ENOENT') {
+      log.error('Cache', `${key} cache data failed to load, ignoring...: ${err}`);
+    } else {
+      log.info('Cache', `No ${key} cache data found`);
+    }
+
+    // Set empty cache
+    return {
+      gameCount: 0,
+      filterKey: '',
+      data: []
+    };
+  }
+}
+
+export function markGameSave() {
+  gameSaved = true;
+}
+
+async function saveStringCache(cachePath: string, gameCount: number, filterKey: string, data: string[]) {
+  await fs.ensureDir(path.dirname(cachePath));
+  await fs.promises.writeFile(cachePath, JSON.stringify({
+    gameCount,
+    filterKey,
+    data
+  }));
+}
+
+function getStringCachedDataFactory(
+  key: string,
+  doSearch: (search: GameSearch) => Promise<string[]>
+): (state: BackState, tagFilters: TagFilterGroup[]) => Promise<string[]> {
+  let cache: GameStringCache | null = null;
+
+  return async (state, tagFilters) => {
+    console.log('Loading cache for ' + key);
+    const flatTagFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags.map(t => t.toLowerCase())), []);
+    const flatKey = getFilterKey(flatTagFilter);
+    const cachePath = path.join(state.config.flashpointPath, 'Cache', `${key}.json`);
+
+    if (cache === null) {
+      cache = await loadStringCache(key, cachePath);
+    }
+
+    console.log('Checked existing cache for ' + key);
+
+    return databaseReady()
+    .then(async (db) => {
+      const gameCount = await db.countGames();
+      if (gameSaved || cache!.gameCount === gameCount && cache!.filterKey === flatKey) {
+        // Same game count and filter key, pretty accurate cache
+        console.log('Returning existing cache for ' + key);
+        return cache!.data;
+      }
+      console.log('Rebuilding cache for ' + key);
+      const search = getTaggedSearch(tagFilters);
+      const data = await doSearch(search);
+      console.log('Saving cache for ' + key);
+      await saveStringCache(cachePath, gameCount, flatKey, data);
+      return data;
+    });
+  };
+}
+
+export const getAllDevelopers = getStringCachedDataFactory('developers', (search) => fpDatabase.findAllGameDevelopers(search));
+export const getAllPublishers = getStringCachedDataFactory('publishers', (search) => fpDatabase.findAllGamePublishers(search));
+export const getAllSeries = getStringCachedDataFactory('series', (search) => fpDatabase.findAllGameSeries(search));

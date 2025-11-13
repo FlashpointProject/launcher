@@ -1,4 +1,4 @@
-import { createSearchFilter, getTaggedSearch } from '@back/util/search';
+import { createSearchFilter } from '@back/util/search';
 import {
   GameSearchOffset,
   GameSearchSortable,
@@ -61,7 +61,7 @@ import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
-import { getTags } from './DatabaseCache';
+import { getAllDevelopers, getAllPublishers, getAllSeries, getTags, markGameSave } from './DatabaseCache';
 import { ExtConfigFile } from './ExtConfigFile';
 import { escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
@@ -81,7 +81,7 @@ import { axios } from './dns';
 import { parseAppVar } from './extensions/util';
 import { downloadGameDataRes } from './flashpoint/WebgameContentRunner';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { databaseReady, fpDatabase, loadCurationArchive } from './index';
+import { fpDatabase, loadCurationArchive } from './index';
 import {
   addPlaylistGame,
   deletePlaylist,
@@ -546,6 +546,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
       const total = await fpDatabase.countGames();
       const cats = await fpDatabase.findAllTagCategories();
+      markGameSave();
       state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total, state.preferences.gameMetadataSources[sourceIdx]);
       state.socketServer.broadcast(BackOut.TOAST, 'sync', 'Update Complete', {
         type: 'success',
@@ -834,6 +835,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
     await fpDatabase.saveGames(data);
+    markGameSave();
   });
 
   state.socketServer.register(BackIn.SAVE_GAME, async (event, game) => {
@@ -853,6 +855,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       //   info.game.activeGameConfigOwner = undefined;
       // }
       const savedGame = await fpDatabase.saveGame(game);
+      markGameSave();
       broadcastGameUpdate(state, game.id);
       return savedGame;
     } catch (err) {
@@ -1323,27 +1326,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   // });
 
   state.socketServer.register(BackIn.GET_DISTINCT_DEVELOPERS, async (event, tagFilters) => {
-    const search = getTaggedSearch(tagFilters);
-    return databaseReady()
-    .then((db) => {
-      return db.findAllGameDevelopers(search);
-    });
+    return getAllDevelopers(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.GET_DISTINCT_PUBLISHERS, async (event, tagFilters) => {
-    const search = getTaggedSearch(tagFilters);
-    return databaseReady()
-    .then((db) => {
-      return db.findAllGamePublishers(search);
-    });
+    return getAllPublishers(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.GET_DISTINCT_SERIES, async (event, tagFilters) => {
-    const search = getTaggedSearch(tagFilters);
-    return databaseReady()
-    .then((db) => {
-      return db.findAllGameSeries(search);
-    });
+    return getAllSeries(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, data) => {
