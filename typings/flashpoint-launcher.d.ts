@@ -3396,6 +3396,7 @@ declare module 'flashpoint-launcher-renderer' {
 
   type DropdownRowProps<T> = T & {
     index: number;
+    closeDropdown: () => void;
   }
 
   type DropdownCommonProps = {
@@ -3409,7 +3410,7 @@ declare module 'flashpoint-launcher-renderer' {
     form?: boolean;
   }
 
-  type DropdownFrameProps = DropdownCommonProps &{
+  type DropdownFrameProps = DropdownCommonProps & {
     children: React.JSX.Element;
   }
 
@@ -3421,6 +3422,18 @@ declare module 'flashpoint-launcher-renderer' {
     /** Component to render a row */
     rowRenderer: (props: DropdownRowProps<T>) => React.JSX.Element;
   };
+
+  type DropdownCheckboxRowProps<T> = {
+    labels: T[],
+    labelRenderer?: (props: { label: T, index: number }) => React.JSX.Element;
+    onToggle: (index: number) => void;
+    isChecked: (index: number) => boolean;
+  }
+
+  type DropdownStringRowProps = {
+    items: string[],
+    onSelect: (index: number) => void;
+  }
 
   declare global {
     interface Window {
@@ -3459,8 +3472,10 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
     BrowsePageDisplayGridProps,
     BrowsePageDisplayListProps,
     CheckBoxProps,
+    DropdownCheckboxRowProps,
     DropdownFrameProps,
     DropdownProps,
+    DropdownStringRowProps,
     GameComponentDropdownSelectFieldProps,
     GameComponentInputFieldProps,
     HomePageBoxProps,
@@ -3470,7 +3485,7 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
     SimpleButtonProps,
     SizeProviderProps,
     SortableColumnProps,
-    StateWrapperProps,
+    StateWrapperProps
   } from 'flashpoint-launcher-renderer';
   import { ComponentType } from 'react';
 
@@ -3490,8 +3505,10 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   const StateWrapper: ComponentType<StateWrapperProps>;
   const SimpleButton: ComponentType<SimpleButtonProps>;
   const CheckBox: ComponentType<CheckBoxProps>;
-  const Dropdown: ComponentType<DropdownProps>;
-  const DropdownFrame: ComponentType<DropdownFrameProps>;
+  const Dropdown: <T>(props: DropdownProps<T>) => React.ReactElement;
+  const DropdownFrame: <T>(props: DropdownFrameProps<T>) => React.ReactElement;
+  const DropdownCheckboxRow: <T>(props: DropdownRowProps<DropdownCheckboxRowProps<T>>) => React.ReactElement;
+  const DropdownStringRow: (props: DropdownRowProps<DropdownStringRowProps>) => React.ReactElement;
 }
 
 declare module 'flashpoint-launcher-renderer-ext/hooks' {

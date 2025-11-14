@@ -37,7 +37,7 @@ import { BrowsePageDisplayGrid, BrowsePageDisplayList } from './BrowsePageDispla
 import { CheckBox } from './CheckBox';
 import { Dialog } from './Dialog';
 import { GameComponentDropdownSelectField, GameComponentInputField } from './DisplayComponent';
-import { Dropdown, DropdownFrame } from './Dropdown';
+import { Dropdown, DropdownCheckboxRow, DropdownFrame, DropdownStringRow } from './Dropdown';
 import { DynamicComponent } from './DynamicComponent';
 import { DynamicComponentProvider, RemoteModule } from './DynamicComponentProvider';
 import { DynamicThemeProvider } from './DynamicThemeProvider';
@@ -450,6 +450,8 @@ function addExtIntercepts() {
     CheckBox,
     Dropdown,
     DropdownFrame,
+    DropdownCheckboxRow,
+    DropdownStringRow,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/components');
 
   (window as any)['flashpoint-launcher-renderer-ext/hooks'] = {

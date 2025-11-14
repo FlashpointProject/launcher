@@ -5,8 +5,9 @@ import { clearLogs } from '@renderer/store/logs/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { BackIn } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
+import { DropdownCheckboxRowProps } from 'flashpoint-launcher-renderer';
 import { useState } from 'react';
-import { Dropdown, DropdownCheckboxRow, DropdownCheckboxRowProps } from '../Dropdown';
+import { Dropdown, DropdownCheckboxRow } from '../Dropdown';
 import { LogBox } from '../LogBox';
 
 export type LogsPageProps = any;

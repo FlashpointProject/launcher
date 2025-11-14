@@ -1,5 +1,5 @@
-import { DropdownFrameProps, DropdownProps, DropdownRowProps } from 'flashpoint-launcher-renderer';
-import React, { Activity, useEffect, useMemo, useRef, useState } from 'react';
+import { DropdownCheckboxRowProps, DropdownFrameProps, DropdownProps, DropdownRowProps, DropdownStringRowProps } from 'flashpoint-launcher-renderer';
+import { Activity, useEffect, useMemo, useRef, useState } from 'react';
 
 // A text element, with a drop-down element that can be shown/hidden.
 export function DropdownFrame({ children, form, text, className, headerClassName }: DropdownFrameProps) {
@@ -88,7 +88,7 @@ export function Dropdown<T>({ rowCount, rowRenderer: RowRenderer, rowProps, form
     const rows = [];
     for (let i = 0; i < rowCount; i++) {
       rows.push(
-        <RowRenderer key={i} index={i} {...rowProps} />
+        <RowRenderer key={i} index={i} closeDropdown={() => setExpanded(false)} {...rowProps} />
       );
     }
     return rows;
@@ -119,13 +119,6 @@ export function Dropdown<T>({ rowCount, rowRenderer: RowRenderer, rowProps, form
   );
 }
 
-export type DropdownCheckboxRowProps<T> = {
-  labels: T[],
-  labelRenderer?: (props: { label: T, index: number }) => React.JSX.Element;
-  onToggle: (index: number) => void;
-  isChecked: (index: number) => boolean;
-}
-
 export function DropdownCheckboxRow<T>({
   labels, labelRenderer: LabelRenderer, onToggle, isChecked, index
 }: DropdownRowProps<DropdownCheckboxRowProps<T>>) {
@@ -148,6 +141,29 @@ export function DropdownCheckboxRow<T>({
             <LabelRenderer label={label} index={index} /> :
             String(label)}
         </p>
+      </div>
+    </label>
+  );
+}
+
+export function DropdownStringRow({
+  items, onSelect, index, closeDropdown
+}: DropdownRowProps<DropdownStringRowProps>) {
+  const label = items[index];
+
+  return (
+    <label
+      key={index}
+      className='log-page__dropdown-item'
+      onClick={() => {
+        onSelect(index);
+        closeDropdown();
+      }}>
+      <div className='simple-center'>
+        <div
+          className='simple-center__vertical-inner log-page__dropdown-item-text'>
+          {label}
+        </div>
       </div>
     </label>
   );

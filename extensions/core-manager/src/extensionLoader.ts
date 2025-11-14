@@ -6,6 +6,7 @@ export type ManagerExtensionInfo = {
   description: string;
   iconUrl?: string;
   newestVersion: string;
+  availableVersions: string[];
   getDownloadUrl?: (version: string) => string,
   installed: boolean;
 }
@@ -25,6 +26,7 @@ export async function loadExtIndexUrl(url: string): Promise<ManagerExtensionInfo
     getDownloadUrl: (ext.repository && ext.artifactName) ? (version: string) => {
       return `${ext.repository}/releases/download/${version}/${ext.artifactName}`;
     } : undefined,
+    availableVersions: ext.availableVersions,
     installed: false // Default to false, would need to check against installed extensions
   }));
 }
@@ -36,6 +38,7 @@ export async function loadExtRepoRaw(url: string): Promise<ManagerExtensionInfo[
       title: 'Mock Extension One',
       description: 'Mocked Extension',
       newestVersion: '',
+      availableVersions: [],
       installed: false,
     },
     {
@@ -43,6 +46,7 @@ export async function loadExtRepoRaw(url: string): Promise<ManagerExtensionInfo[
       title: 'Mock Extension Two',
       description: 'Mocked Extension',
       newestVersion: '',
+      availableVersions: [],
       installed: false,
     },
     {
@@ -50,6 +54,7 @@ export async function loadExtRepoRaw(url: string): Promise<ManagerExtensionInfo[
       title: 'Mock Extension Three',
       description: 'Mocked Extension',
       newestVersion: '',
+      availableVersions: [],
       installed: false,
     },
     {
@@ -57,6 +62,7 @@ export async function loadExtRepoRaw(url: string): Promise<ManagerExtensionInfo[
       title: 'Mock Extension Four',
       description: 'Mocked Extension',
       newestVersion: '',
+      availableVersions: [],
       installed: false,
     },
     {
@@ -64,6 +70,7 @@ export async function loadExtRepoRaw(url: string): Promise<ManagerExtensionInfo[
       title: 'Mock Extension Five',
       description: 'Mocked Extension',
       newestVersion: '',
+      availableVersions: [],
       installed: false,
     },
   ];

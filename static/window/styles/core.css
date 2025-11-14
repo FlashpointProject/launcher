@@ -196,8 +196,8 @@ body {
 .simple-dropdown__select-icon {
   width: 1.25em;
   align-self: center;
-  flex: 0 0 auto;
-  margin-top: -0.125em;
+  flex-grow: 0;
+  text-align-last: center;
 }
 .simple-dropdown__select-icon:before {
   content: "▾";
