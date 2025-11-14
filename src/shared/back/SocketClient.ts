@@ -118,21 +118,23 @@ export class SocketClient<SOCKET extends BaseSocket> extends EventEmitter {
       }
 
       if (this.url) {
-        // Connect
-        return SocketClient.connect(this.socketCon, this.url, this.secret)
-        .then(socket => {
-          this.setSocket(socket);
-          if (this.onStateChange) {
-            this.onStateChange(true);
-          }
-        })
-        .catch(async (error) => {
-          console.error(`Failed Connection Attempt: ${error}`);
-          await new Promise<void>(resolve => {
-            setTimeout(resolve, 2000);
+        if (!this.abortReconnects) {
+          // Connect
+          return SocketClient.connect(this.socketCon, this.url, this.secret)
+          .then(socket => {
+            this.setSocket(socket);
+            if (this.onStateChange) {
+              this.onStateChange(true);
+            }
+          })
+          .catch(async (error) => {
+            console.error(`Failed Connection Attempt: ${error}`);
+            await new Promise<void>(resolve => {
+              setTimeout(resolve, 2000);
+            });
+            return this.reconnect();
           });
-          return this.reconnect();
-        });
+        }
       } else {
         console.error('No client url stored, cannot reconnect (Is this a host?)');
       }

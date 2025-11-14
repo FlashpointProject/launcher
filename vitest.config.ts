@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    silent: true,
     environment: 'jsdom',
     setupFiles: ['src/vitest-setup.ts'],
     globals: true,

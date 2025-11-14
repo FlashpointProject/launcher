@@ -1,6 +1,6 @@
 import { setMainState } from '@renderer/store/main/slice';
 import { renderWithProviders } from '@test/redux';
-import { waitFor } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { SplashScreen } from './SplashScreen';
 
@@ -10,9 +10,9 @@ describe('SplashScreen', () => {
 
     expect(container.querySelector('.splash-screen')).toBeInTheDocument();
 
-    store.dispatch(setMainState({
+    act(() => store.dispatch(setMainState({
       loadedAll: true,
-    }));
+    })));
 
     // Wait for it to disappear (with timeout slightly longer than 2000ms)
     await waitFor(

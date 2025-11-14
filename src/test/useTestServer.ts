@@ -11,6 +11,7 @@ export function useTestServer(mockHandlers?: MockHandlers) {
     server.listen();
     socket = await SocketClient.connect(WebSocket, mockServerUrl, 'flashpoint-launcher');
     window.Shared.back = new SocketClient(WebSocket);
+    window.Shared.back.abortReconnects = true;
     window.Shared.back.secret = 'flashpoint-launcher';
     window.Shared.back.url = mockServerUrl;
     window.Shared.back.setSocket(socket);
