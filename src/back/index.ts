@@ -294,6 +294,7 @@ async function main() {
     exePath: args['exe-path'],
     acceptRemote: args['accept-remote'],
   };
+  state.isElectron = args.electron;
 
   prepForInit(config);
   process.on('SIGTERM', () => { exit(state); });
@@ -671,6 +672,7 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
     path.join(state.config.flashpointPath, state.preferences.extensionsPath),
     state.isDev,
     state.isElectron,
+    state.exePath,
   );
   await state.extensionsService.installedExtensionsReady.wait();
 

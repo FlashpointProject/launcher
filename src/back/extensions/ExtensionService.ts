@@ -28,6 +28,7 @@ export class ExtensionService {
     protected readonly _extensionPath: string,
     protected readonly _isDev: boolean,
     protected readonly _isElectron: boolean,
+    protected readonly _exePath: string,
   ) {
     this._extensions = [];
     this._extensionData = {};
@@ -40,7 +41,7 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
-    const sysExts = await scanSystemExtensions(this._isDev, this._isElectron);
+    const sysExts = await scanSystemExtensions(this._isDev, this._isElectron, this._exePath);
     sysExts.forEach(e => this._extensions.push(e));
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));

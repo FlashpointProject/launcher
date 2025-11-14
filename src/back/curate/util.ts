@@ -29,7 +29,7 @@ export type UpdateCurationFileFunc = (folder: string, relativePath: string, data
 export type RemoveCurationFileFunc = (folder: string, relativePath: string) => Promise<void>;
 
 export const onFileServerRequestPostCuration =
-  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, fpfssInfo: CurationFpfssInfo | null, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
+  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, clearUuid?: boolean, fpfssInfo?: CurationFpfssInfo, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
     console.log(pathname);
     if (req.method === 'POST') {
       const chunks: any[] = [];
@@ -46,7 +46,7 @@ export const onFileServerRequestPostCuration =
         const randomFilePath = path.join(tempCurationsPath, `${uuid()}.7z`);
         await fs.promises.mkdir(path.dirname(randomFilePath), { recursive: true });
         await fs.promises.writeFile(randomFilePath, data);
-        await onNewCuration(randomFilePath, null)
+        await onNewCuration(randomFilePath)
         .then(() => {
           res.writeHead(200);
           res.end();

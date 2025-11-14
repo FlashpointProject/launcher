@@ -9,8 +9,8 @@ import * as path from 'node:path';
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
-export async function scanSystemExtensions(isDev: boolean, isElectron: boolean): Promise<IExtension[]> {
-  const extensionPath = (!isDev && isElectron) ? './resources/extensions': './extensions';
+export async function scanSystemExtensions(isDev: boolean, isElectron: boolean, exePath: string): Promise<IExtension[]> {
+  const extensionPath = (!isDev && isElectron) ? path.resolve(path.dirname(exePath), 'resources', 'extensions'): './extensions';
 
   const result = new Map<string, IExtension>();
 
@@ -39,8 +39,8 @@ export async function scanSystemExtensions(isDev: boolean, isElectron: boolean):
       .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
     }));
   })
-  .catch(() => {
-    log.warn('Launcher', 'Failed to read System Extensions folder. This may be expected behaviour.');
+  .catch((error) => {
+    log.warn('Launcher', `Failed to read System Extensions folder. This may be expected behaviour. ExtPath: ${extensionPath}, Error: ${error}`);
   });
 
   // Convert the map to an array and return
