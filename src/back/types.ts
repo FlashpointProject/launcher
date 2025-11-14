@@ -74,6 +74,8 @@ export type BackState = {
   sevenZipPath: string;
   /** All currently loaded curations. */
   loadedCurations: flashpoint.CurationState[];
+  /** List of curation template files */
+  curationTemplates: string[];
   /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
   platformAppPaths: PlatformAppPathSuggestions;
   writeLocks: number;

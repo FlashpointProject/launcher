@@ -1132,6 +1132,9 @@ body {
   font-weight: bold;
   margin-top: 0.5rem;
 }
+.curate-page__right-templates {
+  width: 100%;
+}
 .curate-page__right-dropdown-content {
   display: flex;
 }

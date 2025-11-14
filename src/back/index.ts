@@ -30,7 +30,9 @@ import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
   CURATIONS_FOLDER_TEMP,
-  CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
+  CURATIONS_FOLDER_TEMPLATES,
+  CURATIONS_FOLDER_WORKING,
+  CURATION_META_FILENAMES
 } from '@shared/constants';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
@@ -209,6 +211,7 @@ export const state: BackState = {
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
   loadedCurations: [],
+  curationTemplates: [],
   platformAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
@@ -663,7 +666,12 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   // Load Extensions
 
   await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
-  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath), state.isDev);
+  state.extensionsService = new ExtensionService(
+    state.config,
+    path.join(state.config.flashpointPath, state.preferences.extensionsPath),
+    state.isDev,
+    state.isElectron,
+  );
   await state.extensionsService.installedExtensionsReady.wait();
 
   console.log('Back - Parsed Extensions');
@@ -1083,6 +1091,13 @@ async function initialize() {
   state.initEmitter.emit(BackInit.DATABASE);
 
   console.log('Back - Initialized Database');
+
+  // Read curation template filenames
+  const templatesPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMPLATES);
+  await fs.ensureDir(templatesPath);
+  state.curationTemplates = (await fs.promises.readdir(templatesPath, { withFileTypes: true }))
+  .filter(f => f.isFile())
+  .map(f => f.name);
 
   // Load curations asynchronously
 
@@ -1646,7 +1661,7 @@ async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<vo
   if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
 }
 
-export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoint.CurationFpfssInfo | null, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
+export async function loadCurationArchive(filePath: string, clearUuid?: boolean, fpfssInfo?: flashpoint.CurationFpfssInfo, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
   const key = uuid();
   const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
   // Extract to temp folder
@@ -1678,6 +1693,9 @@ export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoin
   // Load curation
   const parsedMeta = await readCurationMeta(curationPath, state.platformAppPaths);
   if (!parsedMeta) { throw new Error('Fail'); }
+  if (clearUuid) {
+    parsedMeta.uuid = uuid();
+  }
 
   const loadedCuration: flashpoint.LoadedCuration = {
     folder: key,
@@ -1685,7 +1703,7 @@ export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoin
     group: parsedMeta.group,
     game: parsedMeta.game,
     addApps: parsedMeta.addApps,
-    fpfssInfo,
+    fpfssInfo: fpfssInfo || null,
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };

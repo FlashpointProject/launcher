@@ -199,6 +199,8 @@ export enum BackIn {
   CURATE_GEN_WARNINGS,
   CURATE_DUPLICATE,
   CURATE_SCAN_NEW_CURATIONS,
+  CURATE_GET_TEMPLATES,
+  CURATE_CREATE_TEMPLATE_FROM_CURATION,
 
   // Misc
   OPEN_LOGS_WINDOW,
@@ -293,6 +295,7 @@ export enum BackOut {
   CURATE_LIST_CHANGE,
   CURATE_SELECT_LOCK,
   CURATE_SELECT_CURATIONS,
+  CURATE_TEMPLATES_CHANGE,
 
   UPDATE_TASK,
   CREATE_TASK,
@@ -451,7 +454,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.FPFSS_OPEN_CURATION]: (fpfssInfo: CurationFpfssInfo, url: string, accessToken: string, taskId: string) => void;
 
   // Curate
-  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;
+  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], isTemplate?: boolean, taskId?: string) => void;
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_REQUEST_CONTENT]: (folder: string) => void;
@@ -466,6 +469,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_GEN_WARNINGS]: (curation: CurationState) => CurationWarnings;
   [BackIn.CURATE_DUPLICATE]: (folders: string[]) => void;
   [BackIn.CURATE_SCAN_NEW_CURATIONS]: () => void;
+  [BackIn.CURATE_GET_TEMPLATES]: () => string[];
+  [BackIn.CURATE_CREATE_TEMPLATE_FROM_CURATION]: (folder: string, name: string) => void;
 
   // Misc
   [BackIn.OPEN_LOGS_WINDOW]: () => void;
@@ -566,6 +571,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
   [BackOut.CURATE_SELECT_LOCK]: (folder: string, locked: boolean) => void;
   [BackOut.CURATE_SELECT_CURATIONS]: (folders: string[]) => void;
+  [BackOut.CURATE_TEMPLATES_CHANGE]: (templates: string[]) => void;
 
   // Tasks
   [BackOut.UPDATE_TASK]: (task: Partial<Task>) => void;
@@ -646,7 +652,6 @@ export type GetLoggerInitDataResponse = {
 export type GetRendererExtDataResponse = {
   extensions: IExtensionDescription[];
   contextButtons: ExtensionContribution<'contextButtons'>[];
-  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
 }

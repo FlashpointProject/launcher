@@ -4,7 +4,7 @@ import { useLocalization } from '@renderer/hooks/useLocalization';
 import * as curateActions from '@renderer/store/curate/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { addTask, setTask } from '@renderer/store/tasks/slice';
-import { axios, getCurationPostURL, getPlatformIconURL, openUrlInWindow } from '@renderer/Util';
+import { axios, getCurationPostURL, openUrlInWindow } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
@@ -20,7 +20,7 @@ import { toast } from 'react-toastify';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
-import { Dropdown } from '../Dropdown';
+import { Dropdown, DropdownStringRow } from '../Dropdown';
 import { useFileLoader } from '../FileLoader';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
@@ -43,7 +43,7 @@ export function CuratePage() {
   const shortcutPrefs = useAppSelector(state => state.preferences.shortcuts);
   const symlinkCurationContent = useAppSelector(state => state.preferences.symlinkCurationContent);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
-  const curationTemplates = useAppSelector(state => state.main.curationTemplates);
+  const curationTemplates = useAppSelector(state => state.curate.curationTemplates);
   const extContextButtons = useAppSelector(state => state.main.contextButtons);
   const mad4fpEnabled = useAppSelector(state => state.main.mad4fpEnabled);
   const { fileLoader, openFileSelect } = useFileLoader();
@@ -93,6 +93,13 @@ export function CuratePage() {
     });
   };
 
+  const onCreateTemplateFromCuration = () => {
+    const curation = curate.curations.find(c => c.folder === curate.current);
+    if (curation) {
+      window.Shared.back.request(BackIn.CURATE_CREATE_TEMPLATE_FROM_CURATION, curation.folder, curation.game.title || 'Template Curation ' + Date.now());
+    }
+  };
+
   const onScanForNewCurations = () => {
     window.Shared.back.send(BackIn.CURATE_SCAN_NEW_CURATIONS);
   };
@@ -107,7 +114,7 @@ export function CuratePage() {
         if (filePaths !== undefined && filePaths.length > 0) {
           const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
           dispatch(addTask(newTask));
-          window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
+          window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, false, newTask.id);
         }
       });
     } else {
@@ -312,7 +319,6 @@ export function CuratePage() {
       .then((data) => {
         if (data) {
           setPlatformSuggestions(data);
-          console.log(data.length + ' platform suggs');
         }
       });
     } else {
@@ -346,17 +352,6 @@ export function CuratePage() {
     if (curation) {
       dispatch(curateActions.regenUuid({
         folder: curation.folder
-      }));
-    }
-  };
-
-  const onExportDataPacks = async () => {
-    if (curate.selected.length > 0) {
-      // Generate task
-      const newTask = newCurateTask(`Exporting Data Packs for ${curate.selected.length} Curations`, 'Exporting...');
-      dispatch(addTask(newTask));
-      dispatch(curateActions.exportCurationDataPacks({
-        taskId: newTask.id
       }));
     }
   };
@@ -447,29 +442,6 @@ export function CuratePage() {
       );
     }
   });
-
-  const curationTemplateButtons = curationTemplates.map(c => {
-    return c.value.map((template, index) => {
-      return (
-        <label
-          className='curate-page__right-dropdown-content simple-dropdown-button'
-          key={index}
-          onClick={() => {
-            dispatch(curateActions.createCuration({
-              folder: uuid(),
-              meta: template.meta
-            }));
-          }}>
-          <div
-            className='curate-page__right-dropdown-content-icon'
-            style={{ backgroundImage: `url('${getPlatformIconURL(template.logo, logoVersion)}')` }} />
-          <div>
-            {template.name}
-          </div>
-        </label>
-      );
-    });
-  }).reduce((prev, cur) => prev.concat(cur), []);
 
   const onLoadCurationDrop = async (event: React.DragEvent) => {
     const files = event.dataTransfer.files;
@@ -573,13 +545,18 @@ export function CuratePage() {
       <div className='curate-page__right simple-scroll'>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerFileOperations}</div>
-          { curationTemplateButtons.length > 0 && (
+          {curationTemplates.length > 0 && (
             <Dropdown
-              className='curate-page__right--button'
-              headerClassName='simple-dropdown-button'
-              text={strings.curate.newCurationFromTemplate}>
-              {curationTemplateButtons}
-            </Dropdown>
+              className='curate-page__right-templates'
+              rowProps={{
+                items: curationTemplates,
+                onSelect: (index) => {
+                  window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, [curationTemplates[index]], true);
+                }
+              }}
+              rowRenderer={DropdownStringRow}
+              rowCount={curationTemplates.length}
+              text={strings.curate.newCurationFromTemplate}/>
           )}
           <SimpleButton
             className='curate-page__right--button'
@@ -590,6 +567,11 @@ export function CuratePage() {
             onClick={onDupeCurations}
             disabled={disabled}
             value={strings.curate.duplicateCuration}/>
+          <SimpleButton
+            className='curate-page__right--button'
+            onClick={onCreateTemplateFromCuration}
+            disabled={disabled}
+            value={strings.curate.createTemplateFromCuration}/>
           <SimpleButton
             className='curate-page__right--button'
             onClick={onLoadCuration}
@@ -659,23 +641,6 @@ export function CuratePage() {
               value: 'Regenerate UUID',
               disabled
             }}/>
-          { warningCount > 0 ? (
-            <ConfirmElement
-              render={renderConfirmButton}
-              message={strings.dialog.exportCurationWithWarnings}
-              onConfirm={onExportDataPacks}
-              extra={{
-                className: 'curate-page__right--button',
-                value: dependantStrings.exportDataPack,
-                disabled
-              }}/>
-          ) : (
-            <SimpleButton
-              className='curate-page__right--button'
-              onClick={onExportDataPacks}
-              disabled={disabled}
-              value={dependantStrings.exportDataPack}/>
-          )}
           <SimpleButton
             className='curate-page__right--button'
             onClick={() => {

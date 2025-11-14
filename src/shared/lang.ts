@@ -469,6 +469,7 @@ export const langTemplate = {
     'newCuration',
     'newCurationDesc',
     'duplicateCuration',
+    'createTemplateFromCuration',
     'newCurationFromTemplate',
     'loadMeta',
     'loadMetaDesc',

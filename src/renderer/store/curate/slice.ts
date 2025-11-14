@@ -113,7 +113,8 @@ const initialState: CurateState = {
   curations: [],
   current: '',
   selected: [],
-  lastSelected: ''
+  lastSelected: '',
+  curationTemplates: [],
 };
 
 const curateSlice = createSlice({
@@ -187,6 +188,7 @@ const curateSlice = createSlice({
       if (!ctrl && !shift) {
         state.selected = [folder];
         state.current = folder;
+        state.lastSelected = folder;
       }
 
       // Ctrl - Single toggle
@@ -199,11 +201,13 @@ const curateSlice = createSlice({
           // Select
           state.selected.push(folder);
         }
+        state.lastSelected = folder;
       // Shift - Select range
       } else if (shift) {
         if (state.lastSelected === '') {
           // No last selected, treat as single select
           state.selected = [folder];
+          state.lastSelected = folder;
           state.current = folder;
         } else {
           // Select all from previous to current
@@ -213,7 +217,7 @@ const curateSlice = createSlice({
           // Make sure both exist
           if (lastSelectedIdx !== -1 && nextSelectedIdx !== -1) {
             const startIdx = Math.min(lastSelectedIdx, nextSelectedIdx);
-            const endIdx = Math.min(lastSelectedIdx, nextSelectedIdx);
+            const endIdx = Math.max(lastSelectedIdx, nextSelectedIdx);
             state.selected = state.curations.slice(startIdx, endIdx + 1).reduce<string[]>((prev, next) => prev.concat(next.folder), []);
           }
         }
@@ -474,6 +478,9 @@ const curateSlice = createSlice({
         }
       }
     }),
+    setCurationTemplates(state: CurateState, { payload }: PayloadAction<string[]>) {
+      state.curationTemplates = payload;
+    },
     setLock(state: CurateState, { payload }: PayloadAction<SetLockAction>) {
       const curation = state.curations.find(c => c.folder === payload.folder);
       if (curation) {
@@ -544,5 +551,6 @@ export const { createCuration,
   toggleGroupPin,
   changeGroup,
   setCurateLoaded,
+  setCurationTemplates,
   setLock } = curateSlice.actions;
 export default curateSlice.reducer;

@@ -31,7 +31,7 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
-import { CurationTemplate, Game, IExtensionManifest, Task } from 'flashpoint-launcher';
+import { Game, IExtensionManifest, Task } from 'flashpoint-launcher';
 import * as fsExtra from 'fs-extra';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -443,7 +443,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
           status: `Loading ${filePath}`
         });
       }
-      const curState = await loadCurationArchive(filePath, null)
+      const curState = await loadCurationArchive(filePath, false, undefined)
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()) as string);
@@ -467,9 +467,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getCurations: () => {
       return [...state.loadedCurations];
     },
-    async getCurationTemplates(): Promise<CurationTemplate[]> {
-      const contribs = await state.extensionsService.getEnabledContributions('curationTemplates', state.preferences.disabledExtensions);
-      return contribs.reduce<CurationTemplate[]>((prev, cur) => prev.concat(cur.value), []);
+    async getCurationTemplates(): Promise<string[]> {
+      return state.curationTemplates;
     },
     getCuration: (folder: string) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);

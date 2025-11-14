@@ -19,6 +19,7 @@ import {
 import { overwriteConfigData } from '@shared/config/util';
 import {
   CURATIONS_FOLDER_EXPORTED,
+  CURATIONS_FOLDER_TEMPLATES,
   CURATIONS_FOLDER_WORKING,
   LOGOS,
   SCREENSHOTS,
@@ -189,7 +190,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async () => {
     return {
       contextButtons: await state.extensionsService.getEnabledContributions('contextButtons', state.preferences.disabledExtensions),
-      curationTemplates: await state.extensionsService.getEnabledContributions('curationTemplates', state.preferences.disabledExtensions),
       extConfigs: await state.extensionsService.getEnabledContributions('configuration', state.preferences.disabledExtensions),
       extConfig: state.extConfig,
       extensions: (await state.extensionsService.getExtensions()).map(e => {
@@ -2200,8 +2200,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return result;
   });
 
-  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, taskId) => {
+  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, isTemplate, taskId) => {
     let processed = 0;
+    if (isTemplate) {
+      filePaths = filePaths.map(f => path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMPLATES, f));
+    }
     const taskProgress = new TaskProgress(filePaths.length);
     if (taskId) {
       taskProgress.on('progress', (text, done) => {
@@ -2223,7 +2226,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     for (const filePath of filePaths) {
       processed = processed + 1;
       taskProgress.setStage(processed, `Loading ${filePath}`);
-      await loadCurationArchive(filePath, null, throttle((progress: Progress) => {
+      await loadCurationArchive(filePath, !!isTemplate, undefined, throttle((progress: Progress) => {
         taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
       }, 200))
       .catch((error) => {
@@ -2237,6 +2240,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CURATE_GEN_WARNINGS, async (event, curation) => {
     return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings);
+  });
+
+  state.socketServer.register(BackIn.CURATE_GET_TEMPLATES, () => {
+    return state.curationTemplates;
   });
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async () => {
@@ -2415,7 +2422,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     await fs.ensureDir(curationsPath);
     const curations = await fs.promises.readdir(curationsPath, { withFileTypes: true });
     for (const curation of curations) {
-      console.log(curation.name);
       if (curation.isDirectory()) {
         const exists = state.loadedCurations.find(c => c.folder === curation.name);
         if (!exists) {
@@ -2475,6 +2481,44 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
+  state.socketServer.register(BackIn.CURATE_CREATE_TEMPLATE_FROM_CURATION, async (event, folder, name) => {
+    const curation = state.loadedCurations.find(c => c.folder === folder);
+    if (curation) {
+      let filename = `${sanitizeFilename(name)}.7z`;
+      const templateFolder = path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMPLATES);
+      let fullPath = path.join(templateFolder, filename);
+
+      await fs.ensureDir(templateFolder);
+      // Don't overwrite existing templates
+      if (fs.existsSync(fullPath)) {
+        filename = `${sanitizeFilename(name)}-${Date.now()}.7z`;
+        fullPath = path.join(templateFolder, filename);
+      }
+
+      // Make sure curation is up to date on disk
+      const curPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
+      await saveCuration(curPath, curation);
+      state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, true);
+      await new Promise<void>((resolve) => {
+        // Cast required until types fixed
+        return (add as any)(fullPath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.isElectron, state.exePath) })
+        .on('end', () => { resolve(); })
+        .on('error', (error: any) => {
+          log.error('Curate', error.message);
+          resolve();
+        });
+      })
+      .finally(() => {
+        state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
+      });
+
+      state.curationTemplates.push(filename);
+    } else {
+      throw new Error(`No curation found with folder '${folder}'`);
+    }
+    state.socketServer.broadcast(BackOut.CURATE_TEMPLATES_CHANGE, state.curationTemplates);
+  });
+
   state.socketServer.register(BackIn.FPFSS_OPEN_CURATION, async (event, fpfssInfo, url, accessToken, taskId) => {
     // Setup task info
     const taskProgress = new TaskProgress(2);
@@ -2509,7 +2553,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
 
     taskProgress.setStage(2, `Loading ${tempFile}`);
-    await loadCurationArchive(tempFile, fpfssInfo, throttle((progress: Progress) => {
+    await loadCurationArchive(tempFile, false, fpfssInfo, throttle((progress: Progress) => {
       taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
     }, 200))
     .catch((error) => {

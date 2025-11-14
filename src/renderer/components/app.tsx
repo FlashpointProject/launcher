@@ -4,7 +4,7 @@ import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
-import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
+import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurationTemplates, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
 import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks } from '@renderer/store/downloads/slice';
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
@@ -93,6 +93,7 @@ const selectRemoteModules = createSelector(
     (state: RootState) => state.preferences.disabledExtensions
   ],
   (extensions, disabledExtensions) => {
+    console.log(extensions);
     return extensions
     .filter(ext => !disabledExtensions.includes(ext.id))
     .reduce<RemoteModule[]>((prev, cur) => {
@@ -773,6 +774,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     }));
   });
 
+  window.Shared.back.register(BackOut.CURATE_TEMPLATES_CHANGE, (event, templates) => {
+    dispatch(setCurationTemplates(templates));
+  });
+
   window.Shared.back.request(BackIn.CURATE_GET_LIST)
   .then(curations => {
     for (const pinnedGroup of window.Shared.initialPreferences.curateGroups) {
@@ -780,6 +785,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     }
     dispatch(replaceCurations(curations));
     dispatch(setCurateLoaded());
+    window.Shared.back.request(BackIn.CURATE_GET_TEMPLATES)
+    .then(templates => {
+      dispatch(setCurationTemplates(templates));
+    });
   });
 
   window.Shared.back.register(BackOut.CURATE_CONTENTS_CHANGE, (event, folder, contents) => {
@@ -979,7 +988,6 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
   .then(data => {
     if (!data) { throw new Error('INIT_LISTEN response is missing data.'); }
     for (const index of data.done) {
-      console.log('found ' + index);
       switch (+index) { // DO NOT REMOVE - Fails to convert to enum without explicitint conversion
         case BackInit.DATABASE: {
           onDatabaseLoaded();

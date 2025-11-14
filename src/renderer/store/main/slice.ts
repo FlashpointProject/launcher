@@ -86,8 +86,6 @@ export type MainState = {
   metaEditExporterGameId: string;
   /** Context buttons added by extensions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
-  /** Curation Templates added by extensions */
-  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   /** Extension config options */
   extConfigs: ExtensionContribution<'configuration'>[];
   /** Current extension config data */
@@ -241,7 +239,6 @@ const initialState: MainState = {
   extConfig: {},
   extConfigs: [],
   contextButtons: [],
-  curationTemplates: [],
   services: [],
   downloadOpen: false,
   downloadPercent: 0,
@@ -287,11 +284,13 @@ const mainSlice = createSlice({
 
       const values = Object.values(state.loaded);
       if (values.length === values.reduce((prev, cur) => prev + (cur ? 1 : 0), 0)) {
-        const finishTime = Date.now();
-        window.Shared.back.request(BackIn.GET_START_TIME)
-        .then((startTime) => {
-          console.log(`Finished loading in ${finishTime - startTime}ms`);
-        });
+        if (window.electronAPI !== undefined) {
+          const finishTime = Date.now();
+          window.Shared.back.request(BackIn.GET_START_TIME)
+          .then((startTime) => {
+            console.log(`Finished loading in ${finishTime - startTime}ms`);
+          });
+        }
         state.loadedAll = true;
         // Ready to accept protocol, if available
         window.electronAPI?.protocolReady();
