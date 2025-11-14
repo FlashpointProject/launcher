@@ -645,7 +645,6 @@ export type GetLoggerInitDataResponse = {
 
 export type GetRendererExtDataResponse = {
   extensions: IExtensionDescription[];
-  devScripts: ExtensionContribution<'devScripts'>[];
   contextButtons: ExtensionContribution<'contextButtons'>[];
   curationTemplates: ExtensionContribution<'curationTemplates'>[];
   extConfigs: ExtensionContribution<'configuration'>[];

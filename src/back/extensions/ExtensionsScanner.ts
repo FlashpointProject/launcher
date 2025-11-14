@@ -1,11 +1,11 @@
 import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { ExtensionType, IExtension } from '@shared/extensions/interfaces';
 import { readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
+import { AppConfigData, Application, ButtonContext, ContextButton, Contributions, CurationTemplate, ExtConfiguration, ExtConfigurationProp, ExtTheme, IExtensionManifest, ILogoSet, ModuleContribution } from 'flashpoint-launcher';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { ExtensionType, IExtension } from '@shared/extensions/interfaces';
-import { AppConfigData, Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtTheme, IExtensionManifest, ILogoSet, ModuleContribution } from 'flashpoint-launcher';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
@@ -179,7 +179,6 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
   const contributes: Contributions = {
     logoSets: [],
     themes: [],
-    devScripts: [],
     contextButtons: [],
     applications: [],
     configuration: [],
@@ -189,7 +188,6 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
   };
   parser.prop('logoSets',          true).array(item => contributes.logoSets.push(parseLogoSet(item)));
   parser.prop('themes',            true).array(item => contributes.themes.push(parseTheme(item)));
-  parser.prop('devScripts',        true).array(item => contributes.devScripts.push(parseDevScript(item)));
   parser.prop('contextButtons',    true).array(item => contributes.contextButtons.push(parseContextButton(item)));
   parser.prop('applications',      true).array(item => contributes.applications.push(parseApplication(item)));
   parser.prop('configuration',     true).array(item => contributes.configuration.push(parseConfiguration(item)));
@@ -220,18 +218,6 @@ function parseTheme(parser: IObjectParserProp<ExtTheme>): ExtTheme {
   parser.prop('path',    v => theme.path    = str(v));
   parser.prop('logoSet', v => theme.logoSet = str(v), true);
   return theme;
-}
-
-function parseDevScript(parser: IObjectParserProp<DevScript>): DevScript {
-  const devScript: DevScript = {
-    name: '',
-    description: '',
-    command: ''
-  };
-  parser.prop('name',        v => devScript.name        = str(v));
-  parser.prop('description', v => devScript.description = str(v));
-  parser.prop('command',     v => devScript.command     = str(v));
-  return devScript;
 }
 
 function parseContextButton(parser: IObjectParserProp<ContextButton>): ContextButton {

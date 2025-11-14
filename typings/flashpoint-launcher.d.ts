@@ -2814,12 +2814,6 @@ declare module 'flashpoint-launcher' {
       logoSet?: string;
     }
 
-    type DevScript = {
-      name: string;
-      description: string;
-      command: string;
-    }
-
     type ButtonContext = 'game' | 'playlist' | 'curation';
 
     type ContextButton = {
@@ -2862,7 +2856,6 @@ declare module 'flashpoint-launcher' {
     type Contributions = {
       logoSets: ILogoSet[];
       themes: ExtTheme[];
-      devScripts: DevScript[];
       contextButtons: ContextButton[];
       applications: Application[];
       configuration: ExtConfiguration[];
@@ -3229,8 +3222,6 @@ declare module 'flashpoint-launcher-renderer' {
     metaEditExporterOpen: boolean;
     /** ID of the game used in the "Meta Edit Popup". */
     metaEditExporterGameId: string;
-    /** Scripts for the Developer Page */
-    devScripts: ExtensionContribution<'devScripts'>[];
     /** Context buttons added by extensions */
     contextButtons: ExtensionContribution<'contextButtons'>[];
     /** Curation Templates added by extensions */

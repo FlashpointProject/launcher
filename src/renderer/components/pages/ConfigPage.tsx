@@ -517,13 +517,6 @@ export function ConfigPage() {
 
     const shortContribs = [];
     if (ext.contributes) {
-      if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
-        shortContribs.push(
-          <div key='devScripts'>
-            {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
-          </div>
-        );
-      }
       if (ext.contributes.themes && ext.contributes.themes.length > 0) {
         shortContribs.push(
           <div key='themes'>

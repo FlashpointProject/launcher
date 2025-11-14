@@ -97,6 +97,20 @@ export class ExtensionService {
     });
   }
 
+  /**
+   * Returns a list of all extension contributions of a particular type filtered for enabled extensions
+   *
+   * @param key Type of contribution to get
+   * @param disabledExts Array of disabled extension IDs
+   * @returns All of this contribution type from all enabled and loaded extensions
+   */
+  getEnabledContributions<T extends keyof Contributions>(key: T, disabled: string[]): Promise<ExtensionContribution<T>[]> {
+    return this.getContributions(key)
+    .then((contribs) => {
+      return contribs.filter(c => !disabled.includes(c.extId));
+    });
+  }
+
   /** Build a search tree mapping extensions and their paths */
   public async getExtensionPathIndex(): Promise<TernarySearchTree<string, IExtension>> {
     return this.installedExtensionsReady.wait().then(() => {

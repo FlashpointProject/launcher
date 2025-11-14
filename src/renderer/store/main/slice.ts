@@ -84,8 +84,6 @@ export type MainState = {
   metaEditExporterOpen: boolean;
   /** ID of the game used in the "Meta Edit Popup". */
   metaEditExporterGameId: string;
-  /** Scripts for the Developer Page */
-  devScripts: ExtensionContribution<'devScripts'>[];
   /** Context buttons added by extensions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
   /** Curation Templates added by extensions */
@@ -242,7 +240,6 @@ const initialState: MainState = {
   extensions: [],
   extConfig: {},
   extConfigs: [],
-  devScripts: [],
   contextButtons: [],
   curationTemplates: [],
   services: [],

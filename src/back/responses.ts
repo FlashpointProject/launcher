@@ -188,10 +188,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async () => {
     return {
-      devScripts: await state.extensionsService.getContributions('devScripts'),
-      contextButtons: await state.extensionsService.getContributions('contextButtons'),
-      curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
-      extConfigs: await state.extensionsService.getContributions('configuration'),
+      contextButtons: await state.extensionsService.getEnabledContributions('contextButtons', state.preferences.disabledExtensions),
+      curationTemplates: await state.extensionsService.getEnabledContributions('curationTemplates', state.preferences.disabledExtensions),
+      extConfigs: await state.extensionsService.getEnabledContributions('configuration', state.preferences.disabledExtensions),
       extConfig: state.extConfig,
       extensions: (await state.extensionsService.getExtensions()).map(e => {
         return {
@@ -1439,23 +1438,24 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     catch (error: any) { log.error('Launcher', error); }
   });
 
-  state.socketServer.register(BackIn.SET_EXTENSION_ENABLED, async (event, extId, newState) => {
+  state.socketServer.register(BackIn.SET_EXTENSION_ENABLED, async (event, extId, enable) => {
     const isEnabled = !state.preferences.disabledExtensions.includes(extId);
-    if (newState !== isEnabled) {
-      if (newState) {
-        // Enable ext
-        state.preferences.disabledExtensions = state.preferences.disabledExtensions.filter(c => c !== extId);
-        await state.extensionsService.loadExtension(extId);
-      } else {
-        // Disable ext
-        state.preferences.disabledExtensions.push(extId);
-        await state.extensionsService.unloadExtension(extId);
-      }
+    if (enable !== isEnabled && enable) {
+      // Enable ext
+      state.preferences.disabledExtensions = state.preferences.disabledExtensions.filter(c => c !== extId);
+      await state.extensionsService.loadExtension(extId);
+      state.prefsQueue.push(() => {
+        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+      });
+    } else if (enable !== isEnabled && !enable) {
+      // Disable ext
+      state.preferences.disabledExtensions.push(extId);
+      await state.extensionsService.unloadExtension(extId);
       state.prefsQueue.push(() => {
         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
       });
     }
-    state.socketServer.broadcast(BackOut.UPDATE_EXTENSION_STATE, extId, newState);
+    state.socketServer.broadcast(BackOut.UPDATE_EXTENSION_STATE, extId, enable);
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data) => {
@@ -2731,7 +2731,7 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
  * @param state Current back state
  */
 export async function getProviders(state: BackState): Promise<AppProvider[]> {
-  return state.extensionsService.getContributions('applications')
+  return state.extensionsService.getEnabledContributions('applications', state.preferences.disabledExtensions)
   .then(contributions => {
     return contributions.map(c => {
       const apps = c.value;

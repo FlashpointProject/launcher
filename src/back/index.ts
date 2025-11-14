@@ -683,7 +683,7 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
-  const themeContributions = await state.extensionsService.getContributions('themes');
+  const themeContributions = await state.extensionsService.getEnabledContributions('themes', state.preferences.disabledExtensions);
   for (const c of themeContributions) {
     for (const theme of c.value) {
       const ext = await state.extensionsService.getExtension(c.extId);
@@ -1126,7 +1126,7 @@ async function initialize() {
     await state.extensionsService.getExtensions()
     .then(async (exts) => {
       // Set any ext config defaults
-      for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
+      for (const contrib of (await state.extensionsService.getEnabledContributions('configuration', state.preferences.disabledExtensions))) {
         for (const extConfig of contrib.value) {
           for (const key in extConfig.properties) {
             // Value not set, use default
@@ -1185,7 +1185,7 @@ async function initialize() {
       }
 
       // Init Ext Logo Sets
-      await state.extensionsService.getContributions('logoSets')
+      await state.extensionsService.getEnabledContributions('logoSets', state.preferences.disabledExtensions)
       .then(async (logoSetContributions) => {
         for (const c of logoSetContributions) {
           for (const logoSet of c.value) {

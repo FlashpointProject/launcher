@@ -468,7 +468,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       return [...state.loadedCurations];
     },
     async getCurationTemplates(): Promise<CurationTemplate[]> {
-      const contribs = await state.extensionsService.getContributions('curationTemplates');
+      const contribs = await state.extensionsService.getEnabledContributions('curationTemplates', state.preferences.disabledExtensions);
       return contribs.reduce<CurationTemplate[]>((prev, cur) => prev.concat(cur.value), []);
     },
     getCuration: (folder: string) => {

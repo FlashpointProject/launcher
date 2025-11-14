@@ -61,7 +61,7 @@ export function ExtensionSubsection() {
           <ExtensionRow
             ext={ext}
             index={index}
-            disabled={!disabledExtensions.includes(ext.id)}/>
+            disabled={disabledExtensions.includes(ext.id)}/>
         );
       }) : <div>Loading...</div>}
     </div>

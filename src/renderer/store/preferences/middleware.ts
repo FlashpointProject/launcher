@@ -2,16 +2,27 @@ import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
 import { debounce } from '@shared/utils/debounce';
 import { startAppListening } from '../listenerMiddleware';
-import store from '../store';
-import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setHomePageBoxOpen, setLogoSet, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from './slice';
+import { incrementLogoVersion, setMainState } from '../main/slice';
 import { createViews } from '../search/slice';
-import { incrementLogoVersion } from '../main/slice';
+import store from '../store';
+import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setExtState, setHomePageBoxOpen, setLogoSet, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from './slice';
 
 export function addPreferencesMiddleware() {
   startAppListening({
     matcher: isAnyOf(updatePreferences, setHomePageBoxOpen, setUseStoredViews, setUseCustomViews, newAppPathOverride, removeAppPathOverride, updateAppPathOverride, newTagFilterGroup, removeTagFilterGroup, updateTagFilterGroup, toggleNativePlatform, toggleExcludedLibrary),
     effect: async (action: PayloadAction<any>, listenerApi) => {
       sendPrefs();
+    }
+  });
+
+  startAppListening({
+    matcher: isAnyOf(setExtState),
+    effect: async () => {
+      // Refetch extension contributions
+      window.Shared.back.request(BackIn.GET_RENDERER_EXTENSION_INFO)
+      .then((data) => {
+        store.dispatch(setMainState(data));
+      });
     }
   });
 
