@@ -593,6 +593,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.OPEN_DYNAMIC_PAGE]: (componentName: string, props: any) => void;
 
+  [BackOut.REMOVED_EXTENSION]: (extId: string) => void;
   [BackOut.ADDED_EXTENSION]: (ext: IExtensionDescription) => void;
   [BackOut.UPDATE_EXTENSION_STATE]: (extId: string, enabled: boolean) => void;
 

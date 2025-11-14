@@ -11,7 +11,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
   };
 
   register(
-    commands.registerCommand(DownloadExtCommand, async (url: string) => {
+    commands.registerCommand(DownloadExtCommand, async (extId: string, url: string) => {
+      // Uninstall extension if it exists
+      await uninstallExtension(extId);
+
       const tempPath = os.tmpdir();
       const tempFilepath = path.join(tempPath, `extension-${Date.now()}.zip`);
       const writer = fs.createWriteStream(tempFilepath);

@@ -33,7 +33,6 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
 }
 
 export async function uninstallExtension(state: BackState, extId: string) {
-  console.log('finding ' + extId);
   const ext = await state.extensionsService.getExtension(extId);
   if (ext) {
     await state.extensionsService.removeExtension(extId);

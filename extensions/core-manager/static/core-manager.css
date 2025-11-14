@@ -83,3 +83,12 @@
 .manager-extension-row-inner {
   padding: 0.2rem
 }
+
+.manager-extension-row-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.manager-extension-row-buttons > :not(:first-child) {
+  margin-left: 0.3rem;
+}
