@@ -5,9 +5,10 @@ import { api_handle_message, api_register, api_register_any, api_unregister, api
 import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
-import { VERBOSE } from '.';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 import { createNewDialog } from './util/dialog';
+
+const verbose = false;
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -74,7 +75,7 @@ export class SocketServer {
   public async listen(minPort: number, maxPort: number, host: string | undefined): Promise<void> {
     this.host = host;
     const result = await startServer(this.port !== -1 ? this.port : minPort, this.port !== -1 ? this.port : maxPort, host);
-    result.server.on('connection', this.onConnect.bind(this));
+    result.server.on('connection', this.onConnect);
     this.server = result.server;
     this.port = result.port;
     this.retryCounter = 0; // Reset retries on a good connection
@@ -283,7 +284,7 @@ export class SocketServer {
 
   // Event Handlers
 
-  protected onConnect(socket: ws): void {
+  onConnect = (socket: ws) => {
     // Read the first message as a "secret key"
     socket.onmessage = (event) => {
       if (event.data === 'flashpoint-launcher') {
@@ -297,9 +298,9 @@ export class SocketServer {
         socket.close();
       }
     };
-  }
+  };
 
-  protected async onMessage(event: ws.MessageEvent): Promise<void> {
+  async onMessage(event: ws.MessageEvent): Promise<void> {
     const [parsed_data, parse_error] = parse_message_data(event.data);
 
     if (parse_error) {
@@ -360,7 +361,7 @@ export class SocketServer {
     const start = performance.now();
     const [inc, out] = await api_handle_message(this.api, data, msg_event);
     const end = performance.now();
-    if (VERBOSE.enabled && 'type' in data && data.type !== BackIn.KEEP_ALIVE) {
+    if (verbose && 'type' in data && data.type !== BackIn.KEEP_ALIVE) {
       console.log(`${Math.floor(end - start)}ms - "${BackIn[data.type]}"`);
     }
 

@@ -19,7 +19,8 @@
       "@shared/*": ["./shared/*"],
       "@main/*": ["./main/*"],
       "@back/*": ["./back/*"],
-      "@renderer/*": ["./renderer/*"]
+      "@renderer/*": ["./renderer/*"],
+      "@test/*": ["./test/*"]
     },
     "plugins": [
       {
