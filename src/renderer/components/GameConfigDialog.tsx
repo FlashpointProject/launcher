@@ -2,6 +2,7 @@ import { deepCopy } from '@shared/Util';
 import { BackIn, FetchedGameInfo, MiddlewareVersionPair } from '@shared/back/types';
 import * as Coerce from '@shared/utils/Coerce';
 import { ConfigProp, ConfigSchema, Game, GameConfig, GameMiddlewareConfig, GameMiddlewareInfo } from 'flashpoint-launcher';
+import { DropdownRowProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement } from './ConfirmElement';
@@ -197,6 +198,28 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
   );
 }
 
+type MiddlewareDropdownRowProps = {
+  items: GameMiddlewareInfo[],
+  setSelectedNewMiddleware: (middleware: GameMiddlewareInfo) => void;
+};
+
+function MiddlewareDropdownRow({ items, setSelectedNewMiddleware, index }: DropdownRowProps<MiddlewareDropdownRowProps>) {
+  const middleware = items[index];
+
+  return (
+    <label
+      className='curate-page__right-dropdown-content simple-dropdown-button'
+      key={index}
+      onClick={() => {
+        setSelectedNewMiddleware(middleware);
+      }}>
+      <div>
+        {middleware.name}
+      </div>
+    </label>
+  );
+}
+
 type GameConfigEditorDialogProps = {
   game: Game;
   validMiddleware: GameMiddlewareInfo[];
@@ -205,6 +228,7 @@ type GameConfigEditorDialogProps = {
   save: () => void;
   discard: () => void;
 };
+
 
 function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
   const [versionEditorOpen, setVersionEditorOpen] = React.useState(false);
@@ -259,22 +283,13 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
       <Dropdown
         form={true}
         className={`browse-right-sidebar__game-config-dropdown ${selectedNewMiddleware !== undefined ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
-        text={text}>
-        {props.validMiddleware.map((m, idx) => {
-          return (
-            <label
-              className='curate-page__right-dropdown-content simple-dropdown-button'
-              key={idx}
-              onClick={() => {
-                setSelectedNewMiddleware(m);
-              }}>
-              <div>
-                {m.name}
-              </div>
-            </label>
-          );
-        })}
-      </Dropdown>
+        text={text}
+        rowCount={props.validMiddleware.length}
+        rowProps={{
+          items: props.validMiddleware,
+          setSelectedNewMiddleware,
+        }}
+        rowRenderer={MiddlewareDropdownRow}/>
       <SimpleButton
         onClick={() => {
           if (selectedNewMiddleware) {
@@ -414,6 +429,28 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
   );
 }
 
+type MiddlewareInputSelectRowProps<T> = {
+  items: T[];
+  onSelect: (option: T) => void;
+}
+
+function MiddlewareInputSelectRow<T>({ items, onSelect, index }: DropdownRowProps<MiddlewareInputSelectRowProps<T>>) {
+  const option = items[index];
+
+  return (
+    <label
+      className='curate-page__right-dropdown-content simple-dropdown-button'
+      key={index}
+      onClick={() => {
+        onSelect(option);
+      }}>
+      <div>
+        {`${option}`}
+      </div>
+    </label>
+  );
+}
+
 function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: (config: any) => void) {
   let input: React.JSX.Element = <></>;
   const value = inputProps.type !== 'label' ? (inputProps.key in config ? config[inputProps.key] :
@@ -462,26 +499,20 @@ function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: 
     }
     case 'number': {
       const inputRow = inputProps.options ?
-        <Dropdown
+        <Dropdown<MiddlewareInputSelectRowProps<number>>
           form={true}
-          text={value}>
-          {inputProps.options.map((option, idx) => {
-            return (
-              <label
-                className='curate-page__right-dropdown-content simple-dropdown-button'
-                key={idx}
-                onClick={() => {
-                  saveConfig({
-                    ...config,
-                    [inputProps.key]: option
-                  });
-                }}>
-                <div>
-                  {option}
-                </div>
-              </label>
-            );
-          })}
+          text={value}
+          rowProps={{
+            items: inputProps.options || [],
+            onSelect: (option) => {
+              saveConfig({
+                ...config,
+                [inputProps.key]: option
+              });
+            }
+          }}
+          rowCount={inputProps.options ? inputProps.options.length : 0}
+          rowRenderer={MiddlewareInputSelectRow}>
         </Dropdown>
         : (
           <InputField
@@ -529,27 +560,20 @@ function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: 
     }
     case 'string': {
       const inputRow = inputProps.options ?
-        <Dropdown
+        <Dropdown<MiddlewareInputSelectRowProps<string>>
           form={true}
-          text={value}>
-          {inputProps.options.map((option, idx) => {
-            return (
-              <label
-                className='curate-page__right-dropdown-content simple-dropdown-button'
-                key={idx}
-                onClick={() => {
-                  saveConfig({
-                    ...config,
-                    [inputProps.key]: option
-                  });
-                }}>
-                <div>
-                  {option}
-                </div>
-              </label>
-            );
-          })}
-        </Dropdown>
+          text={value}
+          rowProps={{
+            items: inputProps.options || [],
+            onSelect: (option) => {
+              saveConfig({
+                ...config,
+                [inputProps.key]: option
+              });
+            }
+          }}
+          rowCount={inputProps.options ? inputProps.options.length : 0}
+          rowRenderer={MiddlewareInputSelectRow}/>
         : (
           <InputField
             className='input-field-form'

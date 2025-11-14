@@ -3394,6 +3394,34 @@ declare module 'flashpoint-launcher-renderer' {
     onToggle?: (isChecked: boolean) => void;
   };
 
+  type DropdownRowProps<T> = T & {
+    index: number;
+  }
+
+  type DropdownCommonProps = {
+    /** Extra class name to add to dropdown frame */
+    className?: string;
+    /** Extra class name to add to dropdown text field */
+    headerClassName?: string;
+    /** Text to show in the text field (always visible). */
+    text: string;
+    /** Use simple-dropdown-form CSS class */
+    form?: boolean;
+  }
+
+  type DropdownFrameProps = DropdownCommonProps &{
+    children: React.JSX.Element;
+  }
+
+  type DropdownProps<T> = DropdownCommonProps & {
+    /** User provided props for the row renderer (e.g items array, onChange functions) */
+    rowProps: T;
+    /** Number of rows */
+    rowCount: number;
+    /** Component to render a row */
+    rowRenderer: (props: DropdownRowProps<T>) => React.JSX.Element;
+  };
+
   declare global {
     interface Window {
       log: LogFuncs;
@@ -3431,6 +3459,8 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
     BrowsePageDisplayGridProps,
     BrowsePageDisplayListProps,
     CheckBoxProps,
+    DropdownFrameProps,
+    DropdownProps,
     GameComponentDropdownSelectFieldProps,
     GameComponentInputFieldProps,
     HomePageBoxProps,
@@ -3460,6 +3490,8 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   const StateWrapper: ComponentType<StateWrapperProps>;
   const SimpleButton: ComponentType<SimpleButtonProps>;
   const CheckBox: ComponentType<CheckBoxProps>;
+  const Dropdown: ComponentType<DropdownProps>;
+  const DropdownFrame: ComponentType<DropdownFrameProps>;
 }
 
 declare module 'flashpoint-launcher-renderer-ext/hooks' {

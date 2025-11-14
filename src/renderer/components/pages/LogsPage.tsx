@@ -6,7 +6,7 @@ import { updatePreferences } from '@renderer/store/preferences/slice';
 import { BackIn } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
 import { useState } from 'react';
-import { Dropdown } from '../Dropdown';
+import { Dropdown, DropdownCheckboxRow, DropdownCheckboxRowProps } from '../Dropdown';
 import { LogBox } from '../LogBox';
 
 export type LogsPageProps = any;
@@ -142,46 +142,25 @@ export function LogsPage(props: LogsPageProps) {
         {/* Left */}
         <div className='log-page__bar__wrap'>
           <div className='log-page__bar__row'>
-            <Dropdown text={strings.filters}>
-              { sourceLabels.map((label, index) => (
-                <label
-                  key={index}
-                  className='log-page__dropdown-item'>
-                  <div className='simple-center'>
-                    <input
-                      type='checkbox'
-                      checked={getBoolean(showLogSource[label])}
-                      onChange={() => onSourceCheckboxClick(index)}
-                      className='simple-center__vertical-inner' />
-                  </div>
-                  <div className='simple-center'>
-                    <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                      {label}
-                    </p>
-                  </div>
-                </label>
-              )) }
-            </Dropdown>
-            <Dropdown text={strings.logLevels}>
-              { levelLabels.map((label, index) => (
-                <label
-                  key={index}
-                  className='log-page__dropdown-item'>
-                  <div className='simple-center'>
-                    <input
-                      type='checkbox'
-                      checked={getBoolean(showLogLevel[index as LogLevel])}
-                      onChange={() => onLevelCheckboxClick(index)}
-                      className='simple-center__vertical-inner' />
-                  </div>
-                  <div className='simple-center'>
-                    <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                      {LogLevel[label]}
-                    </p>
-                  </div>
-                </label>
-              )) }
-            </Dropdown>
+            <Dropdown<DropdownCheckboxRowProps<string>>
+              rowProps={{
+                labels: sourceLabels,
+                onToggle: (index) => onSourceCheckboxClick(index),
+                isChecked: (index) => getBoolean(showLogSource[sourceLabels[index]])
+              }}
+              rowCount={sourceLabels.length}
+              rowRenderer={DropdownCheckboxRow}
+              text={strings.filters}/>
+            <Dropdown<DropdownCheckboxRowProps<LogLevel>>
+              rowProps={{
+                labels: levelLabels,
+                labelRenderer: ({ label }) => <>{LogLevel[label]}</>,
+                onToggle: (index) => onLevelCheckboxClick(index),
+                isChecked: (index) => getBoolean(showLogLevel[index as LogLevel])
+              }}
+              rowCount={levelLabels.length}
+              rowRenderer={DropdownCheckboxRow}
+              text={strings.logLevels}/>
           </div>
         </div>
         {/* Right */}
