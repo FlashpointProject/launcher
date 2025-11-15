@@ -1,4 +1,4 @@
-import { setCurrentCuration } from '@renderer/store/curate/slice';
+import { setCurrentCuration, sortCurations } from '@renderer/store/curate/slice';
 import { mockCuration } from '@test/mocks/curate';
 import { useTestServer } from '@test/useTestServer';
 import { describe, expect, it } from 'vitest';
@@ -8,8 +8,7 @@ describe('Curate Redux Store', () => {
   useTestServer();
 
   it('selection ranges with ctrl + shift modifiers', async () => {
-
-    const curations = [
+    let curations = [
       mockCuration(),
       mockCuration(),
       mockCuration(),
@@ -29,6 +28,8 @@ describe('Curate Redux Store', () => {
         curationTemplates: []
       }
     });
+
+    curations = [...curations].sort(sortCurations);
 
     // Select third
     store.dispatch(setCurrentCuration({

@@ -2,7 +2,7 @@ import { OpenIcon } from '@renderer/components/OpenIcon';
 import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useMouse } from '@renderer/hooks/useMouse';
-import * as curateActions from '@renderer/store/curate/slice';
+import { changeGroup, createGroup, setCurrentCuration, setCurrentCurationGroup, sortCurations, toggleGroupCollapse, toggleGroupPin } from '@renderer/store/curate/slice';
 import { createDialog } from '@renderer/store/main/slice';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
 import { compare } from '@shared/Util';
@@ -36,7 +36,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     },
     on_click: (event, folder, clicks) => {
       if (event.button === 0 && clicks === 1) { // Single left click
-        dispatch(curateActions.setCurrentCuration({
+        dispatch(setCurrentCuration({
           folder,
           ctrl: event.ctrlKey,
           shift: event.shiftKey
@@ -63,14 +63,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     if (isHovering) { setIsHovering(false); }
   };
 
-  const sortedCurations = [...curate.curations].sort((a, b) => {
-    const groupCompare = compare(a.group, b.group);
-    if (groupCompare == 0) {
-      return compare(a.game.title || ('zzzzzzzz' + a.folder), b.game.title || ('zzzzzzzz' + a.folder));
-    } else {
-      return groupCompare;
-    }
-  });
+  const sortedCurations = [...curate.curations].sort(sortCurations);
 
   const renderCuration = (curation: CurationState) => {
     let className = '';
@@ -114,13 +107,13 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     if (draggedCuration !== '' && dragGroupTarget !== undefined) {
       if (curate.selected.includes(draggedCuration)) {
         for (const folder of curate.selected) {
-          dispatch(curateActions.changeGroup({
+          dispatch(changeGroup({
             folder: folder,
             group: dragGroupTarget
           }));
         }
       } else {
-        dispatch(curateActions.changeGroup({
+        dispatch(changeGroup({
           folder: draggedCuration,
           group: dragGroupTarget
         }));
@@ -142,7 +135,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         <div
           className={'curate-list-group__header'}
           onDoubleClick={() => {
-            dispatch(curateActions.setCurrentCurationGroup(group.name));
+            dispatch(setCurrentCurationGroup(group.name));
           }} >
           <div className={'curate-list-group__header-text'}>
             <div className={'curate-list-group__header-text--name'}>{group.name || 'No Group'}</div>
@@ -150,13 +143,13 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
           </div>
           { group.name !== '' && (
             <div
-              onClick={() => dispatch(curateActions.toggleGroupPin(group))}
+              onClick={() => dispatch(toggleGroupPin(group))}
               className={`curate-list-group__header-pin ${pinned ? 'curate-list-group__header-pinned' : 'curate-list-group__header-unpinned'}`}>
               <OpenIcon icon={'pin'}/>
             </div>
           )}
           <div
-            onClick={() => dispatch(curateActions.toggleGroupCollapse(group.name))}
+            onClick={() => dispatch(toggleGroupCollapse(group.name))}
             className={'curate-list-group__header-caret'}>
             <OpenIcon icon={collapsed ? 'caret-bottom' : 'caret-top'}/>
           </div>
@@ -233,7 +226,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
           const exists = curate.groups.findIndex(g => g.name === field.value) > -1;
           if (!exists) {
             console.log('creating group...');
-            dispatch(curateActions.createGroup({
+            dispatch(createGroup({
               name: field.value as string,
               icon: '',
             }));

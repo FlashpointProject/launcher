@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
 import { AddAppCuration } from '@shared/curate/types';
+import { compare } from '@shared/Util';
 import { uuid } from '@shared/utils/uuid';
 import {
   AddAppCurationMeta,
@@ -210,6 +211,8 @@ const curateSlice = createSlice({
           state.lastSelected = folder;
           state.current = folder;
         } else {
+          state.curations.sort(sortCurations);
+
           // Select all from previous to current
           const lastSelectedIdx = state.curations.findIndex(c => c.folder === state.lastSelected);
           const nextSelectedIdx = state.curations.findIndex(c => c.folder === folder);
@@ -520,6 +523,15 @@ function lockedFunc<T extends BaseCurateAction>(func: (state: CurateState, actio
       func(state, action);
     }
   };
+}
+
+export function sortCurations(a: CurationState, b: CurationState) {
+  const groupCompare = compare(a.group, b.group);
+  if (groupCompare == 0) {
+    return compare(a.game.title || ('zzzzzzzz' + a.folder), b.game.title || ('zzzzzzzz' + a.folder));
+  } else {
+    return groupCompare;
+  }
 }
 
 export const { actions: curateActions } = curateSlice;
