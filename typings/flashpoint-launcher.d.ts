@@ -2866,7 +2866,6 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { CancelToken } from 'axios';
   import {
     AdvancedFilter,
     AdvancedFilterToggle,
@@ -2903,6 +2902,7 @@ declare module 'flashpoint-launcher-renderer' {
     ViewGame,
   } from 'flashpoint-launcher';
   import { ReactNode } from 'react';
+  import { Location } from 'react-router-dom';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -3171,7 +3171,15 @@ declare module 'flashpoint-launcher-renderer' {
     props: any;
   }
 
+  type UnrecoverableError = {
+    header: string;
+    message: string;
+    type?: string;
+    stackTrace?: string;
+  }
+
   type MainState = {
+    unrecoverableError?: UnrecoverableError;
     gotdList: GameOfTheDay[] | undefined;
     libraries: string[];
     serverNames: string[];
@@ -3185,20 +3193,23 @@ declare module 'flashpoint-launcher-renderer' {
     loadedAll: boolean;
     extensions: IExtensionDescription[];
     themeList: ITheme[];
+    themeVersion: number;
     logoSets: ILogoSet[];
     logoVersion: number; // Increase to force cache clear
     gamesTotal: number;
     localeCode: string;
     /** Text to display on the dev console */
     devConsole: string;
+
     /** Random games for the Home page box */
     randomGames: ViewGame[];
     /** Whether we're currently requesting random games */
     requestingRandomGames: boolean;
     /** If the random games should be shifted when the request is complete. */
     shiftRandomGames: boolean;
-    /** UNUSED */
-    upgrades: any[];
+
+    /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
+    upgrades: UpgradeStage[];
     /** If the Random games have loaded - Masked as 'Games' */
     gamesDoneLoading: boolean;
     /** If upgrades files have loaded */
@@ -3230,7 +3241,7 @@ declare module 'flashpoint-launcher-renderer' {
     downloadPercent: number;
     downloadSize: number;
     downloadOpen: boolean;
-    cancelToken?: CancelToken;
+    cancelToken?: axiosImport.CancelToken;
     downloadVerifying: boolean;
     selectedGameId?: string;
     selectedPlaylistId?: string;

@@ -6,13 +6,6 @@ import { DownloadDetails } from './back/types';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 
-export type UnrecoverableError = {
-  header: string;
-  message: string;
-  type?: string;
-  stackTrace?: string;
-}
-
 export function calcScale(defValue: number, scale: number): number {
   const scaler = 0.3 + scale * 1.4;
   return defValue * scaler;

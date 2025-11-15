@@ -9,7 +9,7 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
+import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource, updateThemeCss } from '@renderer/store/main/slice';
 import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData, updateGame } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
@@ -20,7 +20,6 @@ import * as extUtils from '@renderer/util/ext';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
-import { setTheme } from '@shared/Theme';
 import { getFileServerURL, sizeToString } from '@shared/Util';
 import {
   Playlist
@@ -698,7 +697,7 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
   });
 
   window.Shared.back.register(BackOut.THEME_CHANGE, (event, theme) => {
-    setTheme(theme);
+    dispatch(updateThemeCss());
   });
 
   window.Shared.back.register(BackOut.THEME_LIST_CHANGE, (event, data) => {

@@ -1,4 +1,4 @@
-import { setCurrentCuration, sortCurations } from '@renderer/store/curate/slice';
+import { initialCurateState, setCurrentCuration, sortCurations } from '@renderer/store/curate/slice';
 import { mockCuration } from '@test/mocks/curate';
 import { useTestServer } from '@test/useTestServer';
 import { describe, expect, it } from 'vitest';
@@ -18,14 +18,8 @@ describe('Curate Redux Store', () => {
 
     const store = setupStore({
       curate: {
-        curations,
-        loaded: true,
-        groups: [],
-        collapsedGroups: [],
-        current: '',
-        selected: [],
-        lastSelected: '',
-        curationTemplates: []
+        ...initialCurateState(),
+        curations
       }
     });
 

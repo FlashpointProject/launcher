@@ -10,7 +10,6 @@ import { BackIn } from '@shared/back/types';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { autoCode } from '@shared/lang';
 import { Paths } from '@shared/Paths';
-import { setTheme } from '@shared/Theme';
 import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -366,7 +365,10 @@ export function ConfigPage() {
         currentTheme: selectedTheme.id,
         currentLogoSet: logoSetId
       }));
-      setTheme(selectedTheme);
+    } else if (value === '') {
+      dispatch(updatePreferences({
+        currentTheme: value
+      }));
     }
   };
 

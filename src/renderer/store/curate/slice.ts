@@ -107,20 +107,22 @@ export type CurateTaskAction = {
   taskId: string;
 }
 
-const initialState: CurateState = {
-  loaded: false,
-  groups: [],
-  collapsedGroups: [],
-  curations: [],
-  current: '',
-  selected: [],
-  lastSelected: '',
-  curationTemplates: [],
-};
+export function initialCurateState(): CurateState {
+  return {
+    loaded: false,
+    groups: [],
+    collapsedGroups: [],
+    curations: [],
+    current: '',
+    selected: [],
+    lastSelected: '',
+    curationTemplates: [],
+  };
+}
 
 const curateSlice = createSlice({
   name: 'curate',
-  initialState,
+  initialState: initialCurateState(),
   reducers: {
     setCurateLoaded(state: CurateState) {
       state.loaded = true;

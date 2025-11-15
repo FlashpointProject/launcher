@@ -5,7 +5,9 @@ import { defaultPreferencesData, overwritePreferenceData } from '@shared/prefere
 import { deepCopy } from '@shared/Util';
 import { AppPathOverride, AppPreferencesData, TagFilterGroup } from 'flashpoint-launcher';
 
-const initialState: AppPreferencesData = deepCopy(defaultPreferencesData);
+export function initialPreferencesState(): AppPreferencesData {
+  return deepCopy(defaultPreferencesData);
+}
 
 export type PreferencesHomePageBoxAction = {
   box: string;
@@ -39,7 +41,7 @@ type ExtStateAction = {
 
 const prefsSlice = createSlice({
   name: 'preferences',
-  initialState,
+  initialState: initialPreferencesState(),
   reducers: {
     setPreferences(state: AppPreferencesData, { payload }: PayloadAction<AppPreferencesData>) {
       return payload;

@@ -1,13 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getViewName } from '@renderer/Util';
 import { Paths } from '@shared/Paths';
+import { HistoryState } from 'flashpoint-launcher-renderer';
 import { Location } from 'react-router-dom';
 import { RootState } from '../store';
-
-export type HistoryState = {
-  history: Location[];
-  maxHistorySize: number;
-}
 
 const initialState: HistoryState = {
   history: [],

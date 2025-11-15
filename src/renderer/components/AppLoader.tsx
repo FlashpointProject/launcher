@@ -1,16 +1,18 @@
-import { updatePreferences } from '@renderer/store/preferences/slice';
-import store from '@renderer/store/store';
+import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { setMainState } from '@renderer/store/main/slice';
+import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
+import store, { AppDispatch } from '@renderer/store/store';
 import { logFactory } from '@renderer/util/logging';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
 import { InitRendererData } from '@shared/IPC';
 import { LogLevel } from '@shared/Log/interface';
-import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import EventEmitter from 'node:events';
 import * as path from 'node:path';
 import { ReactNode, useState } from 'react';
 import { Spinner } from './Spinner';
+import { ThemeProvider } from './ThemeProvider';
 
 type AppLoaderProps = {
   children: ReactNode,
@@ -30,7 +32,7 @@ async function waitForConnection(host: string): Promise<WebSocket> {
   }
 }
 
-const onInit = async (data: InitRendererData) => {
+const onInit = async (data: InitRendererData, dispatch: AppDispatch) => {
   // Store value(s)
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
@@ -60,6 +62,10 @@ const onInit = async (data: InitRendererData) => {
   const initData = await window.Shared.back.request(BackIn.GET_RENDERER_INIT_DATA);
   if (initData) {
     window.Shared.initialPreferences = initData.preferences;
+    window.Shared.initialThemes = initData.themes;
+    // Set some things early so Theme provider works
+    dispatch(setMainState({ themeList: initData.themes }));
+    dispatch(setPreferences(initData.preferences));
     window.Shared.config = {
       data: initData.config,
       // @FIXTHIS This should take if this is installed into account
@@ -71,12 +77,7 @@ const onInit = async (data: InitRendererData) => {
     window.Shared.customVersion = initData.customVersion;
     window.Shared.initialLang = initData.language;
     window.Shared.initialLangList = initData.languages;
-    window.Shared.initialThemes = initData.themes;
     window.Shared.initialLocaleCode = initData.localeCode;
-    if (window.Shared.initialPreferences.currentTheme) {
-      const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.initialPreferences.currentTheme);
-      if (theme) { setTheme(theme); }
-    }
   } else {
     throw 'No data given by host?';
   }
@@ -177,6 +178,7 @@ export function AppLoader(props: AppLoaderProps) {
   const [isInitDone, setIsInitDone] = useState(false);
   const [initError, setInitError] = useState<string>();
   const [showSpinner, setShowSpinner] = useState(false);
+  const dispatch = useAppDispatch();
 
   if (!loaderInit) {
     setLoaderInit(true);
@@ -185,7 +187,7 @@ export function AppLoader(props: AppLoaderProps) {
       setShowSpinner(true);
     }, 800);
     // Run initialization script
-    onInit(props.data)
+    onInit(props.data, dispatch)
     .then(() => {
       setIsInitDone(true);
     })
@@ -200,26 +202,32 @@ export function AppLoader(props: AppLoaderProps) {
     </div>;
   }
 
-  if (!isInitDone) {
-    return <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      { showSpinner && (
-        <div className='splash-screen'>
-          <div className='splash-screen__logo'>
-            <Spinner/>
-          </div>
-          <div className='splash-screen__status-block'>
-            <div className='splash-screen__status-header'>
-              Connecting...
+  if (loaderInit && !isInitDone) {
+    return (
+      <ThemeProvider>
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          { showSpinner && (
+            <div className='splash-screen'>
+              <div className='splash-screen__logo'>
+                <Spinner/>
+              </div>
+              <div className='splash-screen__status-block'>
+                <div className='splash-screen__status-header'>
+                  Connecting...
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
-    </div>;
+      </ThemeProvider>
+    );
   }
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {props.children}
-    </div>
+    <ThemeProvider>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {props.children}
+      </div>
+    </ThemeProvider>
   );
 }
