@@ -3,10 +3,10 @@ import { createErrorProxy } from '@shared/Util';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
+import { num } from '@shared/utils/Coerce';
 import { ChildProcess, fork } from 'child_process';
 import * as electron from 'electron';
 import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
-import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { AppConfigData, AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
@@ -14,6 +14,7 @@ import { argv } from 'process';
 import { WebSocket } from 'ws';
 import * as Util from './Util';
 import { CustomIPC, WindowIPC } from './constants';
+import { createHeadlessServer } from './headless';
 import { Init } from './types';
 
 const TIMEOUT_DELAY = 60_000;
@@ -28,11 +29,6 @@ const ALLOWED_HOSTS = [
   'react-developer-tools',
   'cdn.discordapp.com',
 ];
-
-type LaunchOptions = {
-  backend: boolean;
-  frontend: boolean;
-}
 
 type MainState = {
   window?: BrowserWindow;
@@ -53,6 +49,12 @@ type MainState = {
   output: string;
 }
 
+type LaunchComponents = {
+  backend: boolean;
+  browserFrontend: boolean;
+  electronWindow: boolean;
+}
+
 export function main(init: Init): void {
   const state: MainState = {
     window: undefined,
@@ -70,10 +72,19 @@ export function main(init: Init): void {
     output: '',
   };
 
-  startup({
+  const launchComponents: LaunchComponents = {
     backend: !init.args['host-remote'],
-    frontend: !init.args['back-only'],
-  })
+    browserFrontend: !!init.args['browser-mode'] && !init.args['back-only'],
+    electronWindow: !init.args['browser-mode'] && !init.args['back-only'],
+  };
+
+  if (!launchComponents.backend && !launchComponents.browserFrontend && !launchComponents.electronWindow) {
+    console.log('Arguments for startup mean no components would run, exiting...');
+    process.exit();
+    return;
+  }
+
+  startup(launchComponents)
   .catch((error) => {
     console.error(error);
     if (!Util.isDev) {
@@ -87,24 +98,9 @@ export function main(init: Init): void {
     app.quit();
   });
 
-  // Needed for modern Electron?
-  // This is a workaround to ensure that the extension background workers are started
-  // If you are updating Electron, confirm if this is still needed
-  // https://github.com/electron/electron/issues/41613
-  // function launchExtensionBackgroundWorkers( appSession = session.defaultSession ) {
-  //   return Promise.all(
-  //     appSession.getAllExtensions().map( async ( extension ) => {
-  //       const manifest = extension.manifest;
-  //       if ( manifest.manifest_version === 3 && manifest?.background?.service_worker ) {
-  //         await appSession.serviceWorkers.startWorkerForScope( extension.url );
-  //       }
-  //     } )
-  //   );
-  // }
-
-  // -- Functions --
-
-  async function startup(opts: LaunchOptions) {
+  async function startup(opts: LaunchComponents) {
+    console.log(JSON.stringify(opts, undefined, 2));
+    state.mainFolderPath = Util.getMainFolderPath();
     // app.disableHardwareAcceleration();
 
     // Single process
@@ -114,14 +110,16 @@ export function main(init: Init): void {
       return;
     }
 
-    // Add app event listener(s)
-    app.once('ready', onAppReady);
-    app.once('window-all-closed', onAppWindowAllClosed);
     app.once('will-quit', onAppWillQuit);
+    app.once('ready', onAppReady);
     app.on('web-contents-created', onAppWebContentsCreated);
-    app.on('activate', onAppActivate);
     app.on('second-instance', onAppSecondInstance);
     app.on('open-url', onAppOpenUrl);
+    app.on('activate', onAppActivate);
+    app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
+
+    // Prevent closure on Mac after window closes
+    app.once('window-all-closed', onAppWindowAllClosed);
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
@@ -202,29 +200,17 @@ export function main(init: Init): void {
       }
     });
 
-    // Add Socket event listener(s)
-    state.socket.register(BackOut.QUIT, () => {
-      state.isQuitting = true;
-      state.socket.allowDeath();
-      app.quit();
-    });
-
-    app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
-
-    state.mainFolderPath = Util.getMainFolderPath();
-
     // ---- Initialize ----
-    // Load custom version text file
-    await fs.promises.readFile(path.join(state.mainFolderPath, '.version'))
-    .then((data) => {
-      state._version = (data)
-        ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
-        : -1; // (Version not found error code)
-    })
-    .catch(() => { /** No file, ignore */ });
 
     // Start backend
     if (opts.backend) {
+      // Exit Electron app if the backend quits
+      state.socket.register(BackOut.QUIT, () => {
+        state.isQuitting = true;
+        state.socket.allowDeath();
+        app.quit();
+      });
+
       await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
         // Increase memory limit in dev instance (mostly for developer page functions)
@@ -310,49 +296,47 @@ export function main(init: Init): void {
         // Update flashpoint:// protocol registration state
         setProtocolRegistrationState(state.preferences.registerProtocol);
       });
+
+      // Open websocket to backend, so we can get QUIT events
+      const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
+        const sock = new WebSocket(state.backHost.href);
+        sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
+        sock.onerror = (event) => { reject(event.error); };
+        sock.onopen  = () => {
+          sock.onmessage = () => {
+            sock.onclose = noop;
+            sock.onerror = noop;
+            resolve(sock);
+          };
+          sock.send('flashpoint-launcher');
+        };
+      }), TIMEOUT_DELAY);
+      state.socket.setSocket(ws);
+      state.socket.killOnDisconnect = true;
     }
 
-    // Open websocket to backend, for communication between front and back
-    const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
-      const sock = new WebSocket(state.backHost.href);
-      sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
-      sock.onerror = (event) => { reject(event.error); };
-      sock.onopen  = () => {
-        sock.onmessage = () => {
-          sock.onclose = noop;
-          sock.onerror = noop;
-          resolve(sock);
-        };
-        sock.send('flashpoint-launcher');
-      };
-    }), TIMEOUT_DELAY);
-    state.socket.setSocket(ws);
-    state.socket.killOnDisconnect = true;
-
-    // Start frontend
-    if (opts.frontend) {
+    // Start appropriate frontend
+    if (opts.browserFrontend) {
       await app.whenReady();
-      // Create main window
+
+      // Create headless server
+      const hostname = init.args['browser-mode-host'] || 'localhost';
+      const port = init.args['browser-mode-port'] || 9000;
+      const url = init.args['browser-mode-url'] || `http://${hostname}:${port}/`;
+      createHeadlessServer(hostname, num(port), url);
+    }
+
+    if (opts.electronWindow) {
+      await app.whenReady();
+
       if (!state.window) {
         state.window = createMainWindow();
       }
-    } else {
-      // Frontend not running, give Backend init message from Main
-      state.socket.send(BackIn.INIT_LISTEN);
     }
   }
 
   async function onAppReady() {
     // Enable DoH
-    // app.configureHostResolver({
-    //   secureDnsMode: 'secure',
-    //   secureDnsServers: ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query']
-    // });
-
-    if (Util.isDev) {
-      await installExtension( REACT_DEVELOPER_TOOLS );
-      await installExtension( REDUX_DEVTOOLS );
-    }
 
     // Send locale code (if it has no been sent already)
     if (process.platform === 'win32' && !state._sentLocaleCode && state.socket.client.socket) {
@@ -518,7 +502,8 @@ export function main(init: Init): void {
       height: height,
       minWidth: 200,
       minHeight: 200,
-      frame: !state.preferences.useCustomTitlebar,
+      frame: true,
+      // frame: !state.preferences.useCustomTitlebar,
       icon: path.join(__dirname, '../window/images/icon.png'),
       webPreferences: {
         preload: path.resolve(__dirname, 'preload.js'),
@@ -526,6 +511,7 @@ export function main(init: Init): void {
         contextIsolation: true,
       },
     });
+
     // Add protocol report func
     ipcMain.on(WindowIPC.PROTOCOL, () => {
       if (init.protocol) {
@@ -533,7 +519,7 @@ export function main(init: Init): void {
       }
     });
     // Remove the menu bar
-    window.setMenu(null);
+    // window.setMenu(null);
     // and load the index.html of the app.
     window.loadFile(path.join(__dirname, '../window/renderer.html'));
     // Open the DevTools. Don't open if using a remote debugger (like vscode)

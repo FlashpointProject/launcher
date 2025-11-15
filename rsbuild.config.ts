@@ -28,7 +28,7 @@ export default defineConfig({
   output: {
     target: 'web',
     assetPrefix: 'auto',
-    minify: false,
+    minify: process.env.NODE_ENV === 'production',
     distPath: {
       root: './build/window',
     },

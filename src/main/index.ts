@@ -1,4 +1,5 @@
-import * as Coerce from '@shared/utils/Coerce';
+import { app } from 'electron';
+import { parseArgs } from 'node:util';
 import { main } from './Main';
 import { Init } from './types';
 
@@ -7,56 +8,34 @@ const init = getArgs();
 main(init);
 
 function getArgs(): Init {
+  const rawArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+
+  const { values, positionals } = parseArgs({
+    args: rawArgs,
+    options: {
+      'browser-mode-url': { type: 'string' },
+      'browser-mode-host': { type: 'string' },
+      'browser-mode-port': { type: 'string' },
+      'browser-mode': { type: 'boolean' },
+      'connect-remote': { type: 'string' },
+      'plugin': { type: 'string' },
+      'logger': { type: 'boolean' },
+      'host-remote': { type: 'boolean' },
+      'back-only': { type: 'boolean' },
+      'verbose': { type: 'boolean' },
+      'width': { type: 'string' },
+      'height': { type: 'string' }
+    },
+    allowPositionals: true
+  });
+
   const init: Init = {
-    args: {},
-    rest: '',
-    protocol: undefined
+    args: { ...values },
+    rest: positionals.join(' '),
+    protocol: rawArgs.find((arg) => arg.startsWith('flashpoint://'))
   };
 
-  const args = process.argv.slice(2);
-  init.protocol = args.find((arg) => arg.startsWith('flashpoint://'));
-  let lastArgIndex = -1;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    const eqIndex = arg.indexOf('=');
-    if (eqIndex >= 0) {
-      const name = arg.substring(0, eqIndex);
-      const value = arg.substring(eqIndex + 1);
-      switch (name) {
-        // String value
-        case 'connect-remote':
-        case 'plugin':
-          init.args[name] = value;
-          lastArgIndex = i;
-          break;
-        // Boolean value
-        case 'logger':
-        case 'host-remote':
-        case 'back-only':
-        case 'browser_mode':
-          init.args[name] = Coerce.strToBool(value);
-          lastArgIndex = i;
-          break;
-        case 'browser_url':
-          init.args[name] = Coerce.str(value);
-          lastArgIndex = i;
-          break;
-        // Numerical value
-        case 'width':
-        case 'height':
-          init.args[name] = Coerce.num(value);
-          lastArgIndex = i;
-          break;
-        case 'verbose':
-          init.args[name] = Coerce.strToBool(value);
-          break;
-      }
-    }
-  }
-
-  init.rest = args.slice(lastArgIndex + 1).join(' ');
-
-  console.log(init); // @DEBUG
+  console.log(init);
 
   return init;
 }
