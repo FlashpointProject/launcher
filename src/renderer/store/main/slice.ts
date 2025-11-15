@@ -124,6 +124,7 @@ export function initialMainState(): MainState {
     loadedAll: false,
     themeList: [],
     themeVersion: 0,
+    systemThemeVersion: 0,
     logoSets: [],
     logoVersion: 0,
     gamesTotal: -1,
@@ -411,6 +412,9 @@ const mainSlice = createSlice({
     },
     updateThemeCss(state: MainState) {
       state.themeVersion += 1;
+    },
+    updateSystemThemeCss(state: MainState) {
+      state.systemThemeVersion += 1;
     }
   },
 });
@@ -447,6 +451,7 @@ export const { setMainState,
   addNewExtension,
   setUnrecoverableError,
   updateThemeCss,
+  updateSystemThemeCss,
 } = mainSlice.actions;
 export default mainSlice.reducer;
 

@@ -7,7 +7,6 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
-  UnrecoverableError,
   createErrorProxy, deepCopy,
   removeFileExtension,
   stringifyArray
@@ -36,6 +35,7 @@ import {
 } from '@shared/constants';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
+import { UnrecoverableError } from 'flashpoint-launcher-renderer';
 import { parseArgs } from 'node:util';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -68,7 +68,7 @@ import { PlaylistFile } from './PlaylistFile';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
-import { newThemeWatcher } from './Themes';
+import { newSystemThemeWatcher, newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { awaitDialog } from './util/dialog';
 import { EventQueue } from './util/EventQueue';
@@ -705,6 +705,15 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
           log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme "${theme.id}"\n${error}`);
         }
       }
+    }
+  }
+
+  // Setup system theme listener for dev
+  if (state.isDev) {
+    try {
+      newSystemThemeWatcher('./build/window/styles', state);
+    } catch (error) {
+      log.error('Laucher', 'Failed to start System theme watcher despite being in dev mode');
     }
   }
 

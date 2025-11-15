@@ -1,88 +1,107 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getFileServerURL } from '@shared/Util';
 import { ITheme } from 'flashpoint-launcher';
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren, useEffect, useRef } from 'react';
 
 const globalThemeAttribute = 'data-theme';
 
 type ThemeProviderProps = PropsWithChildren;
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const currentThemeVersion = useAppSelector(state => state.main.themeVersion);
+  const themeVersion = useAppSelector(state => state.main.themeVersion);
+  const systemThemeVersion = useAppSelector(state => state.main.systemThemeVersion);
   const availableThemes = useAppSelector(state => state.main.themeList);
-  const selectedTheme = useAppSelector(state => state.preferences.currentTheme);
-  const [currentTheme, setCurrentTheme] = useState(selectedTheme);
-  const [themeVersion, setThemeVersion] = useState(currentThemeVersion);
-  const [firstRender, setFirstRender] = useState(true);
+  const currentTheme = useAppSelector(state => state.preferences.currentTheme);
+  const coreHref = useRef(document.querySelector('[data-corecss="true"]')?.getAttribute('href') || undefined);
+  const fancyHref = useRef(document.querySelector('[data-fancycss="true"]')?.getAttribute('href') || undefined);
 
-  // Must update DOM on very first render if we have a theme
-  if (firstRender) {
-    setFirstRender(false);
+  // Update theme when needed
+  useEffect(() => {
     const theme = availableThemes.find(t => t.id === currentTheme);
-    if (theme) {
-      updateDom(theme, themeVersion);
+    updateThemeDom(themeVersion, theme);
+  }, [themeVersion, currentTheme, availableThemes]);
+
+  // Update system theme when needed
+  useEffect(() => {
+    if (systemThemeVersion > 0) {
+      // Don't need to update unless theme has incremented, first links are in raw HTML
+      updateSystemThemeDom(systemThemeVersion, coreHref.current, fancyHref.current);
     }
-  }
-
-  // Update DOM if the theme changes
-  if (selectedTheme !== currentTheme) {
-    const newTheme = availableThemes.find(t => t.id === selectedTheme);
-    setCurrentTheme(selectedTheme);
-    updateDom(newTheme, themeVersion);
-  }
-
-  // Update DOM if the theme is invalidated (version changes)
-  if (themeVersion !== currentThemeVersion) {
-    setThemeVersion(currentThemeVersion);
-    const theme = availableThemes.find(t => t.id === currentTheme);
-    updateDom(theme, currentThemeVersion);
-  }
+  }, [systemThemeVersion]);
 
   return children;
 }
 
-/**
- * Set the theme data of the "global" theme style element.
- *
- * @param theme Theme to apply on top of the default
- */
-function updateDom(theme: ITheme | undefined, version: number): void {
-  let element = findThemeGlobal();
-  if (!element) {
-    element = createThemeElement();
-    element.setAttribute(globalThemeAttribute, 'true');
-    if (document.head) { document.head.appendChild(element); }
+// Updates the System css links to force them to update with new version
+function updateSystemThemeDom(version: number, coreHref?: string, fancyHref?: string): void {
+  if (coreHref) {
+    const existingElements = document.querySelectorAll('[data-corecss="true"]');
+    const newElement = createThemeElement(`${coreHref}?v=${version}`);
+    newElement.setAttribute('data-corecss', 'true');
+    newElement.onload = () => {
+      existingElements.forEach((elem) => {
+        try {
+          elem.remove();
+        } catch {
+          // Ignore, may have been removed earlier
+        }
+      });
+    };
+    if (document.head) { document.head.appendChild(newElement); }
   }
-  if (theme) {
-    const url = `${getFileServerURL()}/Themes/${theme.id}/${theme.entryPath}?v=${version}`;
-    if (element.getAttribute('href') !== url) {
-      element.setAttribute('href', url);
-    }
+
+  if (fancyHref) {
+    const existingElements = document.querySelectorAll('[data-fancycss="true"]');
+    const newElement = createThemeElement(`${fancyHref}?v=${version}`);
+    newElement.setAttribute('data-fancycss', 'true');
+    newElement.onload = () => {
+      existingElements.forEach((elem) => {
+        try {
+          elem.remove();
+        } catch {
+          // Ignore, may have been removed earlier
+        }
+      });
+    };
+    if (document.head) { document.head.appendChild(newElement); }
   }
-  else { element.removeAttribute('href'); }
 }
 
 
-/** Find the "global" theme style element. */
-function findThemeGlobal(): HTMLElement | undefined {
-  // Go through all children of <head>
-  if (document.head) {
-    const children = document.head.children;
-    for (let i = children.length; i >= 0; i--) {
-      const child = children.item(i) as HTMLElement;
-      if (child) {
-        // Check if the child has the unique "global theme element" attribute
-        const attribute = child.getAttribute(globalThemeAttribute);
-        if (attribute) { return child; }
-      }
-    }
+// Updates the Theme css links to force them to update with new version, or with the newly selected them
+function updateThemeDom(version: number, theme?: ITheme): void {
+  const url = theme ? `${getFileServerURL()}/Themes/${theme.id}/${theme.entryPath}?v=${version}` : undefined;
+  replaceThemeElement(url);
+}
+
+function replaceThemeElement(url?: string) {
+  // Get list of old theme elems to remove after loading new theme elem
+  const existingElements = document.head.querySelectorAll(`[${globalThemeAttribute}="true"]`);
+  if (url) {
+    const newElement = createThemeElement(url);
+    newElement.setAttribute(globalThemeAttribute, 'true');
+    newElement.onload = () => {
+      existingElements.forEach((elem) => {
+        try {
+          elem.remove();
+        } catch {
+          // Ignore, may have been removed earlier
+        }
+      });
+    };
+    if (document.head) { document.head.appendChild(newElement); }
+  } else {
+    existingElements.forEach((elem) => {
+      elem.remove();
+    });
   }
 }
 
 /** Create an element that themes can be "applied" to. */
-function createThemeElement(): HTMLElement {
+function createThemeElement(url: string): HTMLElement {
   const element = document.createElement('link');
   element.setAttribute('type', 'text/css');
   element.setAttribute('rel', 'stylesheet');
+  element.setAttribute('href', url);
   return element;
 }

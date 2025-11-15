@@ -1,6 +1,5 @@
 import { GameSearch, GameSearchOffset } from '@fparchive/flashpoint-archive';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
-import { UnrecoverableError } from '@shared/Util';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCuration, ContentTree } from '@shared/curate/types';
 import { LogoSet } from '@shared/extensions/interfaces';
@@ -51,6 +50,7 @@ import {
   Task,
   ViewGame
 } from 'flashpoint-launcher';
+import { UnrecoverableError } from 'flashpoint-launcher-renderer';
 import { UpdateOptions } from 'react-toastify';
 import { LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
@@ -255,6 +255,7 @@ export enum BackOut {
   PLAYLISTS_CHANGE,
   THEME_CHANGE,
   THEME_LIST_CHANGE,
+  SYSTEM_THEME_CHANGE,
   IMPORT_CURATION_RESPONSE,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
@@ -529,6 +530,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.PLAYLISTS_CHANGE]: (data: Playlist[]) => void;
   [BackOut.THEME_CHANGE]: (theme: Theme) => void;
   [BackOut.THEME_LIST_CHANGE]: (themes: Theme[]) => void;
+  [BackOut.SYSTEM_THEME_CHANGE]: () => void;
   [BackOut.IMPORT_CURATION_RESPONSE]: () => void;
   [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion[]) => void;
   [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: Tag | null) => Tag | undefined;

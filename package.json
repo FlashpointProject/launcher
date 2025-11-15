@@ -73,6 +73,7 @@
     "@types/ws": "8.18.1",
     "axios": "1.13.2",
     "babel-plugin-react-compiler": "1.0.0",
+    "chokidar": "^4.0.3",
     "cross-env": "7.0.2",
     "dns-packet": "^5.6.1",
     "electron": "22.3.27",

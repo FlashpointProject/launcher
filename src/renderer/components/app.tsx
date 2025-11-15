@@ -9,7 +9,7 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource, updateThemeCss } from '@renderer/store/main/slice';
+import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource, updateSystemThemeCss, updateThemeCss } from '@renderer/store/main/slice';
 import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData, updateGame } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
@@ -698,6 +698,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
 
   window.Shared.back.register(BackOut.THEME_CHANGE, (event, theme) => {
     dispatch(updateThemeCss());
+  });
+
+  window.Shared.back.register(BackOut.SYSTEM_THEME_CHANGE, (event) => {
+    dispatch(updateSystemThemeCss());
   });
 
   window.Shared.back.register(BackOut.THEME_LIST_CHANGE, (event, data) => {

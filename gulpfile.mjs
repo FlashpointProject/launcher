@@ -228,35 +228,39 @@ async function killProcess(proc) {
   });
 }
 
-async function watchBackend() {
-  await copyNativeModule();
-  const config = await loadConfig({ path: 'rsbuild-back.config.ts'});
-  const rsbuild = await createRsbuild({
-    rsbuildConfig: {
-      ...config.content,
-    },
-  });
-  let backProc = null;
-  rsbuild.onAfterBuild(async () => {
-    // Restart backend after it's been built
-    console.log('Restarting Backend...');
-    if (backProc) {
-      console.log('Killing existing backend process...');
-      await killProcess(backProc);
-      backProc = null;
-    }
-
-    backProc = spawn('node', [
-      '--inspect=9229',  // Enable debugging
-      'build/back/backend.js'
-    ], {
-      stdio: 'inherit',
-      env: { ...process.env, NODE_ENV: 'development' }
+function watchBackend(withServer) {
+  return async () => {
+    await copyNativeModule();
+    const config = await loadConfig({ path: 'rsbuild-back.config.ts'});
+    const rsbuild = await createRsbuild({
+      rsbuildConfig: {
+        ...config.content,
+      },
     });
-  });
-  await rsbuild.build({
-    watch: true,
-  });
+    let backProc = null;
+    if (withServer) {
+      rsbuild.onAfterBuild(async () => {
+        // Restart backend after it's been built
+        console.log('Restarting Backend...');
+        if (backProc) {
+          console.log('Killing existing backend process...');
+          await killProcess(backProc);
+          backProc = null;
+        }
+
+        backProc = spawn('node', [
+          '--inspect=9229',  // Enable debugging
+          'build/back/backend.js'
+        ], {
+          stdio: 'inherit',
+          env: { ...process.env, NODE_ENV: 'development' }
+        });
+      });
+    }
+    await rsbuild.build({
+      watch: true,
+    });
+  }
 }
 
 async function watchRenderer() {
@@ -497,7 +501,7 @@ export const watch = series(
   installCrossDeps,
   buildStatic,
   parallel(
-    watchBackend,
+    watchBackend(false),
     watchElectron,
     watchElectronPreload,
     watchRenderer,
@@ -512,7 +516,7 @@ export const watchStatic = series(
   buildStatic,
   buildExtensions,
   parallel(
-    watchBackend,
+    watchBackend(true),
     watchStaticTask,
   )
 );
