@@ -4,7 +4,7 @@ export const InitRendererChannel = 'renderer-init';
 /** Message contents for the "initialize renderer" message. */
 export type InitRendererData = {
   isBackRemote: boolean;
-  installed: boolean;
+  isDev: boolean;
   host: string;
   url?: string;
 }

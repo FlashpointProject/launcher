@@ -37,6 +37,7 @@ const onInit = async (data: InitRendererData, dispatch: AppDispatch) => {
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
   window.Shared.url = data.url;
+  window.Shared.isDev = data.isDev;
 
   // Register connection listener
   let startTime: number = 0;
@@ -152,7 +153,7 @@ window.Shared = {
     offset: 0,
   },
 
-  isDev: true, // TODO: fix
+  isDev: false,
 
   isBackRemote: createErrorProxy('isBackRemote'),
 

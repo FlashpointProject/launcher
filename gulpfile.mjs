@@ -20,7 +20,8 @@ const config = {
   buildVersion: Date.now().toString(),
   publish: !!process.env.PUBLISH,
   isRelease: process.env.NODE_ENV === 'production',
-  isStaticInstall: packageJson.config.installed,
+  browserBackendHost: packageJson.config.browserBackendHost || 'ws://localhost:12001/',
+  isBrowserBackendRemote: !!packageJson.config.isBrowserBackendRemote,
   static: {
     src: './static',
     dest: './build',
@@ -340,7 +341,7 @@ function configVersion(done) {
 
 /* ----- Version ---- */
 
-function createVersionFile(done) {
+function updateConstants(done) {
   // Get the current date
   const currentDate = new Date();
 
@@ -362,6 +363,22 @@ function createVersionFile(done) {
   const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';
 export const VERSION_EPOCH = ${Date.now()};
 export const FPA_VERSION = '${fpaVersion}';
+export const IS_BROWSER_BACKEND_REMOTE = ${config.isBrowserBackendRemote};
+export const BROWSER_ISDEV = ${!config.isRelease};
+export const getBrowserBackendHost = () => {
+  const host = '${config.browserBackendHost}';
+  if (host.startsWith('ws:') || host.startsWith('wss:/')) {
+    return host;
+  } else {
+    // Convert relative path to absolute WebSocket URL
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const portSuffix = port ? ':' + port : '';
+    const basePath = host.startsWith('/') ? host : '/' + host;
+    return protocol + '//' + hostname + portSuffix + basePath;
+  }
+};
 `;
 
   // Write to src/shared/version.ts
@@ -483,7 +500,7 @@ async function extractTarball(inputFilePath, outputDirectory) {
 export const clean = series(cleanTask);
 export const build = series(
   cleanTask,
-  createVersionFile,
+  updateConstants,
   installCrossDeps,
   buildStatic,
   parallel(
@@ -497,7 +514,7 @@ export const build = series(
 );
 export const watch = series(
   cleanTask,
-  createVersionFile,
+  updateConstants,
   installCrossDeps,
   buildStatic,
   parallel(
@@ -511,7 +528,7 @@ export const watch = series(
 );
 export const watchStatic = series(
   cleanTask,
-  createVersionFile,
+  updateConstants,
   installCrossDeps,
   buildStatic,
   buildExtensions,

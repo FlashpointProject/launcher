@@ -4,7 +4,8 @@
   "description": "A desktop application used to browse, manage and play games from Flashpoint Archive",
   "main": "build/main/electron.js",
   "config": {
-    "installed": false
+    "browserBackendHost": "ws://localhost:12001/",
+    "isBrowserBackendRemote": false
   },
   "scripts": {
     "start": "electron ./build/main/electron.js",

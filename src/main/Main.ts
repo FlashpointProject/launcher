@@ -492,8 +492,8 @@ export function main(init: Init): void {
     const url = argv.find((arg) => arg.startsWith('flashpoint://'));
     const data: InitRendererData = {
       isBackRemote: !!init.args['connect-remote'],
-      installed: !!state._installed,
       host: state.backHost.href,
+      isDev: Util.isDev,
       url
     };
     event.returnValue = data;

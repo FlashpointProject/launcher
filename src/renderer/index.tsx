@@ -3,6 +3,7 @@ import { MergeComponents } from '@mdx-js/react/lib';
 import { init } from '@module-federation/enhanced/runtime';
 import store from '@renderer/store/store';
 import { InitRendererData } from '@shared/IPC';
+import { BROWSER_ISDEV, getBrowserBackendHost, IS_BROWSER_BACKEND_REMOTE } from '@shared/version';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
@@ -43,9 +44,9 @@ import { ProgressContext } from './context/ProgressContext';
   const data: InitRendererData = window.electronAPI ?
     window.electronAPI.getInitData() :
     {
-      isBackRemote: false,
-      installed: false,
-      host: 'ws://localhost:12001/'
+      isDev: BROWSER_ISDEV,
+      host: getBrowserBackendHost(),
+      isBackRemote: IS_BROWSER_BACKEND_REMOTE,
     };
 
   const container = document.getElementById('root')!;
