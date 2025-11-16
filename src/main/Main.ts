@@ -502,8 +502,7 @@ export function main(init: Init): void {
       height: height,
       minWidth: 200,
       minHeight: 200,
-      frame: true,
-      // frame: !state.preferences.useCustomTitlebar,
+      frame: !state.preferences.useCustomTitlebar,
       icon: path.join(__dirname, '../window/images/icon.png'),
       webPreferences: {
         preload: path.resolve(__dirname, 'preload.js'),
@@ -519,7 +518,7 @@ export function main(init: Init): void {
       }
     });
     // Remove the menu bar
-    // window.setMenu(null);
+    window.setMenu(null);
     // and load the index.html of the app.
     window.loadFile(path.join(__dirname, '../window/renderer.html'));
     // Open the DevTools. Don't open if using a remote debugger (like vscode)
