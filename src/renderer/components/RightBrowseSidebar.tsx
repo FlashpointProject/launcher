@@ -1,11 +1,9 @@
 import { getPointer } from '@renderer/context/MenuContext';
-import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { createFpfssEditGame, saveFpfssEdit } from '@renderer/store/fpfss/slice';
-import { getLastValidPage } from '@renderer/store/history/slice';
 import { removePlaylistGame, setMainState } from '@renderer/store/main/slice';
 import { deleteView, forceSearch, selectGame, selectPlaylist, setEditing, setSearchText, updateEditGame, updateGame } from '@renderer/store/search/slice';
 import { ArchiveState, BackIn } from '@shared/back/types';
@@ -15,10 +13,10 @@ import { Paths } from '@shared/Paths';
 import { sizeToString } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
-import { Game, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
+import { Game, GameLaunchOverride, LangContainer, PlaylistGame, ResultsView } from 'flashpoint-launcher';
 import { GameComponentProps, MenuItemType } from 'flashpoint-launcher-renderer';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
-import { Location, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { axios, getGameImagePath, getGameImageURL, launchGame, openUrlInWindow, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -33,10 +31,7 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
 export type RightBrowseSidebarProps = {
-  /** Currently selected game (if any) */
-  game?: Game;
-  /** Currently selected playlist (if any) */
-  playlist?: Playlist;
+  view: ResultsView<any>;
   /** Whether the current game is extreme */
   isExtreme: boolean;
   /** Is the current game running? */
@@ -90,11 +85,12 @@ type RightBrowseSidebarViewProps = {
 
 type RightBrowseSidebarFpfssProps = {
   view: ResultsView<Game>;
+  onSave: () => Promise<void>;
+  onDiscard: () => Promise<void>;
 }
 
-export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) {
+export function RightBrowseSidebarFpfss({ view, onSave, onDiscard }: RightBrowseSidebarFpfssProps) {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const extremeTags = tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
@@ -106,41 +102,24 @@ export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) 
   };
 
   const onSaveGame = () => {
-    dispatch(getLastValidPage()).unwrap()
-    .then((validLoc?: Location) => {
-      if (validLoc !== undefined) {
-        navigate(validLoc.pathname);
-      } else {
-        navigate(Paths.HOME);
-      }
-    })
+    const viewId = view.id;
+    onSave()
     .then(() => {
-      setTimeout(() => {
-        dispatch(saveFpfssEdit(view.id));
-      }, 200);
+      dispatch(saveFpfssEdit(viewId));
     });
   };
 
   const onDiscardGame = () => {
-    dispatch(getLastValidPage()).unwrap()
-    .then((validLoc?: Location) => {
-      if (validLoc !== undefined) {
-        navigate(validLoc.pathname);
-      } else {
-        navigate(Paths.HOME);
-      }
-    })
+    const viewId = view.id;
+    onDiscard()
     .then(() => {
-      setTimeout(() => {
-        dispatch(deleteView({ view: view.id }));
-      }, 200);
+      dispatch(deleteView({ view: viewId }));
     });
   };
 
   return (
     <RightBrowseSidebar
-      game={view.selectedGame as Game}
-      playlist={view.selectedPlaylist}
+      view={view}
       isExtreme={isGame(view.selectedGame) ? view.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
       gameRunning={false}
       library={view.id}
@@ -291,8 +270,7 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
 
   return (
     <RightBrowseSidebar
-      game={view.selectedGame}
-      playlist={view.selectedPlaylist}
+      view={view}
       isExtreme={isGame(view.selectedGame) ? view.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
       gameRunning={gameRunning}
       library={view.id}
@@ -322,30 +300,29 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const gameSidebarBottom = useAppSelector(state => state.main.displaySettings.gameSidebar.bottom);
   const suggestions = useAppSelector(state => state.main.suggestions);
   const busyGames = useAppSelector(state => state.main.busyGames);
-  const currentView = useView();
-  const { isEditing } = currentView;
   const dispatch = useAppDispatch();
   const { openMenu } = useContextMenu();
   const { confirmDialog, openConfirmDialog } = useConfirmDialog();
   const strings = allStrings.browse;
-  const { game, playlist, gameRunning, library, fpfssEditMode, isExtreme,
+  const { gameRunning, library, fpfssEditMode, isExtreme,
     onGameLaunch, onEditGame, onUpdateActiveGameData, onDeselectPlaylist,
     onDiscardClick, onFpfssEditGame, onSaveGame, onEditClick, onDeleteSelectedGame,
-    onRemovePlaylistGame,
+    onRemovePlaylistGame, view,
   } = props;
+  const { isEditing, selectedGame: game, selectedPlaylist: playlist } = view;
   const [playlistGame, setPlaylistGame] = useState<PlaylistGame | null>(null);
   const [gameDataBrowserOpen, setGameDataBrowserOpen] = useState(false);
   const [showExtremeScreenshot, setShowExtremeScreenshot] = useState(!hideExtremeScreenshots);
   const [showPreview, setShowPreview] = useState(false);
 
-  const gameTitle = useAppSelector(selectGameField(currentView.id, 'title'));
-  const gameDeveloper = useAppSelector(selectGameField(currentView.id, 'developer'));
-  const gameLibrary = useAppSelector(selectGameField(currentView.id, 'library'));
+  const gameTitle = useAppSelector(selectGameField(view.id, 'title'));
+  const gameDeveloper = useAppSelector(selectGameField(view.id, 'developer'));
+  const gameLibrary = useAppSelector(selectGameField(view.id, 'library'));
 
   const lastGameId = useRef(game?.id);
   const lastPlaylistId = useRef(playlist?.id);
 
-  const activeData = game?.gameData?.find(d => d.id === game?.activeDataId);
+  const activeData = isGame(game) ? game?.gameData?.find(d => d.id === game?.activeDataId) : undefined;
 
   const setPlaylistGameResponse = useEffectEvent((gameId: string, playlistId: string, newPlaylistGame: PlaylistGame | null) => {
     if (gameId !== game?.id || playlistId !== playlist?.id) {
@@ -395,17 +372,17 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
 
   const onSearch = (text: string) => {
     dispatch(setSearchText({
-      view: currentView.id,
+      view: view.id,
       text
     }));
     dispatch(forceSearch({
-      view: currentView.id,
+      view: view.id,
       useCustomViews,
     }));
   };
 
   const gameComponentProps: GameComponentProps = {
-    viewId: currentView.id,
+    viewId: view.id,
     gameId: game ? game.id : '',
     editable: isEditing,
     playlistGame,
@@ -481,7 +458,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
     );
   }
 
-  const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
+  const anyActiveDataDownloaded = isGame(game) && game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
   const isDownloadState = activeData && !anyActiveDataDownloaded;
 
   const contextMenu: MenuItemType[] = [];

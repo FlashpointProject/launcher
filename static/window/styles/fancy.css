@@ -744,13 +744,13 @@ body {
 }
 
 /* ------ Browse ------ */
+.sidebar {
+  background-color: var(--layout__browse-sidebar-background);
+}
 .game-browser {
   background-color: var(--layout__primary-background);
 }
 /* Sidebar */
-.game-browser__sidebar {
-  background-color: var(--layout__browse-sidebar-background);
-}
 .game-browser__sidebar__divider {
   background-color: var(--layout__browse-sidebar-divider-background);
 }

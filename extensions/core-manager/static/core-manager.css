@@ -13,8 +13,7 @@
   flex-direction: column;
 }
 
-.manager-page-subsection-header,
-.manager-page-sidebar-header {
+.manager-page-subsection-header {
   font-weight: 400;
   font-size: 1.2em;
   align-self: center;

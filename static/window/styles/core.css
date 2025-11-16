@@ -2182,6 +2182,16 @@ body {
   margin: 0 auto;
 }
 
+/* ---- Sidebar ---- */
+
+.sidebar-header {
+  font-weight: 400;
+  font-size: 1.2em;
+  text-align: center;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
 /* --- Left Sidebar --- */
 .leftsidebar {
   height: 100%;
@@ -3843,4 +3853,18 @@ body {
 
 .unrecoverable-error-buttons > :not(:first-child) {
   margin-left: 0.5rem;
+}
+
+/** ---- FPFSS Page ---- */
+.fpfss-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.fpfss-page-left-sidebar-wrapper {
+  min-width: 16rem;
+  flex: 0 0 auto;
+  overflow-y: auto;
 }

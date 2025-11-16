@@ -3368,6 +3368,8 @@ declare module 'flashpoint-launcher-renderer' {
     rowHeight: number;
     selected?: string;
     onSelect?: (key: string) => void;
+    header?: string;
+    cssKey?: string;
   }
 
   type LeftSidebarItem = {

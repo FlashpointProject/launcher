@@ -21,6 +21,8 @@ export async function createHeadlessServer(hostname: string, port: number, url: 
     shell.openExternal(url);
   });
 
+  await app.whenReady();
+
   const icon = process.platform === 'win32' ? '../window/images/icon.ico' : '../window/images/icon.png';
   const tray = new Tray(path.join(__dirname, icon));
   const contextMenu = Menu.buildFromTemplate([

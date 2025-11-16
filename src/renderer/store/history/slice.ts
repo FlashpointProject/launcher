@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getViewName } from '@renderer/Util';
 import { Paths } from '@shared/Paths';
 import { HistoryState } from 'flashpoint-launcher-renderer';
 import { Location } from 'react-router-dom';
@@ -17,17 +16,10 @@ export const getLastValidPage = createAsyncThunk(
 
     // Find last valid page to navigate away to
     let validLoc: Location | undefined = undefined;
-    const viewKeys = Object.keys(state.search.views);
     for (let i = state.history.history.length - 2; i >= 0; i--) {
       const loc = state.history.history[i];
-      if (loc.pathname.startsWith(Paths.FPFSS)) {
-        // Make sure it's still a valid view
-        const view = getViewName(loc.pathname);
-        if (viewKeys.includes(view)) {
-          validLoc = loc;
-          break;
-        }
-      } else {
+      // We don't want to direct to another FFPSS page, we can do that ourselves
+      if (!loc.pathname.startsWith(Paths.FPFSS)) {
         validLoc = loc;
         break;
       }

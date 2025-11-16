@@ -14,6 +14,18 @@ export default tseslint.config(
       ignores: ['dist/**', 'website/**',  'build/**', 'extern/**', 'extensions/**', './**.mjs', './**.js']
     },
     {
+      files: ["src/**/*"],
+      rules: {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": ["flashpoint-launcher-renderer-ext/*"],
+            "allowTypeImports": true,
+            "message": "This module is only available in extensions, use Launcher src imports instead.",
+          }]
+        }]
+      }
+    },
+    {
       files: ['**/*.{ts,tsx}'],
       plugins: {
         react,

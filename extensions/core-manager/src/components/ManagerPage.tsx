@@ -25,9 +25,10 @@ export default function ManagerPage() {
   return (
     <div className='manager-page'>
       <div className='manager-page-sidebar'>
-        <div className='manager-page-sidebar-header'>Subsection</div>
         <div className='manager-page-sidebar-list'>
           <LeftSidebar
+            cssKey='manager-page'
+            header={'Subsection'}
             items={items}
             selected={subsection}
             onSelect={(key) => setSubsection(key as ManagerPageSubsection)}

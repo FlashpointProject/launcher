@@ -3,9 +3,10 @@ import { List, RowComponentProps } from 'react-window';
 import { InputField } from './InputField';
 import { SizeProvider } from './SizeProvider';
 
-export function LeftSidebar({ items, selected, onSelect, rowHeight }: LeftSidebarProps) {
+export function LeftSidebar({ items, selected, onSelect, rowHeight, header, cssKey }: LeftSidebarProps) {
   return (
-    <div className='leftsidebar'>
+    <div className={`sidebar leftsidebar${cssKey ? ` sidebar--${cssKey}` : '' }`}>
+      { header && <div className={`sidebar-header${cssKey ? ` sidebar-header--${cssKey}` : '' }`}>{header}</div> }
       <SizeProvider height={rowHeight}>
         <List
           rowComponent={LeftSidebarRow}

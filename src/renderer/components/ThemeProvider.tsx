@@ -8,18 +8,12 @@ const globalThemeAttribute = 'data-theme';
 type ThemeProviderProps = PropsWithChildren;
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const themeVersion = useAppSelector(state => state.main.themeVersion);
   const systemThemeVersion = useAppSelector(state => state.main.systemThemeVersion);
+  const themeVersion = useAppSelector(state => state.main.themeVersion) + systemThemeVersion;
   const availableThemes = useAppSelector(state => state.main.themeList);
   const currentTheme = useAppSelector(state => state.preferences.currentTheme);
   const coreHref = useRef(document.querySelector('[data-corecss="true"]')?.getAttribute('href') || undefined);
   const fancyHref = useRef(document.querySelector('[data-fancycss="true"]')?.getAttribute('href') || undefined);
-
-  // Update theme when needed
-  useEffect(() => {
-    const theme = availableThemes.find(t => t.id === currentTheme);
-    updateThemeDom(themeVersion, theme);
-  }, [themeVersion, currentTheme, availableThemes]);
 
   // Update system theme when needed
   useEffect(() => {
@@ -28,6 +22,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       updateSystemThemeDom(systemThemeVersion, coreHref.current, fancyHref.current);
     }
   }, [systemThemeVersion]);
+
+  // Update theme when needed
+  useEffect(() => {
+    const theme = availableThemes.find(t => t.id === currentTheme);
+    updateThemeDom(themeVersion, theme);
+  }, [themeVersion, currentTheme, availableThemes]);
 
   return children;
 }

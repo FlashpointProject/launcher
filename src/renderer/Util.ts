@@ -279,17 +279,21 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
   };
 }
 
+export function getViewNameFpfss(urlPath: string) {
+  if (urlPath.startsWith(Paths.FPFSS)) {
+    const pathSegments = urlPath.split('/').filter(v => !!v);
+    const gameId = pathSegments[pathSegments.length - 1];
+    return '!fpfss-' + gameId;
+  }
+  return undefined;
+}
+
 /**
  * Get the "library route" of a URL (returns general string if URL is not a valid "sub-browse path")
  *
  * @param urlPath URL to check
  */
 export function getViewName(urlPath: string): string {
-  if (urlPath.startsWith(Paths.FPFSS)) {
-    const pathSegments = urlPath.split('/').filter(v => !!v);
-    const gameId = pathSegments[pathSegments.length - 1];
-    return '!fpfss-' + gameId;
-  }
   if (urlPath.startsWith(Paths.BROWSE)) {
     let str = urlPath.substring(Paths.BROWSE.length);
     if (str[0] === '/') { str = str.substring(1); }

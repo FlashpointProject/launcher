@@ -317,8 +317,6 @@ export function main(init: Init): void {
 
     // Start appropriate frontend
     if (opts.browserFrontend) {
-      await app.whenReady();
-
       // Create headless server
       const hostname = init.args['browser-mode-host'] || 'localhost';
       const port = init.args['browser-mode-port'] || 9000;

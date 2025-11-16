@@ -88,7 +88,7 @@ export function ResizableSidebar(props: ResizableSidebarProps) {
   return (
     <div
       className={
-        'game-browser__sidebar' +
+        'sidebar game-browser__sidebar' +
         (className ? ' '+className+' ' : '') +
         (show ? '' : ' game-browser__sidebar--hidden')
       }
