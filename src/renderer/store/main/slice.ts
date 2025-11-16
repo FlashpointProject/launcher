@@ -3,7 +3,7 @@ import { BackIn, BackInit } from '@shared/back/types';
 import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import { CreditsData, DialogFieldProps, DialogState, Game, GameMetadataSource, IExtensionDescription, IService, Playlist } from 'flashpoint-launcher';
-import { CustomRoute, DisplaySettings, DisplaySettingsGameSidebarAction, DynamicPageProps, ExtOrderable, MainState, UnrecoverableError } from 'flashpoint-launcher-renderer';
+import { CustomRoute, DisplaySettings, DisplaySettingsGameSidebarAction, DynamicPageProps, ExtConfigValueAction, ExtOrderable, MainState, UnrecoverableError } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
@@ -415,6 +415,9 @@ const mainSlice = createSlice({
     },
     updateSystemThemeCss(state: MainState) {
       state.systemThemeVersion += 1;
+    },
+    setExtConfigValue(state: MainState, { payload }: PayloadAction<ExtConfigValueAction>) {
+      state.extConfig[payload.key] = payload.value;
     }
   },
 });
@@ -452,6 +455,7 @@ export const { setMainState,
   setUnrecoverableError,
   updateThemeCss,
   updateSystemThemeCss,
+  setExtConfigValue,
 } = mainSlice.actions;
 export default mainSlice.reducer;
 

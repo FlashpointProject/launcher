@@ -1,9 +1,10 @@
 import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
 import { startAppListening } from '@renderer/store/listenerMiddleware';
 import { BackIn } from '@shared/back/types';
+import { ExtConfigValueAction } from 'flashpoint-launcher-renderer';
 import { selectGame, selectPlaylist } from '../search/slice';
 import store from '../store';
-import { addNewExtension, removeExtension, removePlaylistGame, RemovePlaylistGameAction, resolveDialog, ResolveDialogActionData, setMainState } from './slice';
+import { addNewExtension, removeExtension, removePlaylistGame, RemovePlaylistGameAction, resolveDialog, ResolveDialogActionData, setExtConfigValue, setMainState } from './slice';
 
 export function addMainMiddleware() {
   // Send dialog state to event handlers after reducer has finished
@@ -16,6 +17,13 @@ export function addMainMiddleware() {
         window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, action.payload.button);
         window.Shared.dialogResEvent.emit(dialog.id, dialog, action.payload.button);
       }
+    }
+  });
+
+  startAppListening({
+    matcher: isAnyOf(setExtConfigValue),
+    effect: async ({ payload }: PayloadAction<ExtConfigValueAction>, _listenerApi) => {
+      window.Shared.back.send(BackIn.SET_EXT_CONFIG_VALUE, payload.key, payload.value);
     }
   });
 

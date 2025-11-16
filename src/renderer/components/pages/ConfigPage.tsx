@@ -14,6 +14,7 @@ import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPreferencesData, ExtConfigurationProp, ILogoSet, ITheme, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
+import { SelectItem } from 'flashpoint-launcher-renderer';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';
@@ -25,12 +26,12 @@ import {
   joinLibraryRoute
 } from '../../Util';
 import { CheckBox } from '../CheckBox';
-import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
+import { ConfigBox, ConfigBoxInner, ConfigSection } from '../ConfigBox';
 import { ConfigBoxButton, ConfigBoxInnerButton } from '../ConfigBoxButton';
 import { ConfigBoxCheckbox, ConfigBoxInnerCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
 import { ConfigBoxMultiSelect } from '../ConfigBoxMultiSelect';
-import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
+import { ConfigBoxSelect } from '../ConfigBoxSelect';
 import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
@@ -491,9 +492,9 @@ export function ConfigPage() {
             className='setting'
             key={`${idx}_${configIdx}`}>
             <p className='setting__title'>{config.title}</p>
-            <div className='setting__body'>
+            <ConfigSection>
               {propBoxes}
-            </div>
+            </ConfigSection>
           </div>
         );
       }
@@ -641,7 +642,7 @@ export function ConfigPage() {
         {/* -- Preferences -- */}
         <div className='setting'>
           <p className='setting__title'>{strings.preferencesHeader}</p>
-          <div className='setting__body'>
+          <ConfigSection>
             {/* Restore Search Views */}
             <ConfigBoxCheckbox
               title={strings.restoreSearchViews}
@@ -784,12 +785,12 @@ export function ConfigPage() {
               onChange={onScreenshotPreviewDelayChange}
               onItemSelect={onScreenshotPreviewDelayChange}
               items={['0', '150', '250', '350', '500', '750', '1000']}/>
-          </div>
+          </ConfigSection>
         </div>
         {/* -- Content Filters -- */}
         <div className='setting'>
           <p className='setting__title'>{strings.contentFiltersHeader}</p>
-          <div className='setting__body'>
+          <ConfigSection>
             {/* Show Extreme Games */}
             {((!preferences.disableExtremeGames)) ? (
               <ConfigBoxCheckbox
@@ -825,12 +826,12 @@ export function ConfigPage() {
               text={strings.libraries}
               onChange={(item) => dispatch(toggleExcludedLibrary(item))}
               items={libraryOptions} />
-          </div>
+          </ConfigSection>
         </div>
         {/* -- Flashpoint -- */}
         <div className='setting'>
           <p className='setting__title'>{strings.flashpointHeader}</p>
-          <div className='setting__body'>
+          <ConfigSection>
             {/* Flashpoint Path */}
             <ConfigBox
               title={strings.flashpointPath}
@@ -868,13 +869,13 @@ export function ConfigPage() {
               description={strings.enableVerboseLoggingDesc}
               checked={preferences.enableVerboseLogging}
               onToggle={onSetPreferenceFactory('enableVerboseLogging')} />
-          </div>
+          </ConfigSection>
         </div>
 
         {/* -- Visuals -- */}
         <div className='setting'>
           <p className='setting__title'>{strings.visualsHeader}</p>
-          <div className='setting__body'>
+          <ConfigSection>
             <ConfigBoxCheckbox
               title={strings.useCustomTitleBar}
               description={strings.useCustomTitleBarDesc}
@@ -901,29 +902,13 @@ export function ConfigPage() {
               onChange={onSetPreferenceFactory('currentLogoSet')}
               onItemSelect={onCurrentLogoSetSelect}
               bottomChildren={getLogoSetPreviews()}/>
-          </div>
+          </ConfigSection>
         </div>
 
         {/* -- Advanced -- */}
         <div className='setting'>
           <p className='setting__title'>{strings.advancedHeader}</p>
-          <div className='setting__body'>
-            {/* Auto-Clear WinINet Cache */}
-            {/* {process.platform === 'win32' && (
-              <ConfigBoxCheckbox
-                title={strings.autoClearWininetCache}
-                description={strings.autoClearWininetCacheDesc}
-                value={allStrings.curate.run}
-                onToggle={this.onChangeAutoClearWininetCache}/>
-            )} */}
-            {/* Clear WinINet Cache */}
-            {/* {process.platform === 'win32' && (
-              <ConfigBoxButton
-                title={strings.clearWininetCache}
-                description={strings.clearWininetCacheDesc}
-                value={allStrings.curate.run}
-                onClick={this.onClearWininetCache}/>
-            )} */}
+          <ConfigSection>
             {/* Optimize Database */}
             <ConfigBoxButton
               title={strings.optimizeDatabase}
@@ -960,7 +945,7 @@ export function ConfigPage() {
               value={preferences.fallbackLanguage || ''}
               onChange={onSetPreferenceEventFactory('fallbackLanguage')}
               items={langOptions} />
-          </div>
+          </ConfigSection>
         </div>
 
         {/* -- Advanced -- */}

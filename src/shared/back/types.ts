@@ -244,7 +244,7 @@ export enum BackOut {
   LOCALE_UPDATE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
-  UPDATE_EXT_CONFIG_DATA,
+  SET_EXT_CONFIG_VALUE,
   IMAGE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
@@ -519,7 +519,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.LOCALE_UPDATE]: (data: string) => void;
   [BackOut.GET_MAIN_INIT_DATA]: () => void;
   [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: AppPreferencesData) => void;
-  [BackOut.UPDATE_EXT_CONFIG_DATA]: (data: AppExtConfigData) => void;
+  [BackOut.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
   [BackOut.IMAGE_CHANGE]: (folder: string, id: string) => void;
   [BackOut.LOG_ENTRY_ADDED]: (entry: ILogEntry, index: number) => void;
   [BackOut.SERVICE_CHANGE]: (data: IService) => void;

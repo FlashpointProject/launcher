@@ -2566,7 +2566,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CLEAR_PLAYTIME_TRACKING, async (event) => {
     const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
+    const dialogId = openDialog({
       message: 'Clearing Playtime Data...',
       largeMessage: true,
       buttons: []
@@ -2600,7 +2600,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.SET_EXT_CONFIG_VALUE, async (event, key, value) => {
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-    state.socketServer.send(event.client, BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
+    state.socketServer.broadcastExcept(event.client, BackOut.SET_EXT_CONFIG_VALUE, key, value);
   });
 
   state.socketServer.register(BackIn.DIALOG_RESPONSE, (event, dialog, buttonIdx) => {

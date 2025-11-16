@@ -11,7 +11,7 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { performFpfssAction, setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource, updateSystemThemeCss, updateThemeCss } from '@renderer/store/main/slice';
+import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtConfigValue, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource, updateSystemThemeCss, updateThemeCss } from '@renderer/store/main/slice';
 import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData, updateGame } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
@@ -37,6 +37,13 @@ import { LangContext } from '../util/lang';
 import { ActivityRoutes, StateWrapper } from './ActivityRoutes';
 import { BrowsePageDisplayGrid, BrowsePageDisplayList } from './BrowsePageDisplay';
 import { CheckBox } from './CheckBox';
+import { ConfigBox, ConfigSection } from './ConfigBox';
+import { ConfigBoxButton } from './ConfigBoxButton';
+import { ConfigBoxCheckbox } from './ConfigBoxCheckbox';
+import { ConfigBoxInput } from './ConfigBoxInput';
+import { ConfigBoxMultiSelect } from './ConfigBoxMultiSelect';
+import { ConfigBoxSelect } from './ConfigBoxSelect';
+import { ConfigBoxSelectInput } from './ConfigBoxSelectInput';
 import { Dialog } from './Dialog';
 import { GameComponentDropdownSelectField, GameComponentInputField } from './DisplayComponent';
 import { Dropdown, DropdownCheckboxRow, DropdownFrame, DropdownStringRow } from './Dropdown';
@@ -427,7 +434,7 @@ function addExtIntercepts() {
     runCommand: (command: string, ...args: any[]) => {
       return window.Shared.back.request(BackIn.RUN_COMMAND, command, ...args);
     },
-    setExtensionEnabled,
+    setExtensionEnabled
   } satisfies typeof import('flashpoint-launcher-renderer-ext/utils');
 
   (window as any)['flashpoint-launcher-renderer-ext/search'] = {
@@ -449,6 +456,14 @@ function addExtIntercepts() {
     BrowsePageDisplayList,
     LeftSidebar,
     StateWrapper,
+    ConfigSection,
+    ConfigBox,
+    ConfigBoxButton,
+    ConfigBoxCheckbox,
+    ConfigBoxInput,
+    ConfigBoxMultiSelect,
+    ConfigBoxSelect,
+    ConfigBoxSelectInput,
     SimpleButton,
     CheckBox,
     Dropdown,
@@ -471,6 +486,7 @@ function addExtIntercepts() {
     removeCustomRoute,
     addGameSidebarComponent,
     removeGameSidebarComponent,
+    setExtConfigValue,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/actions/main');
 }
 
@@ -725,10 +741,8 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     dispatch(setPreferences(data));
   });
 
-  window.Shared.back.register(BackOut.UPDATE_EXT_CONFIG_DATA, (event, data) => {
-    dispatch(setMainState({
-      extConfig: data
-    }));
+  window.Shared.back.register(BackOut.SET_EXT_CONFIG_VALUE, (event, key, value) => {
+    dispatch(setExtConfigValue({ key, value }));
   });
 
   window.Shared.back.register(BackOut.TAG_CATEGORIES_CHANGE, (event, data) => {

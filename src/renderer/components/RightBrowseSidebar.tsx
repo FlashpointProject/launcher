@@ -36,8 +36,6 @@ export type RightBrowseSidebarProps = {
   isExtreme: boolean;
   /** Is the current game running? */
   gameRunning: boolean;
-  /* Current Library */
-  library: string;
   /** Called when the play button is pressed */
   onGameLaunch: (gameId: string, override: GameLaunchOverride) => Promise<void>;
   /** Called when the selected game is deleted by this */
@@ -122,7 +120,6 @@ export function RightBrowseSidebarFpfss({ view, onSave, onDiscard }: RightBrowse
       view={view}
       isExtreme={isGame(view.selectedGame) ? view.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
       gameRunning={false}
-      library={view.id}
       onGameLaunch={async () => {}}
       onDeleteSelectedGame={() => {}}
       onDeselectPlaylist={() => {}}
@@ -273,7 +270,6 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
       view={view}
       isExtreme={isGame(view.selectedGame) ? view.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
       gameRunning={gameRunning}
-      library={view.id}
       onGameLaunch={onGameLaunch}
       onDeleteSelectedGame={onDeleteSelectedGame}
       onDeselectPlaylist={onDeselectPlaylist}
@@ -304,7 +300,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const { openMenu } = useContextMenu();
   const { confirmDialog, openConfirmDialog } = useConfirmDialog();
   const strings = allStrings.browse;
-  const { gameRunning, library, fpfssEditMode, isExtreme,
+  const { gameRunning, fpfssEditMode, isExtreme,
     onGameLaunch, onEditGame, onUpdateActiveGameData, onDeselectPlaylist,
     onDiscardClick, onFpfssEditGame, onSaveGame, onEditClick, onDeleteSelectedGame,
     onRemovePlaylistGame, view,
@@ -452,7 +448,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   if (game == undefined) {
     return (
       <div className='browse-right-sidebar-empty'>
-        <h1>{formatString(strings.noGameSelected, allStrings.libraries[library + 'Singular'] || allStrings.libraries['arcadeSingular'] || 'Game')}</h1>
+        <h1>{formatString(strings.noGameSelected, allStrings.libraries[view.id + 'Singular'] || allStrings.libraries['arcadeSingular'] || 'Game')}</h1>
         <p>{strings.clickToSelectGame}</p>
       </div>
     );

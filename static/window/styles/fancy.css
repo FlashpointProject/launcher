@@ -1104,6 +1104,7 @@ body {
 }
 /* Setting Row */
 .setting__row {
+  background-color: var(--layout__quaternary-background);
   padding: 0.75em;
 }
 .setting__row:not(:first-child) {

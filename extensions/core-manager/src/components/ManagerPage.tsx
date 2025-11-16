@@ -2,8 +2,9 @@ import { LeftSidebarItem } from 'flashpoint-launcher-renderer';
 import { LeftSidebar, StateWrapper } from 'flashpoint-launcher-renderer-ext/components';
 import { useState } from 'react';
 import { ExtensionSubsection } from './ExtensionSubsection';
+import { SubsectionSettings } from './SettingsSubsection';
 
-type ManagerPageSubsection = 'extensions' | 'support-packs' | 'utilities';
+type ManagerPageSubsection = 'extensions' | 'support-packs' | 'utilities' | 'settings';
 
 export default function ManagerPage() {
   const [subsection, setSubsection] = useState<ManagerPageSubsection>('extensions');
@@ -19,6 +20,10 @@ export default function ManagerPage() {
     }, {
       key: 'utilities',
       title: 'Utilities'
+    },
+    {
+      key: 'settings',
+      title: 'Settings'
     }
   ];
 
@@ -44,6 +49,9 @@ export default function ManagerPage() {
         </StateWrapper>
         <StateWrapper show={subsection === 'utilities'}>
           <SubsectionUtilities/>
+        </StateWrapper>
+        <StateWrapper show={subsection === 'settings'}>
+          <SubsectionSettings/>
         </StateWrapper>
       </div>
     </div>

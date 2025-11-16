@@ -2,7 +2,7 @@ import { BackState, OpenExternalFunc, ShowMessageBoxBroadcastFunc, ShowMessageBo
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_all, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
-import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
+import { create_server, server_add_client, server_broadcast, server_broadcast_except, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
@@ -280,6 +280,23 @@ export class SocketServer {
       }
     }
     return server_broadcast(this.clients, res.type, ...res.args);
+  }
+
+  public async broadcastExcept<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
+    return server_broadcast_except(client,this.clients, res.type, ...res.args);
   }
 
   // Event Handlers

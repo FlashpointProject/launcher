@@ -5,6 +5,7 @@ import { getExtensionFileURL, runCommand, setExtensionEnabled } from 'flashpoint
 import { useEffect, useState } from 'react';
 import { DownloadExtCommand, UninstallExtCommand } from '../commands';
 import { loadExtIndexUrl, ManagerExtensionInfo, ManagerExtensionRemoteInfo } from '../extensionLoader';
+import { selectRepoUrls } from '../select';
 
 export type ExtensionRowProps = {
   ext: ManagerExtensionInfo;
@@ -15,16 +16,21 @@ export type ExtensionRowProps = {
 export function ExtensionSubsection() {
   const [remoteExtensions, setRemoteExtensions] = useState<ManagerExtensionRemoteInfo[]>([]);
   const installedExtensions = useAppSelector(state => state.main.extensions);
+  const repoUrlsRaw = useAppSelector(selectRepoUrls);
   console.log(installedExtensions);
   const disabledExtensions = useAppSelector(state => state.preferences.disabledExtensions);
 
   useEffect(() => {
-    console.log('loading ext');
-    loadExtIndexUrl('https://raw.githubusercontent.com/FlashpointProject/FlashpointExtensionIndex/refs/heads/main/extindex.json')
-    .then((data) => {
+    const repoUrls = repoUrlsRaw
+      .split('\n')
+      .map(url => url.trim())
+      .filter(url => url.length > 0);
+    Promise.all(repoUrls.map(loadExtIndexUrl))
+    .then((responses) => {
+      const data = responses.reduce((prev, cur) => prev.concat(cur), []);
       setRemoteExtensions(data);
     });
-  }, []);
+  }, [repoUrlsRaw]);
 
   const extensionList: ManagerExtensionInfo[] = installedExtensions.map(ext => {
     return {

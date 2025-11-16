@@ -1,17 +1,6 @@
-import { DropdownRowProps } from 'flashpoint-launcher-renderer';
-import { ConfigBox, ConfigBoxProps } from './ConfigBox';
-import { SelectItem } from './ConfigBoxSelect';
+import { ConfigBoxMultiSelectProps, DropdownRowProps, MultiSelectItem } from 'flashpoint-launcher-renderer';
+import { ConfigBox } from './ConfigBox';
 import { Dropdown } from './Dropdown';
-
-export type ConfigBoxMultiSelectProps<T> = ConfigBoxProps & {
-  text: string;
-  onChange: (item: T) => void;
-  items: MultiSelectItem<T>[];
-};
-
-export type MultiSelectItem<T> = SelectItem<T> & {
-  checked: boolean;
-}
 
 export function ConfigBoxMultiSelect<T>(props: ConfigBoxMultiSelectProps<T>) {
   return (

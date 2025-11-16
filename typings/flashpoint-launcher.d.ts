@@ -2939,6 +2939,79 @@ declare module 'flashpoint-launcher-renderer' {
     value: string;
   }
 
+  type InputFieldProps = {
+    /** Displayed text. */
+    text: string;
+    /** Placeholder text (used to set the "placeholder" attribute). */
+    placeholder?: string;
+    /**
+     * If the text element should be an "editable" element or not.
+     * If true, the text element will be an input or text area element (depending on of multiline is enabled).
+     * If false or undefined, the text element will be a paragraph element (<p>).
+     */
+    editable?: boolean;
+    /** If the text element should be disabled (only applicable to editable elements). */
+    disabled?: boolean;
+    /** If the text field should support multi-line text (while "editable"). */
+    multiline?: boolean;
+    /** Class name(s) of the element. */
+    className?: string;
+    /** Reference of the element. */
+    reference?: React.RefObject<any>;
+    /** Called when the text has been changed (while "editable"). */
+    onChange?: (event: React.ChangeEvent<InputElement>) => void;
+    /** Called when the text has been clicked. */
+    onClick?: (event: React.MouseEvent<InputElement | HTMLParagraphElement>) => void;
+    /** Called when a key is pressed (while "editable" and focused). */
+    onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
+    /** Use alternative form class */
+    form?: boolean;
+  };
+
+  type ConfigBoxProps = {
+    title: string;
+    description: string;
+    swapChildren?: boolean;
+    contentClassName?: string;
+    bottomChildren?: React.JSX.Element | React.JSX.Element[];
+  }
+
+  type ConfigBoxInputProps = ConfigBoxProps & InputFieldProps;
+
+  type ConfigBoxButtonProps = ConfigBoxProps & SimpleButtonProps;
+
+  type ConfigBoxCheckboxProps = ConfigBoxProps & CheckBoxProps;
+
+  type MultiSelectItem<T> = SelectItem<T> & {
+    checked: boolean;
+  }
+
+  type ConfigBoxMultiSelectProps<T> = ConfigBoxProps & {
+    text: string;
+    onChange: (item: T) => void;
+    items: MultiSelectItem<T>[];
+  };
+
+  type SelectItem<T> = {
+    value: T;
+    display?: string;
+  }
+
+  type ConfigBoxSelectProps<T extends string | number> = ConfigBoxProps & {
+    value: T;
+    onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+    items: SelectItem<T>[];
+  };
+
+  type ConfigBoxSelectInputProps = ConfigBoxProps & {
+    text: string;
+    placeholder: string;
+    onChange: (value: string) => void;
+    onItemSelect: (value: string, index: number) => void;
+    editable: boolean;
+    items: string[];
+  };
+
   type GameComponentInputFieldProps = GameComponentProps & {
     /** Header text of this field, shown to the left of the text */
     header: string;
@@ -3434,6 +3507,11 @@ declare module 'flashpoint-launcher-renderer' {
     onSelect: (index: number) => void;
   }
 
+  type ExtConfigValueAction = {
+    key: string;
+    value: any;
+  }
+
   declare global {
     interface Window {
       log: LogFuncs;
@@ -3471,6 +3549,13 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
     BrowsePageDisplayGridProps,
     BrowsePageDisplayListProps,
     CheckBoxProps,
+    ConfigBoxButtonProps,
+    ConfigBoxCheckboxProps,
+    ConfigBoxInputProps,
+    ConfigBoxMultiSelectProps,
+    ConfigBoxProps,
+    ConfigBoxSelectInputProps,
+    ConfigBoxSelectProps,
     DropdownCheckboxRowProps,
     DropdownFrameProps,
     DropdownProps,
@@ -3486,7 +3571,7 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
     SortableColumnProps,
     StateWrapperProps
   } from 'flashpoint-launcher-renderer';
-  import { ComponentType } from 'react';
+  import { ComponentType, PropsWithChildren } from 'react';
 
   const GameComponentInputField: ComponentType<GameComponentInputFieldProps>;
   const GameComponentDropdownSelectField: ComponentType<GameComponentDropdownSelectFieldProps>;
@@ -3502,6 +3587,14 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   const LeftSidebar: ComponentType<LeftSidebarProps>;
   /** Like React Activity, hides the component instead of unmounting it to keep its state, however it does not preload the component */
   const StateWrapper: ComponentType<StateWrapperProps>;
+  const ConfigSection: ComponentType<PropsWithChildren>;
+  const ConfigBox: ComponentType<ConfigBoxProps>;
+  const ConfigBoxButton: ComponentType<ConfigBoxButtonProps>;
+  const ConfigBoxCheckbox: ComponentType<ConfigBoxCheckboxProps>;
+  const ConfigBoxInput: ComponentType<ConfigBoxInputProps>;
+  const ConfigBoxMultiSelect: ComponentType<ConfigBoxMultiSelectProps>;
+  const ConfigBoxSelect: ComponentType<ConfigBoxSelectProps>;
+  const ConfigBoxSelectInput: ComponentType<ConfigBoxSelectInputProps>;
   const SimpleButton: ComponentType<SimpleButtonProps>;
   const CheckBox: ComponentType<CheckBoxProps>;
   const Dropdown: <T>(props: DropdownProps<T>) => React.ReactElement;
@@ -3531,10 +3624,12 @@ declare module 'flashpoint-launcher-renderer-ext/actions/main' {
   import {
     CustomRoute,
     DisplaySettingsGameSidebarAction,
+    ExtConfigValueAction,
   } from 'flashpoint-launcher-renderer';
 
   const addCustomRoute: ActionCreatorWithPayload<CustomRoute>;
   const removeCustomRoute: ActionCreatorWithPayload<CustomRoute>;
   const addGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
   const removeGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
+  const setExtConfigValue: ActionCreatorWithPayload<ExtConfigValueAction>;
 }
