@@ -3,8 +3,9 @@ import { BackIn } from '@shared/back/types';
 import { generateTagFilterGroup, tagSort } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { CheckBox } from './CheckBox';
+import { useFileLoader } from './FileLoader';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
@@ -26,17 +27,16 @@ export type TagFilterGroupEditorProps = {
 
 export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   const strings = useLocalization();
-  const [editTag, setEditTag] = React.useState('');
-  // const [editCategory, setEditCategory] = React.useState('');
-  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
-  const [parsedTagsList, setParsedTagsList] = React.useState<Tag[]>(buildPlaceholderTags(props.tagFilterGroup.tags));
+  const [editTag, setEditTag] = useState('');
+  // const [editCategory, setEditCategory] = useState('');
+  const [tagSuggestions, setTagSuggestions] = useState<TagSuggestion[]>([]);
+  const [parsedTagsList, setParsedTagsList] = useState<Tag[]>(buildPlaceholderTags(props.tagFilterGroup.tags));
+  const { fileLoader, openFileSelect } = useFileLoader();
 
-  let imgTagFilterIconInput: HTMLInputElement;
+  // const tags = useMemo(() => tagsFactory(props.tagFilterGroup.tags, props.onRemoveTag), [props.tagFilterGroup.tags, props.onRemoveTag]);
+  // const categories = useMemo(() => categoriesFactory(props.tagFilterGroup.categories, props.onRemoveCategory), [props.tagFilterGroup.categories, props.onRemoveCategory]);
 
-  // const tags = React.useMemo(() => tagsFactory(props.tagFilterGroup.tags, props.onRemoveTag), [props.tagFilterGroup.tags, props.onRemoveTag]);
-  // const categories = React.useMemo(() => categoriesFactory(props.tagFilterGroup.categories, props.onRemoveCategory), [props.tagFilterGroup.categories, props.onRemoveCategory]);
-
-  React.useEffect(() => {
+  useEffect(() => {
     /** Parse the tags into 'real tags' on first load */
     Promise.all(parsedTagsList.map(async (t) => {
       return (await window.Shared.back.request(BackIn.GET_TAG, t.name)) || t;
@@ -158,21 +158,21 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
           ) : (
             <SimpleButton
               value={formatString(strings.misc.addBlank, strings.browse.thumbnail)}
-              onClick={() => imgTagFilterIconInput && imgTagFilterIconInput.click()} />
+              onClick={() => {
+                openFileSelect((files) => {
+                  if (files && files.length > 0) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(files[0]);
+                    reader.onload = () => {
+                      props.onChangeIconBase64(reader.result ? reader.result.toString() : '');};
+                  }
+                }, {
+                  accept: 'image/png'
+                });
+              }}/>
           )
         }
-        <input
-          hidden={true}
-          ref={(ref) => imgTagFilterIconInput = (ref as HTMLInputElement)}
-          accept='image/png'
-          onChange={(event) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(event.target.files![0]);
-            reader.onload = () => {
-              props.onChangeIconBase64(reader.result ? reader.result.toString() : '');};
-            event.target.value = '';
-          }}
-          type='file'/>
+        {fileLoader}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { CharCode } from './charCode';
 import { compareSubstring, compareSubstringIgnoreCase } from './strings';
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 export interface IKeyIterator<K> {
   reset(key: K): this;
   next(): this;

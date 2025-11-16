@@ -2,11 +2,11 @@ import { TagCategory } from 'flashpoint-launcher';
 import * as React from 'react';
 import { List, RowComponentProps } from 'react-window';
 import { findElementAncestor } from '../Util';
+import { SizeProvider } from './SizeProvider';
 import { TagCategoriesListHeader } from './TagCategoriesListHeader';
 import { TagCategoriesListItem } from './TagCategoriesListItem';
 import { TagItemContainer } from './TagItemContainer';
 import { TagListItem } from './TagListItem';
-import { SizeProvider } from './SizeProvider';
 
 export type TagCategoriesProps = {
   /** All tags that will be shown in the list. */

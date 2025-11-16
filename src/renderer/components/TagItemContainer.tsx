@@ -4,8 +4,6 @@ import * as React from 'react';
 type HTMLDivProps = React.HTMLAttributes<HTMLDivElement>;
 
 export type TagItemContainerProps = HTMLDivProps & {
-  /** Reference to the underlying DIV element. */
-  realRef?: React.JSX.IntrinsicElements['div']['ref'];
   onTagSelect?: (event: React.MouseEvent<HTMLDivElement>, tagId: number | undefined) => void;
   /**
    * Find the tag ID of an element (or sub-element) of a game.
@@ -34,7 +32,6 @@ export function TagItemContainer(props: TagItemContainerProps) {
   return (
     <div
       { ...filterDivProps(props) }
-      ref={props.realRef}
       onClick={onClick}>
       {props.children}
     </div>

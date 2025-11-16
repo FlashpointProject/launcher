@@ -1,11 +1,11 @@
 import { AnyFunction, ArgumentTypesOf } from '../interfaces';
 
 /** A callable object that has the same argument types as T (and void as the return type). */
-interface CallableCopy<T extends AnyFunction> extends Function {
+interface CallableCopy<T extends AnyFunction> {
   (...args: ArgumentTypesOf<T>): void;
 }
 /** A callable object that has the same argument types as T (and Promise<void> as the return type). */
-interface CallableCopyAsync<T extends AnyFunction> extends Function {
+interface CallableCopyAsync<T extends AnyFunction> {
   (...args: ArgumentTypesOf<T>): Promise<void>;
 }
 

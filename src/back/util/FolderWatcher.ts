@@ -11,32 +11,31 @@ export type FolderWatcherOptions = {
   changeDebounce?: number;
 }
 
-export interface FolderWatcher {
-  on  (event: string, listener: (...args: any[]) => void): this;
-  once(event: string, listener: (...args: any[]) => void): this;
-  /** Emitted after the folder has been set and all filenames has been fetched. */
-  on  (event: 'ready', listener: () => void): this;
-  once(event: 'ready', listener: () => void): this;
-  /** Emitted when a file has been changed (does NOT include "rename"). */
-  on  (event: 'change', listener: (filename: string, offsetPath: string) => void): this;
-  once(event: 'change', listener: (filename: string, offsetPath: string) => void): this;
-  /** Emitted when an file is added (or renamed to this). */
-  on  (event: 'add', listener: (filename: string, offsetPath: string) => void): this;
-  once(event: 'add', listener: (filename: string, offsetPath: string) => void): this;
-  /** Emitted when a file is removed (or renamed to something else). */
-  on  (event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
-  once(event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
-  /** Emitted any time an uncaught error occurs. */
-  on  (event: 'error', listener: (error: Error) => void): this;
-  once(event: 'error', listener: (error: Error) => void): this;
-}
-
 /**
  * Watches a folder and its child files/folders for changes using chokidar.
  * Recursive watching is optional.
  * An instance of this can only be used to watch one folder once, you can not watch after aborting.
  */
 export class FolderWatcher extends WrappedEventEmitter {
+  // Override the base class methods with specific overloads
+  on(event: 'ready', listener: () => void): this;
+  on(event: 'change', listener: (filename: string, offsetPath: string) => void): this;
+  on(event: 'add', listener: (filename: string, offsetPath: string) => void): this;
+  on(event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
+  on(event: 'error', listener: (error: Error) => void): this;
+  on(event: string, listener: (...args: any[]) => void): this {
+    return super.on(event, listener);
+  }
+
+  once(event: 'ready', listener: () => void): this;
+  once(event: 'change', listener: (filename: string, offsetPath: string) => void): this;
+  once(event: 'add', listener: (filename: string, offsetPath: string) => void): this;
+  once(event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
+  once(event: 'error', listener: (error: Error) => void): this;
+  once(event: string, listener: (...args: any[]) => void): this {
+    return super.once(event, listener);
+  }
+
   /** Chokidar watcher instance. */
   protected _watcher: chokidar.FSWatcher | undefined;
   /** Map of child files/folders of the watched folder (["filename"] = "file stats"). */

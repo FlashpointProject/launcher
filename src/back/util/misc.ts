@@ -113,6 +113,7 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
  */
 export async function exit(state: BackState, beforeProcessExit?: () => void | Promise<void>): Promise<void> {
   if (!state.isExit) {
+    state.socketServer.broadcast(BackOut.QUIT);
     state.isExit = true;
     console.log('Exiting...');
     // Unload all extensions before quitting

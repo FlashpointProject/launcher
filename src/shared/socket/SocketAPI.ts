@@ -9,7 +9,7 @@ type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
 // Base types of generics
 type T_BASE = number
 type U_BASE<T extends T_BASE> = SocketTemplate<T, any>
-type EVENT_BASE = {}
+type EVENT_BASE = object
 
 export type SocketAPIData<
   T extends T_BASE,

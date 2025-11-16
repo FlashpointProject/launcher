@@ -153,8 +153,6 @@ export function InputFieldEntry(props: InputFieldEntryProps) {
 
   const onSuggestionItemClick = (suggestion: string): void => {
     if (!props.disabled) {
-      const inputElement = inputRef.current;
-      if (inputElement) { inputElement.blur(); }
       setExpanded(false);
       props.onEnter(suggestion);
       setValue('');
