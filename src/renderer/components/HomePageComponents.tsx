@@ -2,7 +2,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
-import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState } from '@renderer/store/main/slice';
+import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState, shiftRandomGames } from '@renderer/store/main/slice';
 import { forceSearch, GENERAL_VIEW_ID, selectGame, setSearchText } from '@renderer/store/search/slice';
 import { findGameDragEventDataGrid, getExtremeIconURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
@@ -335,6 +335,8 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
         dispatch(addRandomGames(data));
       });
     }
+    // Cycle row of games
+    dispatch(shiftRandomGames());
   };
 
   const onSelectGame = async (gameId?: string) => {

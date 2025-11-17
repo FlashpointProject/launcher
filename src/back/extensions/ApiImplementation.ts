@@ -67,9 +67,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     data: flashpoint.DeepPartial<flashpoint.AppPreferencesData>,
     onError?: (error: string) => void
   ) => {
+    state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES, data);
     overwritePreferenceData(state.preferences, data, onError);
     await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences, state);
-    state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
     return state.preferences;
   };
 

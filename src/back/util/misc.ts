@@ -17,7 +17,6 @@ import { AdditionalApp, Game, IBackProcessInfo, IService, LangContainer, LangFil
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
 import * as os from 'os';
-import * as kill from 'tree-kill';
 import { promisify } from 'util';
 import { uuid } from './uuid';
 
@@ -189,15 +188,6 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       state.socketServer.close()
       .catch(e => { console.error(e); });
 
-      await new Promise<void>((resolve, reject) => {
-        kill(process.pid, (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-      });
       // Kill the parent process.
       process.kill(process.pid);
       process.exit(0);

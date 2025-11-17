@@ -12,7 +12,7 @@ import { performFpfssAction, setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
 import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeExtension, removeGameSidebarComponent, removeService, setExtConfigValue, setExtOrderablesFromCallback, setMainState, setUnrecoverableError, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource, updateSystemThemeCss, updateThemeCss } from '@renderer/store/main/slice';
-import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
+import { setExtState, setPreferences, updatePreferences, updatePreferencesWithoutSend } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData, updateGame } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
@@ -735,6 +735,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
       playlists: data,
       playlistIconCache: cache
     }));
+  });
+
+  window.Shared.back.register(BackOut.UPDATE_PREFERENCES, (event, data) => {
+    dispatch(updatePreferencesWithoutSend(data));
   });
 
   window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {

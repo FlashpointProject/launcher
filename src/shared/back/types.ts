@@ -54,7 +54,7 @@ import { UnrecoverableError } from 'flashpoint-launcher-renderer';
 import { UpdateOptions } from 'react-toastify';
 import { LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
-import { ExecMapping, GamePropSuggestions, ProcessAction } from '../interfaces';
+import { DeepPartial, ExecMapping, GamePropSuggestions, ProcessAction } from '../interfaces';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -243,6 +243,7 @@ export enum BackOut {
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
   GET_MAIN_INIT_DATA,
+  UPDATE_PREFERENCES,
   UPDATE_PREFERENCES_RESPONSE,
   SET_EXT_CONFIG_VALUE,
   IMAGE_CHANGE,
@@ -518,6 +519,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.OPEN_EXTERNAL]: (url: string, options?: OpenExternalOptions) => void;
   [BackOut.LOCALE_UPDATE]: (data: string) => void;
   [BackOut.GET_MAIN_INIT_DATA]: () => void;
+  [BackOut.UPDATE_PREFERENCES]: (data: DeepPartial<AppPreferencesData>) => void;
   [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: AppPreferencesData) => void;
   [BackOut.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
   [BackOut.IMAGE_CHANGE]: (folder: string, id: string) => void;

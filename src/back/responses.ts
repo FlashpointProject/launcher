@@ -529,7 +529,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state.prefsQueue.push(() => {
           PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
         });
-        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES, {
+          gameDataSources: state.preferences.gameMetadataSources
+        });
       }
 
       updateToast('Updating Search Suggestions...');
@@ -1459,6 +1461,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data) => {
+    state.socketServer.broadcastExcept(event.client, BackOut.UPDATE_PREFERENCES, data);
+
     if ((data.currentLanguage  !== undefined && data.currentLanguage  !== state.preferences.currentLanguage) ||
         (data.fallbackLanguage !== undefined && data.fallbackLanguage !== state.preferences.fallbackLanguage)) {
       state.languageContainer = createContainer(
@@ -1474,8 +1478,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.prefsQueue.push(() => {
       PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
     });
-
-    // TODO: Broadcast to all other users
   });
 
   state.socketServer.register(BackIn.SERVICE_ACTION, async (event, action, id) => {

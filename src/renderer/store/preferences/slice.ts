@@ -46,6 +46,9 @@ const prefsSlice = createSlice({
     setPreferences(state: AppPreferencesData, { payload }: PayloadAction<AppPreferencesData>) {
       return payload;
     },
+    updatePreferencesWithoutSend(state: AppPreferencesData, { payload }: PayloadAction<DeepPartial<AppPreferencesData>>) {
+      overwritePreferenceData(state, payload);
+    },
     updatePreferences(state: AppPreferencesData, { payload }: PayloadAction<DeepPartial<AppPreferencesData>>) {
       overwritePreferenceData(state, payload);
     },
@@ -175,6 +178,7 @@ export const { actions: preferencesActions } = prefsSlice;
 export const {
   setPreferences,
   updatePreferences,
+  updatePreferencesWithoutSend,
   setHomePageBoxOpen,
   setUseStoredViews,
   setUseCustomViews,

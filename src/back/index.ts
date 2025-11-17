@@ -408,7 +408,8 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
       : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(initConfig.exePath), 'launcher.log'));
 
   const addLog = (entry: flashpoint.ILogEntry): number => { return state.log.push(entry) - 1; };
-  global.log = {
+  // Typescript get supset here despite it working globally elsewhere :(
+  (global as any).log = {
     trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
     debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
     info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
@@ -564,7 +565,7 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
     // Add event listeners
     state.languageWatcher.on('add', onLangAddOrChange);
     state.languageWatcher.on('change', onLangAddOrChange);
-    state.languageWatcher.on('remove', (filename: string, offsetPath: string) => {
+    state.languageWatcher.on('remove', (filename: string, stats: fs.Stats, offsetPath: string) => {
       state.languageQueue.push(() => {
         const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
         const index = state.languages.findIndex(l => l.filename === filePath);
@@ -773,7 +774,7 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   // Exit if it failed to open the server
   if (state.socketServer.port < 0) {
     console.log('Back - Failed to open Socket Server, Exiting...');
-    setImmediate(exit);
+    setImmediate(() => exit(state));
     return;
   }
 
@@ -786,10 +787,14 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   await promiseSleep(3000);
 
   // Respond
-  send({ port: state.socketServer.port, config: state.config, prefs: state.preferences }, () => {
-    console.log('Back - Ready for Init');
-    state.apiEmitters.onDidInit.fire();
-  });
+  if (process.send) {
+    process.send({ port: state.socketServer.port, config: state.config, prefs: state.preferences }, undefined, undefined,
+      () => {
+        console.log('Back - Ready for Init');
+        state.apiEmitters.onDidInit.fire();
+      });
+  }
+
 }
 
 async function onProcessMessage(message: any): Promise<void> {
@@ -1037,7 +1042,7 @@ async function initialize() {
             const msg = formatString(state.languageContainer.dialog.badAntiVirus, output.trim()) as string;
             const client = state.socketServer.clients.clients[state.socketServer.clients.clients.length - 1]; // Latest client
             const func = state.socketServer.showMessageBoxBack(state, client);
-            const dialogId = await func({
+            const dialogId = func({
               message: msg,
               largeMessage: true,
               buttons: [state.languageContainer.dialog.openWiki, state.languageContainer.dialog.openDiscord, state.languageContainer.dialog.doNotShowAgain],
