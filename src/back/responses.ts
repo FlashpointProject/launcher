@@ -65,7 +65,7 @@ import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { getAllApplicationPaths, getAllDevelopers, getAllLibraries, getAllPlayModes, getAllPublishers, getAllSeries, getAllStatuses, getTags, markGameSave } from './DatabaseCache';
 import { ExtConfigFile } from './ExtConfigFile';
-import { escapeArgsForShell, GameLauncher } from './GameLauncher';
+import { checkAndInstallPlatform, escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { DEFAULT_PLAYLIST_DATA, overwritePlaylistData, PlaylistFile } from './PlaylistFile';
@@ -531,7 +531,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
         });
         state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES, {
-          gameDataSources: state.preferences.gameMetadataSources
+          gameMetadataSources: state.preferences.gameMetadataSources
         });
       }
 
@@ -684,6 +684,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id, provider, override) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+
     // Find game from database
     const game = await fpDatabase.findGame(id);
     if (!game) {
@@ -703,6 +705,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (contentRunner) {
       // Make sure the active game data exists (where possible) instead of relying on runners doing it
       await ensureGameDataDownloaded(state, game);
+      await checkAndInstallPlatform(game.detailedPlatforms!, state, openDialog);
 
       // Prepare the launch information
       const gameLaunchInfo = await contentRunner.prepareGame(game, false);
