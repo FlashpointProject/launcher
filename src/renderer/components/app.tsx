@@ -23,6 +23,7 @@ import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
 import { getFileServerURL, sizeToString } from '@shared/Util';
+import { isGame } from '@shared/utils/misc';
 import {
   DialogStateTemplate,
   Playlist
@@ -434,7 +435,8 @@ function addExtIntercepts() {
     runCommand: (command: string, ...args: any[]) => {
       return window.Shared.back.request(BackIn.RUN_COMMAND, command, ...args);
     },
-    setExtensionEnabled
+    setExtensionEnabled,
+    isGame,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/utils');
 
   (window as any)['flashpoint-launcher-renderer-ext/search'] = {

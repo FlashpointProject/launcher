@@ -1,10 +1,10 @@
 import * as flashpoint from 'flashpoint-launcher';
-import * as path from 'node:path';
 import * as fs from 'node:fs';
-import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
-import { AssetFile } from './types';
-import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import * as path from 'node:path';
 import { RuffleWebEmbedMiddleware } from './middleware/embed';
+import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import { AssetFile } from './types';
+import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
 
 export async function activate(context: flashpoint.ExtensionContext): Promise<void> {
   // const registerSub = (d: flashpoint.Disposable) => { flashpoint.registerDisposable(context.subscriptions, d); };
@@ -66,14 +66,10 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     const supportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled');
     const unsupportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled-all');
 
-    if (launchInfo.launchInfo.override === 'flash') {
-      return;
-    }
-
-    if (launchInfo.launchInfo.override === 'ruffle') {
-      flashpoint.log.info('Using Standalone Ruffle for overriden game...');
+    if (supportedEnabled || curation) {
+      if (launchInfo.game.ruffleSupport.toLowerCase() === 'standalone') {
+        flashpoint.log.info('Using Standalone Ruffle for supported game...');
         const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
-        defaultConfig.config.graphics = flashpoint.getExtConfigValue('com.ruffle.graphics-mode');
         standaloneMiddleware.execute(launchInfo, {
           middlewareId: '',
           name: '',
@@ -82,27 +78,6 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
           config: defaultConfig.config,
         });
         return;
-    }
-
-    if (supportedEnabled || curation) {
-      if (launchInfo.game.ruffleSupport.toLowerCase() === 'standalone') {
-        const useLauncherEmbed = flashpoint.getExtConfigValue('com.ruffle.use-launcher-embed');
-        if (useLauncherEmbed) {
-          flashpoint.log.info('Using Launcher Embed Ruffle for supported game...');
-          launchInfo.launchInfo.component = 'ruffle/LauncherEmbedPage';
-          return;
-        } else {
-          flashpoint.log.info('Using Standalone Ruffle for supported game...');
-          const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
-          standaloneMiddleware.execute(launchInfo, {
-            middlewareId: '',
-            name: '',
-            enabled: true,
-            version: defaultConfig.version,
-            config: defaultConfig.config,
-          });
-          return;
-        }
       } else if (launchInfo.game.ruffleSupport.toLowerCase() === 'webhosted') {
         flashpoint.log.info('Using Web Embed Ruffle for supported game...');
         const defaultConfig = webEmbedMiddleware.getDefaultConfig(launchInfo.game);

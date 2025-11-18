@@ -8,7 +8,7 @@ import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { logoutFpfss } from '@renderer/store/fpfss/slice';
 import { deleteStoredView, renameStoredView, updatePreferences } from '@renderer/store/preferences/slice';
-import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
+import { addViews, deleteView, duplicateView, renameView } from '@renderer/store/search/slice';
 import { RootState } from '@renderer/store/store';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
@@ -29,7 +29,7 @@ const selectViewNames = createSelector(
     (state: RootState) => state.main.libraries,
   ],
   (useCustomViews, views, libraries) => useCustomViews ?
-    Object.keys(views).filter(k => k !== GENERAL_VIEW_ID) :
+    Object.keys(views).filter(k => !k.startsWith('!')) :
     libraries
 );
 
@@ -154,6 +154,11 @@ export function Header() {
     while (true) {
       name = await getUserInput('Enter View Name', warning, name);
 
+      if (name.startsWith('!')) {
+        warning = 'Custom Views cannot start with !';
+        continue;
+      }
+
       if (name !== '') {
         if (name === view) {
           // Same name, just return and ignore user
@@ -208,6 +213,11 @@ export function Header() {
     let warning: string | undefined;
     while (true) {
       const name = await getUserInput('Enter View Name', warning);
+
+      if (name.startsWith('!')) {
+        warning = 'Custom Views cannot start with !';
+        continue;
+      }
 
       if (name !== '') {
         if (viewNames.includes(name)) {
@@ -490,7 +500,9 @@ type HeaderMenuItemType = {
 // An item in the header menu. Used as buttons to switch between tabs/pages.
 function HeaderMenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: HeaderMenuItemType) {
   const location = useLocation();
-  const selected = location.pathname.split('?')[0] === link;
+  const selected = location.pathname.startsWith(Paths.BROWSE) ?
+    location.pathname.split('?')[0] === link :
+    (location.pathname + '/').startsWith(link + '/');
   const onDragOver = (event: React.DragEvent<HTMLLIElement>) => {
     event.preventDefault();
   };

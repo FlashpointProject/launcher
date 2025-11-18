@@ -1,4 +1,5 @@
 import { ExtConfigFile } from '@back/ExtConfigFile';
+import { getContentEnvironment } from '@back/GameLauncher';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
@@ -6,6 +7,7 @@ import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCu
 import { saveCuration } from '@back/curate/write';
 import { downloadGameData } from '@back/download';
 import { installExtension as installExtensionUtil, uninstallExtension as uninstallExtensionUtil, unzipFile as unzipFileUtil } from '@back/extensions/util';
+import { ensureGameDataDownloaded, getApplicationPath } from '@back/flashpoint/WebgameContentRunner';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
 import { awaitDialog } from '@back/util/dialog';
@@ -30,6 +32,7 @@ import { langTemplate } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
+import { isGame } from '@shared/utils/misc';
 import * as flashpoint from 'flashpoint-launcher';
 import { Game, IExtensionManifest, Task } from 'flashpoint-launcher';
 import * as fsExtra from 'fs-extra';
@@ -100,9 +103,30 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     return uninstallExtensionUtil(state, extId);
   };
 
-  const registerDataProvider = (provider: flashpoint.GameDataProvider): void => {
-    console.log(`Registered ${provider.id}`);
+  const registerContentRunner = (cr: flashpoint.ContentRunner): flashpoint.Disposable => {
+    console.log(`Registered Content Runner ${cr.id}`);
+    state.registry.contentRunners.set(cr.id, cr);
+    return {
+      toDispose: [],
+      isDisposed: false,
+      /** Callback to use when disposed */
+      onDispose: () => {
+        state.registry.contentRunners.delete(cr.id);
+      }
+    };
+  };
+
+  const registerDataProvider = (provider: flashpoint.GameDataProvider): flashpoint.Disposable => {
+    console.log(`Registered Data Provider ${provider.id}`);
     state.registry.dataSources.set(provider.id, provider);
+    return {
+      toDispose: [],
+      isDisposed: false,
+      /** Callback to use when disposed */
+      onDispose: () => {
+        state.registry.dataSources.delete(provider.id);
+      }
+    };
   };
 
   const registerDataExtension = (extension: flashpoint.DataExtensionInfo): void => {
@@ -695,6 +719,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.extEvent(extManifest.displayName || extManifest.name),
     focusWindow: focusWindow,
     langTemplate: langTemplate,
+    isGame,
+    getApplicationPath: (filePath, platform) => {
+      return getApplicationPath(filePath, state.execMappings, state.preferences.nativePlatforms.some(p => p === platform));
+    },
+    getContentEnvironment,
+    ensureGameDataDownloaded: (game) => ensureGameDataDownloaded(state, game),
+    registerContentRunner,
 
     // Namespaces
     sources: extSources,

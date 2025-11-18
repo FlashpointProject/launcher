@@ -142,15 +142,22 @@ declare module 'flashpoint-launcher' {
     const onLog: Event<ILogEntry>;
   }
 
+  const isGame: (content?: Content | Game) => content is Game;
+  const ensureGameDataDownloaded: (game: Game) => Promise<void>;
+
   type SidebarDisplay = {
     order: string[];
   };
+
+  const getApplicationPath: (filePath: string, platform: string) => string;
+  const getContentEnvironment: (fpPath: string, proxy: string, platform: NodeJS.Platform, inherit?: boolean, path?: string) => NodeJS.ProcessEnv;
+  const registerContentRunner: (cr: flashpoint.ContentRunner) => Disposable;
 
   namespace sources {
     /**
      * Registers a Data Provider to use when trying to download games
      */
-    function registerDataProvider(provider: GameDataProvider): void;
+    function registerDataProvider(provider: GameDataProvider): Disposable;
   }
 
   namespace dataExtensions {
@@ -669,17 +676,17 @@ declare module 'flashpoint-launcher' {
     category?: string
   }
 
-  interface ContentRunner {
+  type ContentRunner = {
     /** Unique ID of the runner */
     id: string;
     /** Display name of the runner */
     name: string;
-    /** Handler for running content
-     * @param content Content (must be coerced safely first)
-     *
-     * @returns Whether we ran the content or not
-     */
-    runContent<T extends Content>(state: BackState, content: T | Content): Promise<boolean>;
+    /** Can the runner handle prep and execute for this game? */
+    canHandleGame<T extends Content>(game: T, isCuration: boolean): boolean | Promise<boolean>;
+    /** Prepare launch info ahead of execution */
+    prepareGame<T extends Content>(game: T, isCuration: boolean): GameLaunchInfo | Promise<GameLaunchInfo>;
+    /** Execute the game */
+    executeGame(launchInfo: GameLaunchInfo): void | Promise<void>;
   }
 
   interface Content {
@@ -779,7 +786,7 @@ declare module 'flashpoint-launcher' {
     extData?: Record<string, any>;
   }
 
-  type BackState = any;
+  type BackState = object;
 
   type GameData = {
     id: number;
@@ -1443,15 +1450,13 @@ declare module 'flashpoint-launcher' {
   /** Info type passed to onWillLaunch events */
   type GameLaunchInfo = {
     game: Game;
-    activeConfig: GameConfig | null;
+    isCuration: boolean;
+    server?: string;
     activeData: GameData | null;
     launchInfo: LaunchInfo;
   };
 
   type LaunchInfo = {
-    // If provided, let a React component use the launch info instead
-    component?: string;
-    override: GameLaunchOverride;
     gamePath: string;
     gameArgs: string | string[];
     useWine: boolean;
@@ -3532,6 +3537,7 @@ declare module 'flashpoint-launcher-renderer-ext/utils' {
   const idToGame: (gameId: string) => Promise<Game | null>;
   const runCommand: (command: string, ...args: any[]) => Promise<any>;
   const setExtensionEnabled: (extId: string, enabled: boolean) => void;
+  const isGame: (content?: Content | Game) => content is Game;
 }
 
 declare module 'flashpoint-launcher-renderer-ext/search' {
