@@ -1,7 +1,7 @@
 import { downloadGameData } from '@back/download';
 import { checkAndInstallPlatform, createLaunchInfoCommand, escapeArgsForShell, getContentEnvironment } from '@back/GameLauncher';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { createRawCommand } from '@back/responses';
+import { broadcastGameUpdate, createRawCommand } from '@back/responses';
 import { BackState } from '@back/types';
 import { awaitDialog } from '@back/util/dialog';
 import { promiseSleep, removeService, runService } from '@back/util/misc';
@@ -155,6 +155,7 @@ export async function ensureGameDataDownloaded(state: BackState, game: Game) {
           return false;
         }
       }
+      broadcastGameUpdate(state, game.id);
     }
 
     // Make sure it has a path set, check the default location if it does not then save it back
@@ -166,6 +167,7 @@ export async function ensureGameDataDownloaded(state: BackState, game: Game) {
         game.activeDataOnDisk = true;
         await fpDatabase.saveGameData(gameData);
         await fpDatabase.saveGame(game);
+        broadcastGameUpdate(state, game.id);
       }
     }
   }

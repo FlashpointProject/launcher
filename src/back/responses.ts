@@ -2743,7 +2743,7 @@ export async function exitApp(state: BackState, beforeProcessExit?: () => void |
   return exit(state, beforeProcessExit);
 }
 
-async function broadcastGameUpdate(state: BackState, id: string) {
+export async function broadcastGameUpdate(state: BackState, id: string) {
   const game = await getGame(state, id);
   if (game) {
     state.socketServer.broadcast(BackOut.UPDATE_GAME, game);
