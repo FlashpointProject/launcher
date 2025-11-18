@@ -87,8 +87,8 @@ function replaceThemeElement(url?: string) {
         }
       });
     };
-    newElement.onerror = () => {
-      console.error('Failed to load theme:', url);
+    newElement.onerror = (err) => {
+      log.warn('Launcher', `Failed to load theme from ${url}: ${err.toString()}`);
       existingElements.forEach((elem) => {
         try {
           elem.remove();
