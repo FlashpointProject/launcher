@@ -3,13 +3,11 @@ import { getFileServerURL } from '@shared/Util';
 import { ITheme } from 'flashpoint-launcher';
 import { PropsWithChildren, useEffect, useRef } from 'react';
 
-const globalThemeAttribute = 'data-theme';
-
 type ThemeProviderProps = PropsWithChildren;
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const systemThemeVersion = useAppSelector(state => state.main.systemThemeVersion);
-  const themeVersion = useAppSelector(state => state.main.themeVersion) + systemThemeVersion;
+  const themeVersion = useAppSelector(state => state.main.themeVersion) + (systemThemeVersion || '');
   const availableThemes = useAppSelector(state => state.main.themeList);
   const currentTheme = useAppSelector(state => state.preferences.currentTheme);
   const coreHref = useRef(document.querySelector('[data-corecss="true"]')?.getAttribute('href') || undefined);
@@ -17,7 +15,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   // Update system theme when needed
   useEffect(() => {
-    if (systemThemeVersion > 0) {
+    if (systemThemeVersion) {
       // Don't need to update unless theme has incremented, first links are in raw HTML
       updateSystemThemeDom(systemThemeVersion, coreHref.current, fancyHref.current);
     }
@@ -33,7 +31,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 }
 
 // Updates the System css links to force them to update with new version
-function updateSystemThemeDom(version: number, coreHref?: string, fancyHref?: string): void {
+function updateSystemThemeDom(version: string, coreHref?: string, fancyHref?: string): void {
   if (coreHref) {
     const existingElements = document.querySelectorAll('[data-corecss="true"]');
     const newElement = createThemeElement(`${coreHref}?v=${version}`);
@@ -69,18 +67,28 @@ function updateSystemThemeDom(version: number, coreHref?: string, fancyHref?: st
 
 
 // Updates the Theme css links to force them to update with new version, or with the newly selected them
-function updateThemeDom(version: number, theme?: ITheme): void {
+function updateThemeDom(version: string, theme?: ITheme): void {
   const url = theme ? `${getFileServerURL()}/Themes/${theme.id}/${theme.entryPath}?v=${version}` : undefined;
   replaceThemeElement(url);
 }
 
 function replaceThemeElement(url?: string) {
   // Get list of old theme elems to remove after loading new theme elem
-  const existingElements = document.head.querySelectorAll(`[${globalThemeAttribute}="true"]`);
+  const existingElements = document.head.querySelectorAll('[data-theme="true"]');
   if (url) {
     const newElement = createThemeElement(url);
-    newElement.setAttribute(globalThemeAttribute, 'true');
+    newElement.setAttribute('data-theme', 'true');
     newElement.onload = () => {
+      existingElements.forEach((elem) => {
+        try {
+          elem.remove();
+        } catch {
+          // Ignore, may have been removed earlier
+        }
+      });
+    };
+    newElement.onerror = () => {
+      console.error('Failed to load theme:', url);
       existingElements.forEach((elem) => {
         try {
           elem.remove();

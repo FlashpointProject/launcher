@@ -21,6 +21,7 @@ import {
   runService,
   setStatus
 } from '@back/util/misc';
+import { uuid } from '@back/util/uuid';
 import { ExtSearchable } from '@fparchive/flashpoint-archive';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { LogLevel } from '@shared/Log/interface';
@@ -39,7 +40,6 @@ import * as fsExtra from 'fs-extra';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as stream from 'stream';
-import uuid from 'uuid';
 import { fpDatabase, loadCurationArchive } from '..';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';

@@ -3268,8 +3268,8 @@ declare module 'flashpoint-launcher-renderer' {
     loadedAll: boolean;
     extensions: IExtensionDescription[];
     themeList: ITheme[];
-    systemThemeVersion: number;
-    themeVersion: number;
+    systemThemeVersion: string | null;
+    themeVersion: string;
     logoSets: ILogoSet[];
     logoVersion: number; // Increase to force cache clear
     gamesTotal: number;

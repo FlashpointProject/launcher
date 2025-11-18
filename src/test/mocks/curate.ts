@@ -1,5 +1,5 @@
+import { uuid } from '@shared/utils/uuid';
 import { CurationState } from 'flashpoint-launcher';
-import uuid from 'uuid';
 
 export function mockCuration(): CurationState {
   const id = uuid();

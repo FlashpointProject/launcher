@@ -1,11 +1,11 @@
 import { initialMainState, updateSystemThemeCss, updateThemeCss } from '@renderer/store/main/slice';
 import { initialPreferencesState, updatePreferences } from '@renderer/store/preferences/slice';
 import { getFileServerURL } from '@shared/Util';
+import { uuid } from '@shared/utils/uuid';
 import { renderWithProviders } from '@test/redux';
 import { useTestServer } from '@test/useTestServer';
 import { ITheme } from 'flashpoint-launcher';
 import { act } from 'react';
-import uuid from 'uuid';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ThemeProvider } from './ThemeProvider';
 
@@ -69,8 +69,9 @@ describe('ThemeProvider', () => {
       }
     });
 
+    let themeKey = store.getState().main.themeVersion;
     // Check theme element was created
-    const expectedUrl = `${getFileServerURL()}/Themes/${themeList[0].id}/${themeList[0].entryPath}?v=0`;
+    const expectedUrl = `${getFileServerURL()}/Themes/${themeList[0].id}/${themeList[0].entryPath}?v=${themeKey}`;
     const themeElement = container.ownerDocument.querySelector(`[data-theme="true"][href="${expectedUrl}"]`) as HTMLLinkElement;
     expect(themeElement).toBeInTheDocument();
     expect(themeElement.tagName).toBe('LINK');
@@ -85,7 +86,8 @@ describe('ThemeProvider', () => {
       }));
     });
 
-    const newExpectedUrl = `${getFileServerURL()}/Themes/${themeList[1].id}/${themeList[1].entryPath}?v=0`;
+    themeKey = store.getState().main.themeVersion;
+    const newExpectedUrl = `${getFileServerURL()}/Themes/${themeList[1].id}/${themeList[1].entryPath}?v=${themeKey}`;
     const updatedElement = container.ownerDocument.querySelector(`[data-theme="true"][href="${newExpectedUrl}"]`) as HTMLLinkElement;
     expect(updatedElement.getAttribute('href')).toBe(newExpectedUrl);
 
@@ -94,7 +96,8 @@ describe('ThemeProvider', () => {
       store.dispatch(updateThemeCss());
     });
 
-    const newExpectedVerUrl = `${getFileServerURL()}/Themes/${themeList[1].id}/${themeList[1].entryPath}?v=1`;
+    themeKey = store.getState().main.themeVersion;
+    const newExpectedVerUrl = `${getFileServerURL()}/Themes/${themeList[1].id}/${themeList[1].entryPath}?v=${themeKey}`;
     const updatedVerElement = container.ownerDocument.querySelector(`[data-theme="true"][href="${newExpectedVerUrl}"]`) as HTMLLinkElement;
     expect(updatedVerElement.getAttribute('href')).toBe(newExpectedVerUrl);
 
@@ -103,8 +106,9 @@ describe('ThemeProvider', () => {
       store.dispatch(updateSystemThemeCss());
     });
 
-    const coreHrefNew = `${coreHref}?v=1`;
-    const fancyHrefNew = `${fancyHref}?v=1`;
+    const systemThemeKey = store.getState().main.systemThemeVersion;
+    const coreHrefNew = `${coreHref}?v=${systemThemeKey}`;
+    const fancyHrefNew = `${fancyHref}?v=${systemThemeKey}`;
     const coreVerElement = container.ownerDocument.querySelector(`[data-corecss="true"][href="${coreHrefNew}"]`) as HTMLLinkElement;
     const fancyVerElement = container.ownerDocument.querySelector(`[data-fancycss="true"][href="${fancyHrefNew}"]`) as HTMLLinkElement;
     expect(coreVerElement).toBeInTheDocument();

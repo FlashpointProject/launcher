@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn, BackInit } from '@shared/back/types';
 import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
+import { uuid } from '@shared/utils/uuid';
 import { CreditsData, DialogFieldProps, DialogState, Game, GameMetadataSource, IExtensionDescription, IService, Playlist } from 'flashpoint-launcher';
 import { CustomRoute, DisplaySettings, DisplaySettingsGameSidebarAction, DynamicPageProps, ExtConfigValueAction, ExtOrderable, MainState, UnrecoverableError } from 'flashpoint-launcher-renderer';
 
@@ -123,8 +124,8 @@ export function initialMainState(): MainState {
     },
     loadedAll: false,
     themeList: [],
-    themeVersion: 0,
-    systemThemeVersion: 0,
+    themeVersion: uuid(),
+    systemThemeVersion: null,
     logoSets: [],
     logoVersion: 0,
     gamesTotal: -1,
@@ -411,10 +412,10 @@ const mainSlice = createSlice({
       state.unrecoverableError = payload;
     },
     updateThemeCss(state: MainState) {
-      state.themeVersion += 1;
+      state.themeVersion = uuid();
     },
     updateSystemThemeCss(state: MainState) {
-      state.systemThemeVersion += 1;
+      state.systemThemeVersion = uuid();
     },
     setExtConfigValue(state: MainState, { payload }: PayloadAction<ExtConfigValueAction>) {
       state.extConfig[payload.key] = payload.value;
