@@ -1,14 +1,18 @@
 import { getGameImageURL } from '@renderer/Util';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { createMockGame } from '@test/mocks/game';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Content } from 'flashpoint-launcher';
 import { describe, expect, it } from 'vitest';
 import { GameGridItem } from './GameGridItem';
 
 describe('GameGridItem', () => {
   it('show screenshot with delay', async () => {
     const user = userEvent.setup();
+    const testGame = createMockGame({
+      screenshotPath: 'screenshot.png',
+      logoPath: 'logo.png',
+    });
 
     const { container } = render(
       <GameGridItem
@@ -42,6 +46,10 @@ describe('GameGridItem', () => {
 
   it('hide extreme screenshot on hover', async () => {
     const user = userEvent.setup();
+    const testGame = createMockGame({
+      screenshotPath: 'screenshot.png',
+      logoPath: 'logo.png',
+    });
 
     const { container } = render(
       <GameGridItem
@@ -69,11 +77,3 @@ describe('GameGridItem', () => {
     }, { timeout: 100 });
   });
 });
-
-const testGame: Content = {
-  id: '1234',
-  title: 'test game',
-  screenshotPath: 'screenshot.png',
-  logoPath: 'logo.png',
-};
-

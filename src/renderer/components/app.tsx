@@ -122,8 +122,6 @@ const selectRemoteModules = createSelector(
   }
 );
 
-const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS, Paths.FPFSS];
-
 export function App() {
   const location = useLocation();
   const lastLoc = React.useRef<string>(null);
@@ -155,6 +153,12 @@ export function App() {
   const unrecoverableError = useAppSelector(state => state.main.unrecoverableError);
   const currentView = useView();
   const firstBrowsePageViewName = useAppSelector(state => Object.keys(state.search.views).find(v => v !== GENERAL_VIEW_ID));
+  const hiddenRightSidebarPages: string[] = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS, Paths.FPFSS];
+  for (const route of customRoutes) {
+    if (route.showRightSidebar !== true) {
+      hiddenRightSidebarPages.push(route.path);
+    }
+  }
   const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar && !hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
 
   const activeTagFilters = tagFilters.filter(t => t.enabled && (!t.extreme || showExtreme));

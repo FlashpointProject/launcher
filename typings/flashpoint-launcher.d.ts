@@ -3120,6 +3120,8 @@ declare module 'flashpoint-launcher-renderer' {
     path: string;
     /** Like React Activity, hides component instead of unmounting, saving the state. However does not preload page. */
     keepLoaded?: boolean;
+    /** Show right browse sidebar - default: false */
+    showRightSidebar?: boolean;
     /** Page component to route to */
     component: string;
   }
@@ -3430,6 +3432,7 @@ declare module 'flashpoint-launcher-renderer' {
     selectedGameId?: string;
     onLaunchGame: (gameId: string) => void;
     onGameSelect: (gameId: string | undefined) => void;
+    onGameDeselect: (gameId: string | undefined) => void;
     rollRandomGames: () => void;
   };
 

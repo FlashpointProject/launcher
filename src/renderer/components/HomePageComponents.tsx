@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState, shiftRandomGames } from '@renderer/store/main/slice';
 import { forceSearch, GENERAL_VIEW_ID, selectGame, setSearchText } from '@renderer/store/search/slice';
-import { findGameDragEventDataGrid, getExtremeIconURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
+import { getExtremeIconURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
 import { BackIn } from '@shared/back/types';
 import { ARCADE, THEATRE } from '@shared/constants';
@@ -82,6 +82,13 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
     return isGame(game) ? game.platforms.slice(0, 5).map(p => getPlatformIconURL(p, logoVersion)) : [];
   };
 
+  const onDeselectGame = async () => {
+    dispatch(selectGame({
+      view: GENERAL_VIEW_ID,
+      game: undefined
+    }));
+  };
+
   const onSelectGame = async (gameId: string) => {
     const game = await idToGame(gameId);
     if (game) {
@@ -156,9 +163,11 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
             { loadedGotd ? (
               <GameItemContainer
                 className='gotd-container'
+                type='grid'
                 onContentSelect={(event, gameId) => gameId && onSelectGame(gameId)}
+                onContentDeselect={onDeselectGame}
                 onContentLaunch={(event, gameId) => props.onLaunchGame(gameId)}
-                findGameDragEventData={findGameDragEventDataGrid}>
+                selectedGameId={view.selectedGame?.id}>
                 <GameGridItem
                   game={loadedGotd}
                   key={loadedGotd.id}
@@ -350,6 +359,13 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
     }
   };
 
+  const onDeselectGame = () => {
+    dispatch(selectGame({
+      view: GENERAL_VIEW_ID,
+      game: undefined
+    }));
+  };
+
   return (
     <HomePageBox
       minimized={minimized}
@@ -362,6 +378,7 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
           rollRandomGames={rollRandomGames}
           onLaunchGame={onLaunchGame}
           onGameSelect={onSelectGame}
+          onGameDeselect={onDeselectGame}
           selectedGameId={view.selectedGame?.id} />
       </SizeProvider>
     </HomePageBox>

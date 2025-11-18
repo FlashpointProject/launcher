@@ -438,7 +438,10 @@ export function Header() {
               title={'FPFSS'}
               link={Paths.FPFSS} />
           )}
-          { customRoutes.filter(r => r.headerItem !== undefined).map(route => {
+          { customRoutes
+          .filter(r => r.headerItem !== undefined)
+          .sort((a, b) => a.headerItem!.title.toLowerCase().localeCompare(b.headerItem!.title.toLowerCase()))
+          .map(route => {
             if (route.headerItem && route.headerItem.component !== undefined) {
               const routeProps: CustomHeaderItemProps = {
                 id: route.headerItem.id,

@@ -39,6 +39,8 @@ export type GameGridProps<T extends Content> = BrowsePageDisplayProps<T> & {
   noRowsRenderer?: () => React.JSX.Element;
   /** Called when the user attempts to select a game. */
   onContentSelect: (gameId?: string, col?: number, row?: number) => void;
+  /** Called when the user attempts to deselect a game. */
+  onContentDeselect: (gameId?: string, col?: number, row?: number) => void;
   /** Called when the user attempts to open a context menu (at a game). */
   onContextMenu?: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when the user starts to drag a game. */
@@ -184,13 +186,15 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
       <GameItemContainer
         className='game-browser__center-inner'
         onContentSelect={this.onContentSelect}
+        onContentDeselect={this.onContentDeselect}
         onContentLaunch={this.onContentRun}
         onGameContextMenu={this.onGameContextMenu}
         onGameDragStart={this.onGameDragStart}
         onGameDragEnd={this.onGameDragEnd}
         onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
         onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
-        findGameDragEventData={this.findGameDragEventData}
+        selectedGameId={this.props.selectedContentId}
+        type='grid'
         realRef={this.wrapperRef}
         onKeyDown={this.onKeyPress}>
         <AutoSizer>
@@ -332,6 +336,15 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
       const col = index % this.columns;
       const row = (index / this.columns) | 0;
       this.props.onContentSelect(gameId, col, row);
+    }
+  };
+
+  onContentDeselect = (event: React.MouseEvent, gameId: string | undefined): void => {
+    const index: number = findContentIndex(this.props.content, gameId);
+    if (index >= 0) {
+      const col = index % this.columns;
+      const row = (index / this.columns) | 0;
+      this.props.onContentDeselect(gameId, col, row);
     }
   };
 

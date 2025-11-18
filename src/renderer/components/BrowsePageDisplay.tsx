@@ -108,6 +108,13 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
     }
   };
 
+  const onContentDeselect = () => {
+    dispatch(selectGame({
+      view: viewId,
+      game: undefined
+    }));
+  };
+
   const height: number = calcScale(300, scale);
   const width: number = (height * 0.666) | 0;
   const gameGridProps = {
@@ -130,6 +137,7 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
       extremeTags={extremeTags}
       noRowsRenderer={() => <BasicNoRowsRenderer contentTotal={contentTotal} selectedPlaylist={selectedPlaylist} />}
       onContentSelect={onContentCellSelect}
+      onContentDeselect={onContentDeselect}
       onContentRun={onContentRun}
       onContextMenu={onContextMenu}
       onContentDragStart={onContentDragStart}
@@ -201,6 +209,13 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
     }
   };
 
+  const onContentDeselect = () => {
+    dispatch(selectGame({
+      view: viewId,
+      game: undefined
+    }));
+  };
+
   const onListScrollToChange = (row: number) => {
     const foundContent = content[row];
     if (foundContent) {
@@ -228,6 +243,7 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
       noRowsRenderer={() => <BasicNoRowsRenderer contentTotal={contentTotal} selectedPlaylist={selectedPlaylist} />}
       tagGroupIcons={tagGroupIcons}
       onContentSelect={onContentCellSelect}
+      onContentDeselect={onContentDeselect}
       onContentLaunch={onContentRun}
       onContextMenu={onContextMenu}
       onGameDragStart={onContentDragStart}

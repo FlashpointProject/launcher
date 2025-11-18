@@ -6,7 +6,7 @@ import { isGame } from '@shared/utils/misc';
 import { Content, Game } from 'flashpoint-launcher';
 import { RandomGamesProps } from 'flashpoint-launcher-renderer';
 import { useState } from 'react';
-import { findGameDragEventDataGrid, getExtremeIconURL, getPlatformIconURL } from '../Util';
+import { getExtremeIconURL, getPlatformIconURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { SimpleButton } from './SimpleButton';
@@ -36,8 +36,15 @@ export function RandomGames(props: RandomGamesProps) {
 
 
   const onGameSelect = (event: React.MouseEvent, gameId: string | undefined) => {
+    console.log('selecting ' + gameId);
     props.onGameSelect(gameId);
   };
+
+  const onGameDeselect = (event: React.MouseEvent, gameId: string | undefined) => {
+    console.log('deselecting ' + gameId);
+    props.onGameDeselect(gameId);
+  };
+
 
   const onLaunchGame = (event: React.MouseEvent, gameId: string) => {
     props.onLaunchGame(gameId);
@@ -74,10 +81,12 @@ export function RandomGames(props: RandomGamesProps) {
     <>
       <GameItemContainer
         className='random-games'
+        type='grid'
         onGameContextMenu={onGameContextMenu}
         onContentSelect={onGameSelect}
+        onContentDeselect={onGameDeselect}
         onContentLaunch={onLaunchGame}
-        findGameDragEventData={findGameDragEventDataGrid}>
+        selectedGameId={props.selectedGameId}>
         {gameItems}
       </GameItemContainer>
       <SimpleButton

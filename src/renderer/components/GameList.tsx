@@ -35,6 +35,8 @@ export type GameListProps<T extends Content> = BrowsePageDisplayProps<T> & {
   noRowsRenderer?: () => React.JSX.Element;
   /** Called when the user attempts to select a game. */
   onContentSelect: (gameId?: string, row?: number) => void;
+  /** Called when the user attempts to deselect a game. */
+  onContentDeselect: (gameId?: string, row?: number) => void;
   /** Called when the user attempts to launch a game. */
   onContentLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** Called when the user attempts to open a context menu (at a game). */
@@ -136,13 +138,15 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
         <GameItemContainer
           className='game-browser__center-inner'
           onContentSelect={this.onContentSelect}
+          onContentDeselect={this.onContentDeselect}
           onContentLaunch={this.onContentLaunch}
           onGameContextMenu={this.onGameContextMenu}
           onGameDragStart={this.onGameDragStart}
           onGameDragEnd={this.onGameDragEnd}
           onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
           onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
-          findGameDragEventData={this.findGameDragEventData}
+          selectedGameId={this.props.selectedContentId}
+          type='list'
           onKeyPress={this.onKeyPress}>
           <AutoSizer>
             {({ width, height }) => {
@@ -238,6 +242,11 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
   onContentSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     const row = findContentIndex(this.props.content, gameId);
     this.props.onContentSelect(gameId, row);
+  };
+
+  onContentDeselect = (event: React.MouseEvent, gameId: string | undefined): void => {
+    const row = findContentIndex(this.props.content, gameId);
+    this.props.onContentDeselect(gameId, row);
   };
 
   /**
