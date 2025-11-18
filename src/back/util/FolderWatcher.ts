@@ -2,7 +2,8 @@ import { debounce } from '@shared/utils/debounce';
 import * as chokidar from 'chokidar';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { WrappedEventEmitter } from './WrappedEventEmitter';
+import { EventEmitter } from 'node:stream';
+import { TypedEmitter } from 'typed-emitter';
 
 type IMap<K extends string | number, V> = { [key in K]: V; };
 
@@ -11,31 +12,20 @@ export type FolderWatcherOptions = {
   changeDebounce?: number;
 }
 
+type FolderWatcherEvents = {
+  ready: () => void;
+  change: (filename: string, offsetPath: string) => void;
+  add: (filename: string, offsetPath: string) => void;
+  remove: (filename: string, stats: fs.Stats, offsetPath: string) => void;
+  error: (error: Error) => void;
+}
+
 /**
  * Watches a folder and its child files/folders for changes using chokidar.
  * Recursive watching is optional.
  * An instance of this can only be used to watch one folder once, you can not watch after aborting.
  */
-export class FolderWatcher extends WrappedEventEmitter {
-  // Override the base class methods with specific overloads
-  on(event: 'ready', listener: () => void): this;
-  on(event: 'change', listener: (filename: string, offsetPath: string) => void): this;
-  on(event: 'add', listener: (filename: string, offsetPath: string) => void): this;
-  on(event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
-  on(event: 'error', listener: (error: Error) => void): this;
-  on(event: string, listener: (...args: any[]) => void): this {
-    return super.on(event, listener);
-  }
-
-  once(event: 'ready', listener: () => void): this;
-  once(event: 'change', listener: (filename: string, offsetPath: string) => void): this;
-  once(event: 'add', listener: (filename: string, offsetPath: string) => void): this;
-  once(event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
-  once(event: 'error', listener: (error: Error) => void): this;
-  once(event: string, listener: (...args: any[]) => void): this {
-    return super.once(event, listener);
-  }
-
+export class FolderWatcher extends (EventEmitter as new () => TypedEmitter<FolderWatcherEvents>) {
   /** Chokidar watcher instance. */
   protected _watcher: chokidar.FSWatcher | undefined;
   /** Map of child files/folders of the watched folder (["filename"] = "file stats"). */

@@ -2,31 +2,14 @@ import { INamedBackProcessInfo } from '@shared/interfaces';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { IBackProcessInfo, ILogPreEntry } from 'flashpoint-launcher';
+import { IBackProcessInfo, ManagedChildProcessEvents, ProcessState } from 'flashpoint-launcher';
 import * as readline from 'readline';
 import * as kill from 'tree-kill';
+import { TypedEmitter } from 'typed-emitter';
 import { onServiceChange } from './util/events';
 import { Disposable } from './util/lifecycle';
-import { ProcessState } from 'flashpoint-launcher';
 
 const { str } = Coerce;
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export interface ManagedChildProcess {
-  /**
-   * Fires when any background service prints to std{out,err}. Every line is
-   * prefixed with the name of the process and the output is guaranteed to end
-   * with a new line.
-   */
-  on(event: 'output', handler: (output: ILogPreEntry) => void): this;
-  emit(event: 'output', output: ILogPreEntry): boolean;
-  /** Fires whenever the status of a process changes. */
-  on(event: 'change', listener: (newState: ProcessState) => void): this;
-  emit(event: 'change', newState: ProcessState): boolean;
-  /** Fires whenever the process exits */
-  on(event: 'exit', listener: (code: number | null, signal: string | null) => void): this;
-  emit(event: 'exit', code: number | null, signal: string | null): boolean;
-}
 
 export type ProcessOpts = {
   detached?: boolean;
@@ -40,8 +23,7 @@ export type ProcessOpts = {
 const MAX_RESTARTS = 5;
 
 /** Manages a single process. Wrapper around node's ChildProcess. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class ManagedChildProcess extends EventEmitter {
+export class ManagedChildProcess extends (EventEmitter as new () => TypedEmitter<ManagedChildProcessEvents>) {
   // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
 
   public id: string;

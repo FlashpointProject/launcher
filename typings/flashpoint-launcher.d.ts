@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 // Type definitions for non-npm package flashpoint-launcher 12.2
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
@@ -24,6 +23,7 @@
 declare module 'flashpoint-launcher' {
   import { FlashpointArchive, GameSearch } from '@fparchive/flashpoint-archive';
   import { Readable } from 'stream';
+  import { TypedEmitter } from 'typed-emitter';
 
   /** Version of the Flashpoint Launcher */
   const version: string;
@@ -1398,16 +1398,13 @@ declare module 'flashpoint-launcher' {
     state: DownloaderStatus;
   }
 
-  interface ManagedChildProcess {
-    /** Fires whenever the status of a process changes. */
-    on(event: 'change', listener: (newState: ProcessState) => void): this;
-    emit(event: 'change', newState: ProcessState): boolean;
-    /** Fires whenever the process exits */
-    on(event: 'exit', listener: (code: number | null, signal: string | null) => void): this;
-    emit(event: 'exit', code: number | null, signal: string | null): boolean;
+  type ManagedChildProcessEvents = {
+    output: (output: ILogPreEntry) => void;
+    change: (newState: ProcessState) => void;
+    exit: (code: number | null, signal: string | null) => void;
   }
 
-  class ManagedChildProcess {
+  class ManagedChildProcess extends TypedEmitter<ManagedChildProcessEvents> {
     /** ID of the process */
     id: string;
     /** Info this process was created with */
@@ -3638,4 +3635,54 @@ declare module 'flashpoint-launcher-renderer-ext/actions/main' {
   const addGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
   const removeGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
   const setExtConfigValue: ActionCreatorWithPayload<ExtConfigValueAction>;
+}
+
+/**
+ * Typings lifted from typed-emitter NPM
+ * https://github.com/andywer/typed-emitter
+ *
+ * MIT License, Copyright (c) 2018 Andy Wermke
+ **/
+declare module 'typed-emitter' {
+  export type EventMap = {
+    [key: string]: (...args: any[]) => void
+  }
+
+  /**
+   * Type-safe event emitter.
+   *
+   * Use it like this:
+   *
+   * ```typescript
+   * type MyEvents = {
+   *   error: (error: Error) => void;
+   *   message: (from: string, content: string) => void;
+   * }
+   *
+   * const myEmitter = new EventEmitter() as TypedEmitter<MyEvents>;
+   *
+   * myEmitter.emit("error", "x")  // <- Will catch this type error;
+   * ```
+   */
+  export interface TypedEmitter<Events extends EventMap> {
+    addListener<E extends keyof Events> (event: E, listener: Events[E]): this
+    on<E extends keyof Events> (event: E, listener: Events[E]): this
+    once<E extends keyof Events> (event: E, listener: Events[E]): this
+    prependListener<E extends keyof Events> (event: E, listener: Events[E]): this
+    prependOnceListener<E extends keyof Events> (event: E, listener: Events[E]): this
+
+    off<E extends keyof Events>(event: E, listener: Events[E]): this
+    removeAllListeners<E extends keyof Events> (event?: E): this
+    removeListener<E extends keyof Events> (event: E, listener: Events[E]): this
+
+    emit<E extends keyof Events> (event: E, ...args: Parameters<Events[E]>): boolean
+    // The sloppy `eventNames()` return type is to mitigate type incompatibilities - see #5
+    eventNames (): (keyof Events | string | symbol)[]
+    rawListeners<E extends keyof Events> (event: E): Events[E][]
+    listeners<E extends keyof Events> (event: E): Events[E][]
+    listenerCount<E extends keyof Events> (event: E): number
+
+    getMaxListeners (): number
+    setMaxListeners (maxListeners: number): this
+  }
 }
