@@ -803,8 +803,6 @@ declare module 'flashpoint-launcher' {
     crc32: number;
     /** Is the data pack present on disk */
     presentOnDisk: boolean;
-    /** Path this data pack should reside at, if present on disk */
-    path?: string;
     /** Size of this data pack */
     size: number;
     /** Parameters passed to the mounter */

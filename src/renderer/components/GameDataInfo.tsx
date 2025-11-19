@@ -100,9 +100,6 @@ export function GameDataInfo(props: GameDataInfoProps) {
                 props.onUpdateLaunchCommand(event.target.value);
               }} />
           </CurateBoxRow>
-          <CurateBoxRow title='Path'>
-            {data.path || <i>Not Downloaded</i>}
-          </CurateBoxRow>
           <CurateBoxRow title='Size'>
             {`${sizeToString(data.size)} (${data.size} bytes)`}
           </CurateBoxRow>

@@ -1,4 +1,4 @@
-import { UnrecoverableError } from '@shared/Util';
+import { UnrecoverableError } from 'flashpoint-launcher-renderer';
 import { useState } from 'react';
 import { SimpleButton } from '../SimpleButton';
 

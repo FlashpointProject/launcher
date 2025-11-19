@@ -4,7 +4,7 @@ import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { IBackProcessInfo, ManagedChildProcessEvents, ProcessState } from 'flashpoint-launcher';
 import * as readline from 'readline';
-import * as kill from 'tree-kill';
+import _treeKill from 'tree-kill';
 import { TypedEmitter } from 'typed-emitter';
 import { onServiceChange } from './util/events';
 import { Disposable } from './util/lifecycle';
@@ -166,7 +166,7 @@ export class ManagedChildProcess extends (EventEmitter as new () => TypedEmitter
 
   private treeKill = async (PID: number): Promise<void> => {
     await new Promise<void>((resolve, reject) => {
-      kill(PID, (error) => {
+      _treeKill(PID, (error) => {
         if (error) {
           reject(error);
         } else {

@@ -22,7 +22,7 @@ export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: 
 
     if (!entry) { continue; } // Temp fix for array gaps
 
-    if (sourceFilter[entry.source] === false || levelFilter[entry.logLevel] === false) { continue; }
+    if (sourceFilter[entry.source] === false || levelFilter[entry.logLevel as LogLevel] === false) { continue; }
 
     // E.G log__level-WARN, log__level-DEBUG
     str += `<div class="${extraClass}"><span class="log__level-${LogLevel[entry.logLevel]}">${getLevelText(entry.logLevel)}</span> `;

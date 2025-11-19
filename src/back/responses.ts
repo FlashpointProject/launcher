@@ -1038,7 +1038,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         await onWillUninstallGameData.fire(gameData);
         const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
         await fs.promises.unlink(gameDataPath);
-        gameData.path = undefined;
         gameData.presentOnDisk = false;
         onDidUninstallGameData.fire(gameData);
       }
@@ -1083,7 +1082,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       });
       console.log('deleted file on disk');
-      gameData.path = undefined;
       gameData.presentOnDisk = false;
       await fpDatabase.saveGameData(gameData);
       onDidUninstallGameData.fire(gameData);
@@ -2758,7 +2756,6 @@ async function getGame(state: BackState, id: string) {
     if (game.gameData) {
       for (const gameData of game.gameData) {
         const gameDataFilename = getGameDataFilename(gameData);
-        gameData.path = gameDataFilename;
         try {
           await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
           if (!gameData.presentOnDisk) {
@@ -2777,4 +2774,3 @@ async function getGame(state: BackState, id: string) {
   }
   return game;
 }
-

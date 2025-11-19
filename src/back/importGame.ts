@@ -304,7 +304,6 @@ function importGameData(gameId: string, filePath: string, dataPacksFolderPath: s
         if (existingGameData) {
           if (existingGameData.presentOnDisk === false) {
             // File wasn't on disk before but is now, update GameData info
-            existingGameData.path = newFilename;
             existingGameData.presentOnDisk = true;
             fpDatabase.saveGameData(existingGameData)
             .then(async (gameData) => {

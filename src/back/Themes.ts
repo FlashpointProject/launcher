@@ -54,7 +54,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
   watcher.on('ready', () => {
     // Add event listeners
     watcher.on('add', onFileAdd);
-    watcher.on('change', (filename: string, offsetPath: string) => {
+    watcher.on('change', (filename, offsetPath) => {
       themeState.queue.push(() => {
         const relativePath = path.join(offsetPath, filename);
         console.log(`CHANGE (File Path: "${filename}", Theme: "${theme.themePath}")`);
@@ -66,7 +66,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
         }
       });
     });
-    watcher.on('remove', (filename: string, offsetPath: string) => {
+    watcher.on('remove', (filename, stats, offsetPath) => {
       themeState.queue.push(() => {
         const relativePath = path.join(offsetPath, filename);
         if (!theme.files.includes(relativePath)) {

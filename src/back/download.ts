@@ -48,7 +48,6 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   const newPath = path.join(dataPacksFolderPath, newFilename);
   await fs.promises.copyFile(filePath, newPath);
   if (existingGameData) {
-    existingGameData.path = newFilename;
     existingGameData.presentOnDisk = true;
     if (databaseQueue !== undefined) {
       return new Promise<GameData>((resolve, reject) => {

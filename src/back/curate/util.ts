@@ -9,6 +9,7 @@ import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
+import { getGameDataFilename } from '@shared/utils/misc';
 import { AddAppCuration, CurationFpfssInfo, CurationState, CurationWarnings, LangContainer, LoadedCuration } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
@@ -375,9 +376,9 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     if (game.activeDataId) {
       await checkAndDownloadGameData(game.activeDataId);
       const activeData = await fpDatabase.findGameDataById(game.activeDataId);
-      if (activeData && activeData.path && !skipDataPack) {
+      if (activeData && activeData.presentOnDisk && !skipDataPack) {
         // Extract data pack into curation folder
-        const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
+        const dataPath = getGameDataFilename(activeData);
         await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
         // Clean up content.json file from extracted data pack
         await fs.unlink(path.join(curPath, 'content.json'))

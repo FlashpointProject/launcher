@@ -1,12 +1,12 @@
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
+import { Game, GameData } from 'flashpoint-launcher';
 import * as React from 'react';
 import { FloatingContainer } from './FloatingContainer';
 import { GameDataInfo } from './GameDataInfo';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { Game, GameData } from 'flashpoint-launcher';
 
 export type GameDataBrowserState = {
   error?: string;
@@ -147,7 +147,6 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
               .then(() => {
                 const newDatas = [...this.state.gameData];
                 newDatas[index].presentOnDisk = false;
-                newDatas[index].path = undefined;
                 this.setState({ gameData: newDatas });
                 this.props.onForceUpdateGameData();
               })

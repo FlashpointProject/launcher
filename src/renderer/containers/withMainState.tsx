@@ -1,6 +1,7 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { mainActions, MainState } from '@renderer/store/main/slice';
+import { mainActions } from '@renderer/store/main/slice';
 import { Subtract } from '@shared/interfaces';
+import { MainState } from 'flashpoint-launcher-renderer';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 

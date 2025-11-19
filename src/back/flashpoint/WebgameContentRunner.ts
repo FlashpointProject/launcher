@@ -221,7 +221,6 @@ export function getApplicationPath(filePath: string, execMappings: ExecMapping[]
 }
 
 function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, name: string): ManagedChildProcess {
-  console.log(launchInfo);
   const dirname = path.dirname(launchInfo.gamePath);
   // Keep file path relative to cwd
   const proc = runService(

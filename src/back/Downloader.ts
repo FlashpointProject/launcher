@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-import { downloadGameData } from './download';
-import { fpDatabase } from '.';
+import { BackOut } from '@shared/back/types';
+import { getGameDataFilename } from '@shared/utils/misc';
+import { AxiosError } from 'axios';
+import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, Game, GameDataSource } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
-import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, Game, GameDataSource } from 'flashpoint-launcher';
+import { fpDatabase } from '.';
 import { axios } from './dns';
+import { downloadGameData } from './download';
 import { BackState } from './types';
-import { BackOut } from '@shared/back/types';
+import { EventQueue } from './util/EventQueue';
 import { promiseSleep } from './util/misc';
 import { WrappedEventEmitter } from './util/WrappedEventEmitter';
-import { EventQueue } from './util/EventQueue';
-import { AxiosError } from 'axios';
-import { getGameDataFilename } from '@shared/utils/misc';
 
 export interface Downloader {
   on  (event: string, listener: (...args: any[]) => void): this;
@@ -319,8 +319,7 @@ class DownloadWorker {
         // Calc the path on disk and check if the file already matches
         const realPath = path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath, getGameDataFilename(gameData));
         if (fs.existsSync(realPath)) {
-          if (gameData.path !== realPath || gameData.presentOnDisk === false) {
-            gameData.path = realPath;
+          if (gameData.presentOnDisk === false) {
             gameData.presentOnDisk = true;
             await new Promise<void>((resolve, reject) => {
               this.downloader.databaseQueue.push(async () => {
