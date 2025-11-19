@@ -2755,19 +2755,21 @@ export async function broadcastGameUpdate(state: BackState, id: string) {
 async function getGame(state: BackState, id: string) {
   const game = await fpDatabase.findGame(id);
   if (game) {
-    const gameData = game.gameData?.find(d => d.id === game.activeDataId);
-    if (gameData) {
-      const gameDataFilename = getGameDataFilename(gameData);
-      try {
-        await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
-        if (!gameData.presentOnDisk) {
-          gameData.presentOnDisk = true;
-          fpDatabase.saveGameData(gameData);
-        }
-      } catch (err) {
-        if (gameData.presentOnDisk) {
-          gameData.presentOnDisk = false;
-          fpDatabase.saveGameData(gameData);
+    if (game.gameData) {
+      for (const gameData of game.gameData) {
+        const gameDataFilename = getGameDataFilename(gameData);
+        gameData.path = gameDataFilename;
+        try {
+          await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
+          if (!gameData.presentOnDisk) {
+            gameData.presentOnDisk = true;
+            fpDatabase.saveGameData(gameData);
+          }
+        } catch (err) {
+          if (gameData.presentOnDisk) {
+            gameData.presentOnDisk = false;
+            fpDatabase.saveGameData(gameData);
+          }
         }
       }
     }

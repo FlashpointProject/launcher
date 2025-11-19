@@ -10,7 +10,6 @@ import { ExecMapping } from '@shared/interfaces';
 import { fixSlashes } from '@shared/Util';
 import { getGameDataFilename, isGame } from '@shared/utils/misc';
 import { ContentRunner, Game, GameData, GameLaunchInfo, LaunchInfo } from 'flashpoint-launcher';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fpDatabase, state } from '..';
 
@@ -34,7 +33,7 @@ export const webgameContentRunner: ContentRunner = {
     const appPathOverride = state.preferences.appPathOverrides.filter(a => a.enabled).find(a => a.path === parsedAppPath);
     const appPath = appPathOverride?.override || parsedAppPath;
     const metadataLaunchCommand = activeData ? activeData.launchCommand : game.legacyLaunchCommand;
-    const gamePath = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(state.config.flashpointPath, appPath));
+    const gamePath = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.resolve(state.config.flashpointPath, appPath));
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getContentEnvironment(
       state.config.flashpointPath,
@@ -90,6 +89,7 @@ export async function downloadGameDataRes(state: BackState, gameData: GameData) 
 }
 
 export async function ensureGameDataDownloaded(state: BackState, game: Game) {
+  const showDialogFunc = state.socketServer.showMessageBoxBack(state);
   if (game.activeDataId && game.gameData) {
     log.debug('Launcher', 'Found active game data');
     let gameData = game.gameData.find(gd => gd.id === game.activeDataId);
@@ -102,7 +102,7 @@ export async function ensureGameDataDownloaded(state: BackState, game: Game) {
           const lcDifferent = oldGd.launchCommand !== gameData.launchCommand;
           if (lcDifferent) {
             const strings = state.languageContainer;
-            const dialogId = await state.socketServer.showMessageBoxBack(state)({
+            const dialogId = showDialogFunc({
               largeMessage: true,
               message: `${strings.dialog.gameDataUpdateReadyLcDifferent}`,
               buttons: [strings.misc.yes, strings.misc.no],
@@ -121,7 +121,7 @@ export async function ensureGameDataDownloaded(state: BackState, game: Game) {
             }
           } else {
             const strings = state.languageContainer;
-            const dialogId = await state.socketServer.showMessageBoxBack(state)({
+            const dialogId = showDialogFunc({
               largeMessage: true,
               message: `${strings.dialog.gameDataUpdateReady}`,
               buttons: [strings.misc.yes, strings.misc.no],
@@ -156,19 +156,6 @@ export async function ensureGameDataDownloaded(state: BackState, game: Game) {
         }
       }
       broadcastGameUpdate(state, game.id);
-    }
-
-    // Make sure it has a path set, check the default location if it does not then save it back
-    if (gameData && !gameData.path) {
-      const realPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, getGameDataFilename(gameData));
-      if (fs.existsSync(realPath)) {
-        gameData.path = realPath;
-        gameData.presentOnDisk = true;
-        game.activeDataOnDisk = true;
-        await fpDatabase.saveGameData(gameData);
-        await fpDatabase.saveGame(game);
-        broadcastGameUpdate(state, game.id);
-      }
     }
   }
 }
@@ -234,6 +221,7 @@ export function getApplicationPath(filePath: string, execMappings: ExecMapping[]
 }
 
 function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, name: string): ManagedChildProcess {
+  console.log(launchInfo);
   const dirname = path.dirname(launchInfo.gamePath);
   // Keep file path relative to cwd
   const proc = runService(

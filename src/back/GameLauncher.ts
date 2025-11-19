@@ -6,12 +6,13 @@ import * as Coerce from '@shared/utils/Coerce';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as child_process from 'child_process';
-import { AdditionalApp, AppPathOverride, ComponentStatus, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LangContainer, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AdditionalApp, AppPathOverride, ComponentStatus, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LangContainer, LaunchInfo, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import minimist from 'minimist';
 import * as path from 'node:path';
 import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { getCwd, isBrowserOpts } from './util/misc';
@@ -258,7 +259,7 @@ export namespace GameLauncher {
       }
     }
     // Continue with launching normally
-    const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
+    const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.resolve(opts.fpPath, appPath));
     const gameArgs: string[] = [...appArgs, metadataLaunchCommand];
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getContentEnvironment(opts.fpPath, opts.proxy, process.platform, true, opts.envPATH);

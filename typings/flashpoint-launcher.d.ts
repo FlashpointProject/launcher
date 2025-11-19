@@ -22,7 +22,7 @@
 
 declare module 'flashpoint-launcher' {
   import { FlashpointArchive, GameSearch } from '@fparchive/flashpoint-archive';
-  import { Readable } from 'stream';
+  import { EventEmitter, Readable } from 'stream';
   import { TypedEmitter } from 'typed-emitter';
 
   /** Version of the Flashpoint Launcher */
@@ -1404,7 +1404,7 @@ declare module 'flashpoint-launcher' {
     exit: (code: number | null, signal: string | null) => void;
   }
 
-  class ManagedChildProcess extends TypedEmitter<ManagedChildProcessEvents> {
+  class ManagedChildProcess extends (EventEmitter as new () => TypedEmitter<ManagedChildProcessEvents>) {
     /** ID of the process */
     id: string;
     /** Info this process was created with */
