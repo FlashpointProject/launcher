@@ -1,4 +1,5 @@
 import { CurateBox } from '@renderer/components/CurateBox';
+import { createErrorDialogWithPrefix } from '@renderer/dialog';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import * as curateActions from '@renderer/store/curate/slice';
@@ -415,9 +416,7 @@ export function CuratePage() {
 
   const runExtCommand = (command: string) => {
     window.Shared.back.request(BackIn.RUN_COMMAND, command, curation, curate.selected)
-    .catch((error) => {
-      log.error('Launcher', `Failed to run Ext Curate command '${command}': ${error}`);
-    });
+    .catch(createErrorDialogWithPrefix(`Failed to run Ext Curate Command ${command}`));
   };
 
   // Gen extension buttons

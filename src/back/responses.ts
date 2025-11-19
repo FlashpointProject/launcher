@@ -643,13 +643,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         gameData = await fpDatabase.findGameDataById(parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
-          try {
-            await downloadGameDataRes(state, gameData);
-          } catch (error: any) {
-            state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-            log.info('Game Launcher', `Add App Launch Aborted: ${error}`);
-            return;
-          }
+          await downloadGameDataRes(state, gameData);
         }
       }
       await state.apiEmitters.games.onWillLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during add app launch api event');
@@ -1055,10 +1049,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
     const gameData = await fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
-      await downloadGameDataRes(state, gameData)
-      .catch((err) => {
-        throw 'Failed to download';
-      });
+      await downloadGameDataRes(state, gameData);
     } else {
       log.error('Launcher', `Game Data not found (ID=${gameDataId})`);
       throw new Error(`Game Data not found (ID=${gameDataId})`);

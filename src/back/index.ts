@@ -1809,19 +1809,13 @@ export async function checkAndDownloadGameData(activeDataId: number) {
       state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-    try {
-      await downloadGameData(gameData.id, state, state.downloadController.signal(), onProgress, onDetails)
-      .finally(() => {
-        // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-        setTimeout(() => {
-          state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-        }, 250);
-      });
-    } catch (error: any) {
-      state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-      log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-      return;
-    }
+    await downloadGameData(gameData.id, state, state.downloadController.signal(), onProgress, onDetails)
+    .finally(() => {
+      // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+      setTimeout(() => {
+        state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+      }, 250);
+    });
   }
 }
 

@@ -1,5 +1,5 @@
 import { Menu, MenuProps } from '@renderer/components/Menu';
-import { createNewDialog } from '@renderer/dialog';
+import { createErrorDialogWithPrefix, createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setCurrentCuration } from '@renderer/store/curate/slice';
@@ -228,9 +228,7 @@ export function MenuProvider({ children }: MenuContextProps) {
               window.Shared.back.request(BackIn.GET_GAME, gameId)
               .then((game) => {
                 window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, game)
-                .catch((error) => {
-                  log.error('Launcher', `Failed to run Ext Game command '${contextButton.command}': ${error}`);
-                });
+                .catch(createErrorDialogWithPrefix(`Failed to run Ext Game command '${contextButton.command}'`));
               });
             }
           });

@@ -1,7 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { getPointer } from '@renderer/context/MenuContext';
-import { createNewDialog } from '@renderer/dialog';
+import { createErrorDialogWithPrefix } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
@@ -383,13 +383,7 @@ export function BrowsePage(props: BrowsePageProps) {
 
   const onDownloadPlaylistContents = (playlistId: string): void => {
     window.Shared.back.request(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, playlistId)
-    .catch((error) => {
-      createNewDialog(dispatch, {
-        largeMessage: true,
-        message: `Failed to download playlist - ${error}`,
-        buttons: ['Ok']
-      });
-    });
+    .catch(createErrorDialogWithPrefix('Failed to download playlist'));
   };
 
   const onExportPlaylist = (playlistId: string): void => {
@@ -439,9 +433,7 @@ export function BrowsePage(props: BrowsePageProps) {
                 window.Shared.back.request(BackIn.GET_PLAYLIST, playlistId)
                 .then(playlist => {
                   window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, playlist)
-                  .catch((error) => {
-                    log.error('Launcher', `Failed to run Ext Playlist command '${contextButton.command}': ${error}`);
-                  });
+                  .catch(createErrorDialogWithPrefix(`Failed to run Ext Playlist command '${contextButton.command}`));
                 });
               }
             });

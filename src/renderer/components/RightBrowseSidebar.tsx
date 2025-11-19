@@ -1,4 +1,5 @@
 import { getPointer } from '@renderer/context/MenuContext';
+import { createErrorDialogWithPrefix } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
@@ -156,7 +157,7 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
   }
 
   const onGameLaunch = async (gameId: string, override: GameLaunchOverride) => {
-    launchGame(dispatch, gameId, override);
+    launchGame(dispatch, gameId, 'flashpoint-archive');
   };
 
   const onDeleteSelectedGame = async () => {
@@ -481,7 +482,6 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
       type: 'button',
       label: strings.uninstallGame,
       onClick: async () => {
-        console.log('literally kys');
         const res = await openConfirmDialog({
           message: allStrings.dialog.uninstallGame,
           buttons: [allStrings.misc.yes, allStrings.misc.no],
@@ -490,9 +490,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
         if (res === 0 && game.gameData !== undefined) {
           for (const gameData of game.gameData) {
             await window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, gameData.id)
-            .catch(() => {
-              alert(allStrings.dialog.unableToUninstallGameData);
-            });
+            .catch(createErrorDialogWithPrefix(allStrings.dialog.unableToUninstallGameData));
           }
         }
       }

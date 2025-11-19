@@ -11,25 +11,26 @@ export async function downloadGameData(gameDataId: number, state: BackState, abo
   onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await fpDatabase.findGameDataById(gameDataId);
   log.debug('Game Launcher', `Checking ${state.preferences.gameDataSources.length} Sources for this GameData...`);
+  const errors = [];
   if (gameData) {
     for (const source of state.preferences.gameDataSources) {
-      let success = false;
       for (const provider of state.registry.dataSources.values()) {
         log.debug('Launcher', `testing ${provider.name}`);
         const dataPacksFullPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
         try {
-          success = await provider.downloadGame(source, gameData, dataPacksFullPath, abortSignal, onProgress, onDetails);
+          const success = await provider.downloadGame(source, gameData, dataPacksFullPath, abortSignal, onProgress, onDetails);
           if (success) {
             return;
           }
         } catch (err) {
+          errors.push(`Error from source ${provider.name} (${provider.id}) - ${err}`);
           log.error('Launcher', `Error from source ${provider.name} (${provider.id}) - ${err}`);
-          success = false;
         }
       }
     }
   }
-  throw new Error('No working Sources available for this GameData.');
+  const errorMsg = `No working Sources available for this GameData.${errors.length > 0 ? '\n' + errors.join('\n') : ''}`;
+  throw new Error(errorMsg);
 }
 
 export async function importGameDataSkipHash(gameId: string, filePath: string, dataPacksFolderPath: string, sha256: string,

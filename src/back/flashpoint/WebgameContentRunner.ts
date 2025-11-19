@@ -88,7 +88,7 @@ export async function downloadGameDataRes(state: BackState, gameData: GameData) 
   }
 }
 
-export async function ensureGameDataDownloaded(state: BackState, game: Game) {
+export async function ensureGameDataDownloaded(state: BackState, game: Game): Promise<boolean> {
   const showDialogFunc = state.socketServer.showMessageBoxBack(state);
   if (game.activeDataId && game.gameData) {
     log.debug('Launcher', 'Found active game data');
@@ -146,18 +146,13 @@ export async function ensureGameDataDownloaded(state: BackState, game: Game) {
         // Make sure we didn't choose to swap game data during the user dialog above
         log.debug('Game Launcher', 'Downloading Game Data for ' + getGameDataFilename(gameData) || 'UNKNOWN');
         // Download GameData
-        try {
-          await downloadGameDataRes(state, gameData);
-          gameData = (await fpDatabase.findGameDataById(gameData.id)) as GameData;
-        } catch (error: any) {
-          state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-          return false;
-        }
+        await downloadGameDataRes(state, gameData);
+        gameData = (await fpDatabase.findGameDataById(gameData.id)) as GameData;
       }
       broadcastGameUpdate(state, game.id);
     }
   }
+  return true;
 }
 
 export async function configureServer(state: BackState, requestedServer?: string) {

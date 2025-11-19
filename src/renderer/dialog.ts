@@ -1,7 +1,26 @@
-import { DialogState, DialogStateTemplate } from 'flashpoint-launcher';
-import { AppDispatch } from './store/store';
 import { uuid } from '@shared/utils/uuid';
+import { DialogState, DialogStateTemplate } from 'flashpoint-launcher';
 import { createDialog } from './store/main/slice';
+import store, { AppDispatch } from './store/store';
+
+export function createErrorDialogWithPrefix(prefix: string) {
+  return (error: any) => {
+    createNewDialog(store.dispatch, {
+      largeMessage: true,
+      message: `${prefix}: ${error}`,
+      buttons: ['OK']
+    });
+  };
+}
+
+
+export function createErrorDialog(error: any) {
+  createNewDialog(store.dispatch, {
+    largeMessage: true,
+    message: `${error}`,
+    buttons: ['OK']
+  });
+}
 
 export function createNewDialog(dispatch: AppDispatch, template: DialogStateTemplate): string {
   const id = uuid();

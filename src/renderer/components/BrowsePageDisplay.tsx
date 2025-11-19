@@ -2,7 +2,7 @@
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { requestRange, selectGame, setGridScroll, setListScroll } from '@renderer/store/search/slice';
-import { gameDragDataType, getPlatformIconURL } from '@renderer/Util';
+import { gameDragDataType, getPlatformIconURL, launchGame } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { calcScale } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
@@ -18,12 +18,13 @@ import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { Spinner } from './Spinner';
 
 export function WebgameBrowsePageDisplayGrid(props: BrowsePageDisplayProps<Game>) {
+  const dispatch = useAppDispatch();
   const getContentIcons = (game: Content | Game) => {
     return isGame(game) ? game.platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion)) : [];
   };
 
   const onContentRun = async (gameId: string): Promise<void> => {
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, 'flashpoint-archive');
+    launchGame(dispatch, gameId, 'flashpoint-archive');
   };
 
   return (
@@ -35,8 +36,10 @@ export function WebgameBrowsePageDisplayGrid(props: BrowsePageDisplayProps<Game>
 }
 
 export function WebgameBrowsePageDisplayList(props: BrowsePageDisplayProps<Game>) {
+  const dispatch = useAppDispatch();
+
   const onContentRun = async (gameId: string): Promise<void> => {
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, 'flashpoint-archive');
+    launchGame(dispatch, gameId, 'flashpoint-archive');
   };
 
   return (

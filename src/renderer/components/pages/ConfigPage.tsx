@@ -1,6 +1,6 @@
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { createNewDialog } from '@renderer/dialog';
+import { createErrorDialog, createErrorDialogWithPrefix, createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { cancelDialog } from '@renderer/store/main/slice';
@@ -216,9 +216,7 @@ export function ConfigPage() {
     .then(() => {
       dispatch(removeTagFilterGroup(index));
     })
-    .catch((error) => {
-      alert('Failed to nuke tags: ' + error);
-    })
+    .catch(createErrorDialogWithPrefix('Failed to nuke tags'))
     .finally(() => {
       dispatch(cancelDialog(dialogId));
     });
@@ -345,9 +343,7 @@ export function ConfigPage() {
 
   const onOptimizeDatabase = () => {
     window.Shared.back.request(BackIn.OPTIMIZE_DATABASE)
-    .catch((err) => {
-      alert('Error: ' + err);
-    });
+    .catch(createErrorDialog);
   };
 
   const onRegisterProtocol = (isChecked: boolean): void => {
@@ -712,9 +708,7 @@ export function ConfigPage() {
                   .then(() => {
                     toast('Images Deleted');
                   })
-                  .catch((err) => {
-                    alert('Error: ' + err);
-                  });
+                  .catch(createErrorDialogWithPrefix('Failed to delete images'));
                 }}/>
             </ConfigBox>
             {/* Playtime Tracking */}
@@ -1010,9 +1004,7 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
           value='Run'
           onClick={() => {
             window.Shared.back.request(BackIn.RUN_COMMAND, prop.command || '')
-            .catch((error) => {
-              log.error('Launcher', `Failed to run Ext Config command '${prop.command}': ${error}`);
-            });
+            .catch(createErrorDialogWithPrefix(`Failed to run Ext Config command '${prop.command}'`));
           }}/>
       );
     }

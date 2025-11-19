@@ -1,4 +1,5 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
+import { createErrorDialogWithPrefix } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setUpdateInfo } from '@renderer/store/main/slice';
@@ -22,7 +23,7 @@ export function HomePage() {
   const displaySettings = useAppSelector(state => state.main.displaySettings);
 
   const onLaunchGame = async (gameId: string, override: GameLaunchOverride) => {
-    launchGame(dispatch, gameId, override);
+    launchGame(dispatch, gameId, 'flashpoint-archive');
   };
 
   const toggleMinimizeBox = (box: string, open: boolean) => {
@@ -75,9 +76,7 @@ function UpdateComponent() {
 
   const onApplyUpdate = async (source: GameMetadataSource) => {
     return window.Shared.back.request(BackIn.SYNC_ALL, source)
-    .catch((err) => {
-      log.error('Launcher', `Error updating metadata: ${err}`);
-    });
+    .catch(createErrorDialogWithPrefix('Error updating metadata'));
   };
 
   const onCheckForUpdate = async (source: GameMetadataSource) => {
