@@ -3,6 +3,7 @@ import { createErrorDialogWithPrefix, createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setCurrentCuration } from '@renderer/store/curate/slice';
+import { createFpfssEditGame } from '@renderer/store/fpfss/slice';
 import { getGameImagePath, getGameImageURL, getGamePath, openUrlInWindow } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { Paths } from '@shared/Paths';
@@ -11,6 +12,7 @@ import { DialogStateTemplate, LangContainer, Playlist } from 'flashpoint-launche
 import { MenuContextStateProps, MenuItemType } from 'flashpoint-launcher-renderer';
 import React, { createContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export const defaultMenuWidth = 230;
 export const menuDefHeight = 26;
@@ -56,7 +58,17 @@ export function MenuProvider({ children }: MenuContextProps) {
         label: strings.browse.editFpfssGame,
         enabled: enableEditing,
         onClick: () => {
-          // this.onFpfssEditGame(gameId);
+          dispatch(createFpfssEditGame(gameId)).unwrap()
+          .then(() => {
+            navigate(Paths.FPFSS + '/' + gameId);
+          })
+          .catch((error) => {
+            log.error('FPFSS', error.message);
+            toast(error.message, {
+              type: 'error',
+              autoClose: false
+            });
+          });
         }
       },
       {

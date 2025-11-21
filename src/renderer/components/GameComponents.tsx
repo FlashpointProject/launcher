@@ -48,7 +48,7 @@ export function GameComponentSeries(props: GameComponentProps) {
     header={lang.browse.series}
     text={series}
     placeholder={lang.browse.noSeries}
-    onClick={() => { if (!editable) { doSearch(`series=${series}`); }}}
+    onClick={() => { if (!editable) { doSearch(`series="${series}"`); }}}
     onChange={(value) => updateGame({ series: value })}
     {...props} />;
 }
@@ -62,7 +62,7 @@ export function GameComponentPublisher(props: GameComponentProps) {
     header={lang.browse.publisher}
     text={publisher}
     placeholder={lang.browse.noPublisher}
-    onClick={() => { if (!editable) { doSearch(`publisher=${publisher}`); }}}
+    onClick={() => { if (!editable) { doSearch(`publisher="${publisher}"`); }}}
     onChange={(value) => updateGame({ publisher: value })}
     {...props} />;
 }
@@ -102,7 +102,7 @@ export function GameComponentLanguage(props: GameComponentProps) {
     header={lang.browse.language}
     text={language}
     placeholder={lang.browse.noLanguage}
-    onClick={() => { if (!editable) { doSearch(`language=${language}`); }}}
+    onClick={() => { if (!editable) { doSearch(`language="${language}"`); }}}
     onChange={(value) => updateGame({ language: value })}
     {...props} />;
 }
@@ -121,7 +121,7 @@ export function GameComponentPlayMode(props: GameComponentProps) {
         onChange={(event) => updateGame({ playMode: event.currentTarget.value })}
         className='browse-right-sidebar__searchable'
         editable={editable}
-        onClick={() => { if (!editable) { doSearch(`playMode=${playMode}`); }}}
+        onClick={() => { if (!editable) { doSearch(`playMode="${playMode}"`); }}}
         items={suggestions && filterSuggestions(suggestions.playMode) || []}
         onItemSelect={text => updateGame({ playMode: text })} />
     </div>
@@ -142,7 +142,7 @@ export function GameComponentStatus(props: GameComponentProps) {
         onChange={(event) => updateGame({ status: event.currentTarget.value })}
         className='browse-right-sidebar__searchable'
         editable={editable}
-        onClick={() => { if (!editable) { doSearch(`status=${status}`); }}}
+        onClick={() => { if (!editable) { doSearch(`status="${status}"`); }}}
         items={suggestions && filterSuggestions(suggestions.status) || []}
         onItemSelect={text => updateGame({ status: text })} />
     </div>

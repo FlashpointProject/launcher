@@ -378,7 +378,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       const activeData = await fpDatabase.findGameDataById(game.activeDataId);
       if (activeData && activeData.presentOnDisk && !skipDataPack) {
         // Extract data pack into curation folder
-        const dataPath = getGameDataFilename(activeData);
+        const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, getGameDataFilename(activeData));
         await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
         // Clean up content.json file from extracted data pack
         await fs.unlink(path.join(curPath, 'content.json'))

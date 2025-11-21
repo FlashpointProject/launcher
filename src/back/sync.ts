@@ -46,7 +46,8 @@ export async function syncPlatforms(source: GameMetadataSource): Promise<Date> {
 
   const res = await axios.get(platformsUrl)
   .catch((err) => {
-    throw 'Failed to search platforms';
+    console.log(err);
+    throw `Failed to search platforms - ${err}`;
   });
 
   const platforms = (res.data as RemotePlatformRaw[]).map<RemotePlatform>((v) => {

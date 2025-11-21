@@ -378,7 +378,7 @@ export function main(init: Init): void {
           )
         )
       );
-      if (!allow && !Util.isDev) {
+      if (Util.isDev ? false : !allow) {
         console.log(`Request Denied to ${url?.hostname || remoteHostname}`);
       }
 
@@ -426,11 +426,6 @@ export function main(init: Init): void {
       } else {
         return false;
       }
-    });
-
-    webContents.session.setProxy({
-      proxyRules: 'http=localhost:22500;direct://',
-      proxyBypassRules: '<local>,*.unstable.life,*.flashpointarchive.org',
     });
 
     function onNewPage(navigationUrl: string): void {
