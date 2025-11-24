@@ -164,7 +164,7 @@ export function ConfigPage() {
     ...langList.map((lang) => {
       return {
         value: lang.code,
-        display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
+        display: lang.name
       };
     }),
     { value: '<none>', display: 'None' },

@@ -13,7 +13,7 @@ import { autoCode, getDefaultLocalization } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
-import { AdditionalApp, Game, IBackProcessInfo, IService, LangContainer, LangFile, PlatformAppPath, PlatformAppPathSuggestions, Tag } from 'flashpoint-launcher';
+import { AdditionalApp, Game, IBackProcessInfo, IService, LangContainer, LangFile, LangInfo, PlatformAppPath, PlatformAppPathSuggestions, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
 import * as os from 'os';
@@ -512,4 +512,13 @@ export function processPlatformAppPaths(suggs: PlatformAppPathSuggestions): Plat
   }
 
   return newSuggs;
+}
+
+export function langFilesToInfo(langFiles: LangFile[]): LangInfo[] {
+  return langFiles.map((lang) => {
+    return {
+      code: lang.code,
+      name: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
+    };
+  });
 }

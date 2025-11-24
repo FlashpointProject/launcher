@@ -78,7 +78,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { dispose } from './util/lifecycle';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
-import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
+import { createContainer, exit, getMacPATH, langFilesToInfo, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
 
 export const VERBOSE = {
@@ -593,7 +593,7 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
           state.languages.push(lang);
         }
 
-        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, state.languages);
+        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, langFilesToInfo(state.languages));
 
         if (lang.code === state.preferences.currentLanguage ||
             lang.code === state.localeCode ||

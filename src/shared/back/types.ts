@@ -36,7 +36,7 @@ import {
   ILogPreEntry,
   IService,
   LangContainer,
-  LangFile,
+  LangInfo,
   LoadedCuration,
   MergeTagData,
   Platform,
@@ -527,7 +527,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SERVICE_CHANGE]: (data: IService) => void;
   [BackOut.SERVICE_REMOVED]: (processId: string) => void;
   [BackOut.LANGUAGE_CHANGE]: (data: LangContainer) => void;
-  [BackOut.LANGUAGE_LIST_CHANGE]: (data: LangFile[]) => void;
+  [BackOut.LANGUAGE_LIST_CHANGE]: (data: LangInfo[]) => void;
   [BackOut.IMPORT_PLAYLIST]: (data: Playlist) => void;
   [BackOut.PLAYLISTS_CHANGE]: (data: Playlist[]) => void;
   [BackOut.THEME_CHANGE]: (theme: Theme) => void;
@@ -686,7 +686,7 @@ export type GetRendererInitDataResponse = {
   fileServerPort: number;
   log: ILogEntry[];
   customVersion?: string;
-  languages: LangFile[];
+  languages: LangInfo[];
   language: LangContainer;
   themes: Theme[];
   localeCode: string;

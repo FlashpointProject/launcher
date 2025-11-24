@@ -1,6 +1,6 @@
 import { SocketClient } from '@shared/back/SocketClient';
 import { EventEmitter } from 'events';
-import { AppConfigData, AppPreferencesData, IBackProcessInfo, ILogEntry, ITheme, LangContainer, LangFile } from 'flashpoint-launcher';
+import { AppConfigData, AppPreferencesData, IBackProcessInfo, ILogEntry, ITheme, LangContainer, LangInfo } from 'flashpoint-launcher';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -58,7 +58,7 @@ export interface IMainWindowExternal {
   // @REFACTOR Figure out a way to delete these after they have been used (put them in a sub-object and just set it to undefined after it has been used?)
   initialLogEntries: ILogEntry[];
   initialLang: LangContainer;
-  initialLangList: LangFile[];
+  initialLangList: LangInfo[];
   initialThemes: ITheme[];
   initialLocaleCode: string;
 

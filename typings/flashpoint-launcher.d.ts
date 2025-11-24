@@ -2710,6 +2710,11 @@ declare module 'flashpoint-launcher' {
     data: RecursivePartial<LangFileContent>;
   }
 
+  type LangInfo = {
+    code: string;
+    name: string;
+  }
+
   /** Data contained inside the Credits file. */
   type CreditsData = {
     /** Order for roles to appear in */
@@ -2890,7 +2895,8 @@ declare module 'flashpoint-launcher-renderer' {
     ILogoSet,
     IService,
     ITheme,
-    LangContainer, LangFile,
+    LangContainer,
+    LangInfo,
     MetaUpdateState,
     PlatformAppPathSuggestions,
     Playlist,
@@ -2899,7 +2905,7 @@ declare module 'flashpoint-launcher-renderer' {
     Tag,
     TagCategory,
     Task,
-    ViewGame,
+    ViewGame
   } from 'flashpoint-launcher';
   import { ReactNode } from 'react';
   import { Location } from 'react-router-dom';
@@ -3300,7 +3306,7 @@ declare module 'flashpoint-launcher-renderer' {
     /** Current language container. */
     lang: LangContainer;
     /** Current list of available language files. */
-    langList: LangFile[];
+    langList: LangInfo[];
     /** If the "Meta Edit Popup" is open. */
     metaEditExporterOpen: boolean;
     /** ID of the game used in the "Meta Edit Popup". */

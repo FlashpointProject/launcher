@@ -632,7 +632,7 @@ export function mapFpfssGameToLocal(data: any): Game {
     }) || [],
     ruffleSupport: fg.ruffle_support || '',
     logoPath: fg.logo_path || '',
-    screenshotPath: fg.application_path || '',
+    screenshotPath: fg.screenshot_path || '',
     owner: '',
   };
   return game;
