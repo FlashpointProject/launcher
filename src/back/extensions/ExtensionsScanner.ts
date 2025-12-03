@@ -171,6 +171,7 @@ async function parseExtensionManifest(data: any) {
   parser.prop('main',             v => parsed.main            = str(v), true);
   // Don't change this to v. Probably happens because it's a map.
   parser.prop('contributes',      v => parsed.contributes     = parseContributions(parser.prop('contributes')), true);
+  parser.prop('category',         v => parsed.category        = str(v), true);
   return parsed;
 }
 

@@ -699,9 +699,14 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
     for (const theme of c.value) {
       const ext = await state.extensionsService.getExtension(c.extId);
       if (ext) {
-        const realPath = path.join(ext.extensionPath, theme.path);
+        const basePath = path.resolve(ext.extensionPath, 'static');
+        const realPath = path.resolve(basePath, theme.path);
+        if (!realPath.startsWith(basePath)) {
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme, it must be inside the 'static' directory "${theme.id}"\n`);
+          continue;
+        }
         try {
-          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
+          await newThemeWatcher(theme.id, basePath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
         } catch (error) {
           log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme "${theme.id}"\n${error}`);
         }

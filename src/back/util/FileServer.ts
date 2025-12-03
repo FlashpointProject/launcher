@@ -1,8 +1,8 @@
 import * as http from 'http';
-import * as fs from 'node:fs';
 import * as mime from 'mime';
-import * as path from 'node:path';
 import { Socket } from 'net';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 type HandlerFunc = (relativePathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => any;
 
@@ -75,8 +75,12 @@ export function serveFile(req: http.IncomingMessage, res: http.ServerResponse, f
     req.on('error', (err: any) => {
       log.error('Launcher', `Error serving file - ${err}`);
       if (err.code !== 'ECONNRESET') {
-        res.writeHead(500);
-        res.end();
+        try {
+          res.writeHead(500);
+          res.end();
+        } catch (err) {
+          log.error('Launcher', 'Cannot write header after the above file server error');
+        }
       }
     });
     fs.stat(filePath, (error, stats) => {

@@ -2801,6 +2801,7 @@ declare module 'flashpoint-launcher' {
     description?: string;
     icon?: string;
     main?: string;
+    category?: string;
     contributes?: Contributions;
   }
 
