@@ -1453,8 +1453,7 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
       }
       res.writeHead(400);
       res.end();
-    }
-    else if (req.method === 'GET' || req.method === 'HEAD') {
+    } else if (req.method === 'GET' || req.method === 'HEAD') {
       req.on('error', (err) => {
         log.error('Launcher', `Error serving Game image - ${err}`);
         res.writeHead(500);
@@ -1482,7 +1481,7 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
       .catch(async (err) => {
         if (err.code !== 'ENOENT') {
           // Can't read file
-          res.writeHead(404);
+          res.writeHead(500);
           res.end();
         } else {
           // File missing
@@ -1511,7 +1510,7 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
             req.once('close', () => { item.cancelled = true; });
             updateFileServerDownloadQueue()
             .catch((err) => {
-              log.error('Launcher', 'Somethign really broke in updateFileServerDownloadQueue: ' + err);
+              log.error('Launcher', 'Something really broke in updateFileServerDownloadQueue: ' + err);
             });
           }
         }
@@ -1658,9 +1657,22 @@ async function updateFileServerDownloadQueue() {
 
       const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
       const filePath = path.join(imageFolder, item.subPath);
+      const dirPath = path.dirname(filePath);
 
-      await fs.ensureDir(path.dirname(filePath));
-      await fs.promises.writeFile(filePath, imageData, 'binary');
+      try {
+        await fs.ensureDir(dirPath);
+      } catch {
+        log.error('Images', 'Failed to create folder for on-demand image: ' + dirPath);
+        item.res.writeHead(500);
+        return;
+      }
+      try {
+        await fs.promises.writeFile(filePath, imageData, 'binary');
+      } catch {
+        log.error('Images', 'Failed to save file for on-demand image: ' + filePath);
+        item.res.writeHead(500);
+        return;
+      }
 
       item.res.writeHead(200);
       item.res.write(imageData);
@@ -1675,7 +1687,9 @@ async function updateFileServerDownloadQueue() {
 }
 
 async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<void> {
-  item.res.end();
+  if (!item.res.writableEnded && !item.res.destroyed) {
+    item.res.end();
+  }
 
   // Remove item from current
   const index = state.fileServerDownloads.current.indexOf(item);
