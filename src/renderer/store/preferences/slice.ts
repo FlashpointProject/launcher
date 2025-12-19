@@ -148,12 +148,14 @@ const prefsSlice = createSlice({
     },
     renameStoredView(state: AppPreferencesData, { payload }: PayloadAction<RenameStoredViewAction>) {
       const oldIdx = state.storedViews.findIndex(v => v.view === payload.old);
-      const existing = state.storedViews.findIndex(v => v.view === payload.new);
+      const existingIdx = state.storedViews.findIndex(v => v.view === payload.new);
       if (!oldIdx) {
-        throw 'Could not find old view to rename - ' + payload.old;
+        alert('Could not find old view to rename - ' + payload.old);
+        return;
       }
-      if (existing) {
-        throw 'Cannot override existing view during a rename - ' + payload.old + ' to ' + payload.new;
+      if (existingIdx > -1) {
+        alert('Cannot override existing view during a rename - ' + payload.old + ' to ' + payload.new);
+        return;
       }
       state.storedViews[oldIdx].view = payload.new;
     },
