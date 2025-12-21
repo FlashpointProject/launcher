@@ -457,6 +457,16 @@ function splitQuotes(str: string): string[] {
   return splits;
 }
 
+export async function doGameDataParams(state: BackState, gameData: GameData, changeServer: (state: BackState, server?: string) => Promise<void>) {
+  return handleGameDataParams({
+    fpPath: state.config.flashpointPath,
+    htdocsPath: state.preferences.htdocsFolderPath,
+    dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+    sevenZipPath: state.sevenZipPath,
+    changeServer: (server?: string) => changeServer(state, server),
+  } as any as LaunchBaseOpts, undefined, gameData);
+}
+
 async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: string, gameData?: GameData) {
   if (gameData) {
     const mountParams = minimist(gameData.parameters?.split(' ') ?? []);

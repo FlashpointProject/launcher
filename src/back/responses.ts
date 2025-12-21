@@ -65,7 +65,7 @@ import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { getAllApplicationPaths, getAllDevelopers, getAllLibraries, getAllPlayModes, getAllPublishers, getAllSeries, getAllStatuses, getTags, markGameSave } from './DatabaseCache';
 import { ExtConfigFile } from './ExtConfigFile';
-import { checkAndInstallPlatform, escapeArgsForShell, GameLauncher } from './GameLauncher';
+import { checkAndInstallPlatform, doGameDataParams, escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { DEFAULT_PLAYLIST_DATA, overwritePlaylistData, PlaylistFile } from './PlaylistFile';
@@ -709,6 +709,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       // Set the requested server up
       const server = gameLaunchInfo.server || state.preferences.server;
       await changeServer(state, server);
+
+      // Handle server and extract data params
+      const gameData = game.gameData?.find(gd => gd.id === game.activeDataId);
+      if (gameData) {
+        await doGameDataParams(state, gameData, changeServer);
+      }
 
       // Let the runner execute the game with the launch info
       await contentRunner.executeGame(gameLaunchInfo);

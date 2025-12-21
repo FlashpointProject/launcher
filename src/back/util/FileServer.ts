@@ -59,8 +59,10 @@ export class FileServer {
       Promise.resolve(handler(pathname, url, req, res))
       .catch((err) => {
         console.log(`FS Handler Error: ${err}`);
-        res.writeHead(404);
-        res.end();
+        if (!res.writableEnded && !res.destroyed) {
+          res.writeHead(404);
+          res.end();
+        }
       });
     } else {
       res.writeHead(404);
