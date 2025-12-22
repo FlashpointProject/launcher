@@ -1506,8 +1506,10 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
             const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
             if (index >= 0) {
               const item = state.fileServerDownloads.queue[index];
-              item.res.writeHead(404);
-              item.res.end();
+              if (!item.res.writableEnded) {
+                item.res.writeHead(404);
+                item.res.end();
+              }
               state.fileServerDownloads.queue.splice(index, 1);
             }
 
