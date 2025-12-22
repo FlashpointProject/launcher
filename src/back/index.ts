@@ -1317,12 +1317,12 @@ async function onRemoveCurationFile(folder: string, relativePath: string) {
   }
 }
 
-function onFileServerRequestExtData(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+async function onFileServerRequestExtData(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   // Split URL section into parts (/extdata/<extId>/<relativePath>)
   const splitPath = pathname.split('/');
   const extId = splitPath.length > 0 ? splitPath[0] : '';
   const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
-  state.extensionsService.getExtension(extId)
+  return state.extensionsService.getExtension(extId)
   .then(ext => {
     if (ext) {
       // Only serve from <extPath>/static/
@@ -1348,8 +1348,8 @@ function onFileServerRequestExtData(pathname: string, url: URL, req: http.Incomi
   });
 }
 
-function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
-  state.extensionsService.getExtension(pathname)
+async function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  return state.extensionsService.getExtension(pathname)
   .then((ext) => {
     if (ext && ext.manifest.icon) {
       const filePath = path.join(ext.extensionPath, ext.manifest.icon);
@@ -1364,7 +1364,7 @@ function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.Incom
   });
 }
 
-function onFileServerRequestThemes(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+async function onFileServerRequestThemes(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const splitPath = pathname.split('/');
   // Find theme associated with the path (/Theme/<themeId>/<relativePath>)
   const themeId = splitPath.length > 0 ? splitPath[0] : '';
@@ -1396,8 +1396,12 @@ async function onFileServerRequestRuffle(pathname: string, url: URL, req: http.I
           res.end();
         }
       });
-      fs.stat(filePath)
-      .then((stats) => {
+      const stats = await fs.promises.stat(filePath)
+      .catch(() => {
+        res.writeHead(404);
+        res.end();
+      });
+      if (stats) {
         // Respond with file
         res.writeHead(200, {
           'Content-Type': mime.getType(path.extname(filePath)) || '',
@@ -1414,12 +1418,10 @@ async function onFileServerRequestRuffle(pathname: string, url: URL, req: http.I
         } else {
           res.end();
         }
-      })
-      .catch(async () => {
-        // Can't read file
+      } else {
         res.writeHead(404);
         res.end();
-      });
+      }
     } else {
       res.writeHead(404);
       res.end();
@@ -1455,8 +1457,10 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
         });
         return;
       }
-      res.writeHead(400);
-      res.end();
+      if (!res.writableEnded) {
+        res.writeHead(400);
+        res.end();
+      }
     } else if (req.method === 'GET' || req.method === 'HEAD') {
       req.on('error', (err) => {
         log.error('Launcher', `Error serving Game image - ${err}`);
@@ -1524,51 +1528,51 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
         }
       });
     } else {
-      res.writeHead(404);
-      res.end();
+      if (!res.writableEnded) {
+        res.writeHead(404);
+        res.end();
+      }
     }
   }
 }
 
-function onFileServerRequestLogos(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+async function onFileServerRequestLogos(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
   const logoFolder = logoSet && logoSet.files.includes(pathname)
     ? logoSet.fullPath
     : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
   const filePath = path.join(logoFolder, pathname);
   if (filePath.startsWith(logoFolder)) {
-    fs.access(filePath, fs.constants.F_OK, async (err) => {
-      if (err) {
-        // Maybe we're on a case sensitive platform?
-        try {
-          const folder = path.dirname(filePath);
-          const filename = path.basename(filePath);
-          if (filePath.startsWith(logoFolder)) {
-            const files = await fs.readdir(folder);
-            for (const file of files) {
-              if (file.toLowerCase() == filename.toLowerCase()) {
-                serveFile(req, res, path.join(folder, file));
-                return;
-              }
+    try {
+      await fs.promises.access(filePath, fs.constants.F_OK);
+      serveFile(req, res, filePath);
+    } catch (err) {
+      // Maybe we're on a case sensitive platform?
+      try {
+        const folder = path.dirname(filePath);
+        const filename = path.basename(filePath);
+        if (filePath.startsWith(logoFolder)) {
+          const files = await fs.readdir(folder);
+          for (const file of files) {
+            if (file.toLowerCase() == filename.toLowerCase()) {
+              serveFile(req, res, path.join(folder, file));
+              return;
             }
           }
-        } catch { /** Let error drop to return default image instead */ }
-        // File doesn't exist, serve default image
-        const basePath = (!state.isDev && state.isElectron) ? path.join(path.dirname(state.exePath), 'resources/app.asar/build') : path.join(process.cwd(), 'build');
-        const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
-        if (replacementFilePath.startsWith(basePath)) {
-          fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
-            if (err) {
-              serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
-            } else {
-              serveFile(req, res, replacementFilePath);
-            }
-          });
         }
-      } else {
-        serveFile(req, res, filePath);
+      } catch { /** Let error drop to return default image instead */ }
+      // File doesn't exist, serve default image
+      const basePath = (!state.isDev && state.isElectron) ? path.join(path.dirname(state.exePath), 'resources/app.asar/build') : path.join(process.cwd(), 'build');
+      const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
+      if (replacementFilePath.startsWith(basePath)) {
+        try {
+          await fs.promises.access(replacementFilePath, fs.constants.F_OK);
+          serveFile(req, res, replacementFilePath);
+        } catch (err) {
+          serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
+        }
       }
-    });
+    }
   }
 }
 
