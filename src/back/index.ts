@@ -1391,8 +1391,10 @@ async function onFileServerRequestRuffle(pathname: string, url: URL, req: http.I
     if (req.method === 'GET' || req.method === 'HEAD') {
       req.on('error', (err) => {
         log.error('Launcher', `Error serving Game file - ${err}`);
-        res.writeHead(500);
-        res.end();
+        if (!res.writableEnded) {
+          res.writeHead(500);
+          res.end();
+        }
       });
       fs.stat(filePath)
       .then((stats) => {
@@ -1446,8 +1448,10 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
         })
         .on('error', async (err) => {
           log.error('Launcher', `Error writing Game image - ${err}`);
-          res.writeHead(500);
-          res.end();
+          if (!res.writableEnded) {
+            res.writeHead(500);
+            res.end();
+          }
         });
         return;
       }
@@ -1456,8 +1460,10 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
     } else if (req.method === 'GET' || req.method === 'HEAD') {
       req.on('error', (err) => {
         log.error('Launcher', `Error serving Game image - ${err}`);
-        res.writeHead(500);
-        res.end();
+        if (!res.writableEnded) {
+          res.writeHead(500);
+          res.end();
+        }
       });
       fs.stat(filePath)
       .then((stats) => {
@@ -1481,8 +1487,10 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
       .catch(async (err) => {
         if (err.code !== 'ENOENT') {
           // Can't read file
-          res.writeHead(500);
-          res.end();
+          if (!res.writableEnded) {
+            res.writeHead(500);
+            res.end();
+          }
         } else {
           // File missing
           if (!state.preferences.onDemandImages) {
@@ -1663,14 +1671,18 @@ async function updateFileServerDownloadQueue() {
         await fs.ensureDir(dirPath);
       } catch {
         log.error('Images', 'Failed to create folder for on-demand image: ' + dirPath);
-        item.res.writeHead(500);
+        if (!item.res.writableEnded) {
+          item.res.writeHead(500);
+        }
         return;
       }
       try {
         await fs.promises.writeFile(filePath, imageData, 'binary');
       } catch {
         log.error('Images', 'Failed to save file for on-demand image: ' + filePath);
-        item.res.writeHead(500);
+        if (!item.res.writableEnded) {
+          item.res.writeHead(500);
+        }
         return;
       }
 
@@ -1678,7 +1690,9 @@ async function updateFileServerDownloadQueue() {
       item.res.write(imageData);
     })
     .catch((err) => {
-      item.res.writeHead(404);
+      if (!item.res.writableEnded) {
+        item.res.writeHead(400);
+      }
     })
     .finally(async () => {
       removeFileServerDownloadItem(item);
