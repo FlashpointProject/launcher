@@ -65,7 +65,7 @@ const onInit = async (data: InitRendererData, dispatch: AppDispatch) => {
     window.Shared.initialPreferences = initData.preferences;
     window.Shared.initialThemes = initData.themes;
     // Set some things early so Theme provider works
-    dispatch(setMainState({ themeList: initData.themes }));
+    dispatch(setMainState({ config: initData.config, themeList: initData.themes }));
     dispatch(setPreferences(initData.preferences));
     window.Shared.config = {
       data: initData.config,

@@ -2,6 +2,7 @@ import { BackInit } from '@shared/back/types';
 import { ExecMapping, GamePropSuggestions, INamedBackProcessInfo } from '@shared/interfaces';
 import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
+import { FastifyInstance } from 'fastify';
 import * as flashpoint from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData, ComponentStatus, Game, GameOrderBy, GameOrderReverse, IBackProcessInfo, LangFile, PlatformAppPathSuggestions, TagCategory, ViewGame } from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
@@ -15,7 +16,7 @@ import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
-import { FileServer } from './util/FileServer';
+import { ISimpleDownloader } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 
@@ -34,8 +35,9 @@ export type BackState = {
   socketServer: SocketServer;
   curationsReady: boolean;
   downloader: Downloader;
-  fileServer: FileServer;
   fileServerPort: number;
+  onDemandImageDownloader: ISimpleDownloader;
+  fileServer: FastifyInstance;
   fileServerDownloads: {
     queue: ImageDownloadItem[];
     current: ImageDownloadItem[];

@@ -115,6 +115,14 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
     state.socketServer.broadcast(BackOut.QUIT);
     state.isExit = true;
     console.log('Exiting...');
+
+    // Kill file server and downloader
+    await state.fileServer.close();
+    console.log(' - File Server Stopped');
+
+    state.onDemandImageDownloader.stop();
+    console.log(' - On Demand Downloader Stopped');
+
     // Unload all extensions before quitting
     await state.extensionsService.unloadAll();
     console.log(' - Extensions Unloaded');
@@ -152,13 +160,6 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
     console.log(' - Watchers Aborted');
 
     await Promise.all([
-      // Close file server
-      new Promise<void>(resolve => state.fileServer.close(error => {
-        if (error) { console.warn('An error occurred while closing the file server.', error); }
-        resolve();
-      })).then(() => {
-        console.log(' - File Server Closed');
-      }),
       // Wait for preferences writes to complete
       state.prefsQueue.push(() => {}, true),
       // Abort saving on demand images

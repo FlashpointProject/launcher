@@ -16,8 +16,6 @@ import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as http from 'http';
-import * as mime from 'mime';
 import { Progress, add, extractFull } from 'node-7z';
 import * as path from 'node:path';
 import * as os from 'os';
@@ -43,9 +41,7 @@ import { CONFIG_FILENAME, DISCORD_LINK, EXT_CONFIG_FILENAME, PREFERENCES_FILENAM
 import { saveCurationFpfssInfo } from './curate/fpfss';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
-import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
 import { getAllApplicationPaths, getAllLibraries, getAllPlayModes, getAllStatuses } from './DatabaseCache';
-import { axios } from './dns';
 import { downloadGameData } from './download';
 import { Downloader } from './Downloader';
 import { loadExecMappingsFile } from './Execs';
@@ -69,11 +65,11 @@ import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { newSystemThemeWatcher, newThemeWatcher } from './Themes';
-import { BackState, ImageDownloadItem } from './types';
+import { BackState } from './types';
 import { awaitDialog } from './util/dialog';
 import { EventQueue } from './util/EventQueue';
 import { onDidInstallGameData, onDidRemoveGame, onDidRemovePlaylistGame, onDidUninstallGameData, onDidUpdateGame, onDidUpdatePlaylist, onDidUpdatePlaylistGame, onServiceChange, onWillImportCuration, onWillUninstallGameData } from './util/events';
-import { FileServer, serveFile } from './util/FileServer';
+import { SimpleDownloader, startFileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { dispose } from './util/lifecycle';
 import { LogFile } from './util/LogFile';
@@ -87,15 +83,11 @@ export const VERBOSE = {
 
 export const fpDatabase = new FlashpointArchive();
 
-const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
-
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
 const send: Required<typeof process.send> = process.send
   ? process.send.bind(process)
   : (val: any) => true;
-
-const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
 export const state: BackState = {
   startTime: Date.now(),
@@ -110,12 +102,13 @@ export const state: BackState = {
   logFile: createErrorProxy('logFile'),
   socketServer: new SocketServer(),
   curationsReady: false,
-  fileServer: new FileServer(),
+  onDemandImageDownloader: new SimpleDownloader(),
   fileServerPort: -1,
   fileServerDownloads: {
     queue: [],
     current: [],
   },
+  fileServer: createErrorProxy('fileServer'),
   downloader: createErrorProxy('downloader'),
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
@@ -226,15 +219,6 @@ main();
 
 async function main() {
   registerRequestCallbacks(state, initialize);
-  state.fileServer.registerRequestHandler('themes', onFileServerRequestThemes);
-  state.fileServer.registerRequestHandler('images', onFileServerRequestImages);
-  state.fileServer.registerRequestHandler('ruffle', onFileServerRequestRuffle);
-  state.fileServer.registerRequestHandler('logos', onFileServerRequestLogos);
-  state.fileServer.registerRequestHandler('exticons', onFileServerRequestExtIcons);
-  state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
-  state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
-  state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile));
-  state.fileServer.registerRequestHandler('curation', (p, u, req, res) => onFileServerRequestPostCuration(p, u, req, res, path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP), loadCurationArchive));
 
   // Database manipulation
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
@@ -511,6 +495,11 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
 
   console.log('Back - Loaded Preferences');
 
+  state.fileServer = await startFileServer();
+  state.fileServerPort = state.fileServer.addresses()[0].port;
+
+  console.log('Back - Started File Server');
+
   // Hook into stdout for logging
   const realWrite = process.stdout.write.bind(process.stdout);
   process.stdout.write = ((string: any, encodingOrCb: any, cb: any) => {
@@ -731,45 +720,45 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   console.log('Back - Registered System Middleware');
 
   // Find the first available port in the range
-  state.fileServerPort = await new Promise(resolve => {
-    const minPort = state.config.imagesPortMin;
-    const maxPort = state.config.imagesPortMax;
+  // state.fileServerPort = await new Promise(resolve => {
+  //   const minPort = state.config.imagesPortMin;
+  //   const maxPort = state.config.imagesPortMax;
 
-    let port = minPort - 1;
-    state.fileServer.server.once('listening', onceListening);
-    state.fileServer.server.on('error', onError);
-    tryListen();
+  //   let port = minPort - 1;
+  //   state.fileServer.server.once('listening', onceListening);
+  //   state.fileServer.server.on('error', onError);
+  //   tryListen();
 
-    function onceListening() {
-      console.log('Back - Opened File Server');
-      done(undefined);
-    }
-    function onError(error: Error) {
-      if ((error as any).code === 'EADDRINUSE') {
-        tryListen();
-      } else {
-        done(error);
-      }
-    }
-    function tryListen() {
-      if (port++ < maxPort) {
-        const hostname = state.acceptRemote ? undefined : 'localhost';
-        state.fileServer.server.listen(port, hostname);
-      } else {
-        done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
-      }
-    }
-    function done(error: Error | undefined) {
-      state.fileServer.server.off('listening', onceListening);
-      state.fileServer.server.off('error', onError);
-      if (error) {
-        log.info('Back', 'Failed to open HTTP server.\n' + error);
-        resolve(-1);
-      } else {
-        resolve(port);
-      }
-    }
-  });
+  //   function onceListening() {
+  //     console.log('Back - Opened File Server');
+  //     done(undefined);
+  //   }
+  //   function onError(error: Error) {
+  //     if ((error as any).code === 'EADDRINUSE') {
+  //       tryListen();
+  //     } else {
+  //       done(error);
+  //     }
+  //   }
+  //   function tryListen() {
+  //     if (port++ < maxPort) {
+  //       const hostname = state.acceptRemote ? undefined : 'localhost';
+  //       state.fileServer.server.listen(port, hostname);
+  //     } else {
+  //       done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
+  //     }
+  //   }
+  //   function done(error: Error | undefined) {
+  //     state.fileServer.server.off('listening', onceListening);
+  //     state.fileServer.server.off('error', onError);
+  //     if (error) {
+  //       log.info('Back', 'Failed to open HTTP server.\n' + error);
+  //       resolve(-1);
+  //     } else {
+  //       resolve(port);
+  //     }
+  //   }
+  // });
 
   const hostname = state.acceptRemote ? undefined : 'localhost';
 
@@ -1274,7 +1263,7 @@ function getCurationFilePath(folder: string, relativePath: string) {
   return path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, relativePath);
 }
 
-async function onUpdateCurationFile(folder: string, relativePath: string, data: Buffer) {
+export async function onUpdateCurationFile(folder: string, relativePath: string, data: Buffer) {
   const filePath = getCurationFilePath(folder, relativePath);
   await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
   await fs.promises.writeFile(filePath, data);
@@ -1298,7 +1287,7 @@ async function onUpdateCurationFile(folder: string, relativePath: string, data: 
   }
 }
 
-async function onRemoveCurationFile(folder: string, relativePath: string) {
+export async function onRemoveCurationFile(folder: string, relativePath: string) {
   const filePath = getCurationFilePath(folder, relativePath);
   await fs.remove(filePath);
   // Send updates for image changes
@@ -1317,266 +1306,50 @@ async function onRemoveCurationFile(folder: string, relativePath: string) {
   }
 }
 
-async function onFileServerRequestExtData(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  // Split URL section into parts (/extdata/<extId>/<relativePath>)
-  const splitPath = pathname.split('/');
-  const extId = splitPath.length > 0 ? splitPath[0] : '';
-  const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
-  return state.extensionsService.getExtension(extId)
-  .then(ext => {
-    if (ext) {
-      // Only serve from <extPath>/static/
-      const staticPath = path.join(ext.extensionPath, 'static');
-      const filePath = path.join(staticPath, relativePath);
-      if (filePath.startsWith(staticPath)) {
-        serveFile(req, res, filePath);
-      } else {
-        res.writeHead(403);
-        res.end();
-        log.warn('Launcher', `Illegal file request: "${filePath}"`);
-      }
-    } else {
-      log.warn('Launcher', `No extension found with id: "${extId}"`);
-      res.writeHead(404);
-      res.end();
-    }
-  })
-  .catch(() => {
-    log.warn('Launcher', `Error finding extension with id: "${extId}"`);
-    res.writeHead(404);
-    res.end();
-  });
-}
-
-async function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  return state.extensionsService.getExtension(pathname)
-  .then((ext) => {
-    if (ext && ext.manifest.icon) {
-      const filePath = path.join(ext.extensionPath, ext.manifest.icon);
-      if (filePath.startsWith(ext.extensionPath)) {
-        serveFile(req, res, filePath);
-      } else {
-        res.writeHead(403);
-        res.end();
-        log.warn('Launcher', `Illegal file request: "${filePath}"`);
-      }
-    }
-  });
-}
-
-async function onFileServerRequestThemes(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const splitPath = pathname.split('/');
-  // Find theme associated with the path (/Theme/<themeId>/<relativePath>)
-  const themeId = splitPath.length > 0 ? splitPath[0] : '';
-  const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
-  const theme = state.registry.themes.get(themeId);
-  if (theme) {
-    const filePath = path.join(theme.basePath, theme.themePath, relativePath);
-    // Don't allow files outside of theme path
-    const relative = path.relative(theme.basePath, filePath);
-    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-      serveFile(req, res, filePath);
-    } else {
-      res.writeHead(403);
-      res.end();
-      log.warn('Launcher', `Illegal file request: "${filePath}"`);
-    }
-  }
-}
-
-async function onFileServerRequestRuffle(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const ruffleFolder = path.join(state.config.flashpointPath, 'Data', 'Ruffle');
-  const filePath = path.join(ruffleFolder, pathname);
-  if (filePath.startsWith(ruffleFolder)) {
-    if (req.method === 'GET' || req.method === 'HEAD') {
-      req.on('error', (err) => {
-        log.error('Launcher', `Error serving Game file - ${err}`);
-        if (!res.writableEnded) {
-          res.writeHead(500);
-          res.end();
-        }
-      });
-      const stats = await fs.promises.stat(filePath)
-      .catch(() => {
-        res.writeHead(404);
-        res.end();
-      });
-      if (stats) {
-        // Respond with file
-        res.writeHead(200, {
-          'Content-Type': mime.getType(path.extname(filePath)) || '',
-          'Content-Length': stats.size,
-        });
-        if (req.method === 'GET') {
-          const stream = fs.createReadStream(filePath);
-          stream.on('error', error => {
-            console.warn(`File server failed to stream file. ${error}`);
-            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-            if (!res.writableEnded) { res.end(); }
-          });
-          stream.pipe(res);
-        } else {
-          res.end();
-        }
-      } else {
-        res.writeHead(404);
-        res.end();
-      }
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
-  }
-}
-
-async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const splitPath = pathname.split('/');
-  const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-  const filePath = path.join(imageFolder, pathname);
-  if (filePath.startsWith(imageFolder)) {
-    if (req.method === 'POST') {
-      const fileName = path.basename(pathname);
-      if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const chunks: any[] = [];
-        req.on('data', (chunk) => {
-          chunks.push(chunk);
-        })
-        .on('end', async () => {
-          const data = Buffer.concat(chunks);
-          await fs.promises.writeFile(filePath, data);
-          res.writeHead(200);
-          res.end();
-        })
-        .on('error', async (err) => {
-          log.error('Launcher', `Error writing Game image - ${err}`);
-          if (!res.writableEnded) {
-            res.writeHead(500);
-            res.end();
-          }
-        });
-        return;
-      }
-      if (!res.writableEnded) {
-        res.writeHead(400);
-        res.end();
-      }
-    } else if (req.method === 'GET' || req.method === 'HEAD') {
-      req.on('error', (err) => {
-        log.error('Launcher', `Error serving Game image - ${err}`);
-        if (!res.writableEnded) {
-          res.writeHead(500);
-          res.end();
-        }
-      });
-      fs.stat(filePath)
-      .then((stats) => {
-        // Respond with file
-        res.writeHead(200, {
-          'Content-Type': mime.getType(path.extname(filePath)) || '',
-          'Content-Length': stats.size,
-        });
-        if (req.method === 'GET') {
-          const stream = fs.createReadStream(filePath);
-          stream.on('error', error => {
-            console.warn(`File server failed to stream file. ${error}`);
-            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-            if (!res.writableEnded) { res.end(); }
-          });
-          stream.pipe(res);
-        } else {
-          res.end();
-        }
-      })
-      .catch(async (err) => {
-        if (err.code !== 'ENOENT') {
-          // Can't read file
-          if (!res.writableEnded) {
-            res.writeHead(500);
-            res.end();
-          }
-        } else {
-          // File missing
-          if (!state.preferences.onDemandImages) {
-            // Not downloading new files
-            res.writeHead(404);
-            res.end();
-          } else {
-            // Remove any older duplicate requests
-            const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
-            if (index >= 0) {
-              const item = state.fileServerDownloads.queue[index];
-              if (!item.res.writableEnded) {
-                item.res.writeHead(404);
-                item.res.end();
-              }
-              state.fileServerDownloads.queue.splice(index, 1);
-            }
-
-            // Add to download queue
-            const item: ImageDownloadItem = {
-              subPath: pathname,
-              req: req,
-              res: res,
-              cancelled: false,
-            };
-            state.fileServerDownloads.queue.push(item);
-            req.once('close', () => { item.cancelled = true; });
-            updateFileServerDownloadQueue()
-            .catch((err) => {
-              log.error('Launcher', 'Something really broke in updateFileServerDownloadQueue: ' + err);
-            });
-          }
-        }
-      });
-    } else {
-      if (!res.writableEnded) {
-        res.writeHead(404);
-        res.end();
-      }
-    }
-  }
-}
-
-async function onFileServerRequestLogos(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
-  const logoFolder = logoSet && logoSet.files.includes(pathname)
-    ? logoSet.fullPath
-    : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
-  const filePath = path.join(logoFolder, pathname);
-  if (filePath.startsWith(logoFolder)) {
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-      serveFile(req, res, filePath);
-    } catch (err) {
-      // Maybe we're on a case sensitive platform?
-      try {
-        const folder = path.dirname(filePath);
-        const filename = path.basename(filePath);
-        if (filePath.startsWith(logoFolder)) {
-          const files = await fs.readdir(folder);
-          for (const file of files) {
-            if (file.toLowerCase() == filename.toLowerCase()) {
-              serveFile(req, res, path.join(folder, file));
-              return;
-            }
-          }
-        }
-      } catch { /** Let error drop to return default image instead */ }
-      // File doesn't exist, serve default image
-      const basePath = (!state.isDev && state.isElectron) ? path.join(path.dirname(state.exePath), 'resources/app.asar/build') : path.join(process.cwd(), 'build');
-      const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
-      if (replacementFilePath.startsWith(basePath)) {
-        try {
-          await fs.promises.access(replacementFilePath, fs.constants.F_OK);
-          serveFile(req, res, replacementFilePath);
-        } catch (err) {
-          serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
-        }
-      }
-    }
-  }
-}
+// async function onFileServerRequestRuffle(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+//   const ruffleFolder = path.join(state.config.flashpointPath, 'Data', 'Ruffle');
+//   const filePath = path.join(ruffleFolder, pathname);
+//   if (filePath.startsWith(ruffleFolder)) {
+//     if (req.method === 'GET' || req.method === 'HEAD') {
+//       req.on('error', (err) => {
+//         log.error('Launcher', `Error serving Game file - ${err}`);
+//         if (!res.writableEnded) {
+//           res.writeHead(500);
+//           res.end();
+//         }
+//       });
+//       const stats = await fs.promises.stat(filePath)
+//       .catch(() => {
+//         res.writeHead(404);
+//         res.end();
+//       });
+//       if (stats) {
+//         // Respond with file
+//         res.writeHead(200, {
+//           'Content-Type': mime.getType(path.extname(filePath)) || '',
+//           'Content-Length': stats.size,
+//         });
+//         if (req.method === 'GET') {
+//           const stream = fs.createReadStream(filePath);
+//           stream.on('error', error => {
+//             console.warn(`File server failed to stream file. ${error}`);
+//             stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+//             if (!res.writableEnded) { res.end(); }
+//           });
+//           stream.pipe(res);
+//         } else {
+//           res.end();
+//         }
+//       } else {
+//         res.writeHead(404);
+//         res.end();
+//       }
+//     } else {
+//       res.writeHead(404);
+//       res.end();
+//     }
+//   }
+// }
 
 /**
  * Execute a back process (a)synchronously.
@@ -1641,79 +1414,6 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
       emitter.on(event, listener);
     }
   });
-}
-
-
-async function updateFileServerDownloadQueue() {
-  // @NOTE This will fail to stream the image to the client if it fails to save it to the disk.
-
-  // Fill all available current slots
-  while (state.fileServerDownloads.current.length < CONCURRENT_IMAGE_DOWNLOADS) {
-    const item = state.fileServerDownloads.queue.pop();
-
-    if (!item) { break; } // Queue is empty
-
-    if (item.cancelled) { continue; }
-
-    state.fileServerDownloads.current.push(item);
-
-    // Start download
-    let url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
-    // Add compressed modifier if enabled
-    if (state.preferences.onDemandImagesCompressed) {
-      url += '?type=jpg';
-    }
-    // Use arraybuffer since it's small memory footprint anyway
-    await axios.get(url, { responseType: 'arraybuffer' })
-    .then(async (res) => {
-      // Save response to image file
-      const imageData = res.data;
-
-      const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-      const filePath = path.join(imageFolder, item.subPath);
-      const dirPath = path.dirname(filePath);
-
-      try {
-        await fs.ensureDir(dirPath);
-      } catch {
-        log.error('Images', 'Failed to create folder for on-demand image: ' + dirPath);
-        if (!item.res.writableEnded) {
-          item.res.writeHead(500);
-        }
-        return;
-      }
-      try {
-        await fs.promises.writeFile(filePath, imageData, 'binary');
-      } catch {
-        log.error('Images', 'Failed to save file for on-demand image: ' + filePath);
-        if (!item.res.writableEnded) {
-          item.res.writeHead(500);
-        }
-        return;
-      }
-
-      item.res.writeHead(200);
-      item.res.write(imageData);
-    })
-    .catch((err) => {
-      if (!item.res.writableEnded) {
-        item.res.writeHead(400);
-      }
-    })
-    .finally(async () => {
-      removeFileServerDownloadItem(item);
-    });
-  }
-}
-
-async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<void> {
-  if (!item.res.writableEnded && !item.res.destroyed) {
-    item.res.end();
-  }
-
-  // Remove item from current
-  const index = state.fileServerDownloads.current.indexOf(item);
-  if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
 }
 
 export async function loadCurationArchive(filePath: string, clearUuid?: boolean, fpfssInfo?: flashpoint.CurationFpfssInfo, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {

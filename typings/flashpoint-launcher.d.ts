@@ -2875,6 +2875,7 @@ declare module 'flashpoint-launcher-renderer' {
   import {
     AdvancedFilter,
     AdvancedFilterToggle,
+    AppConfigData,
     AppExtConfigData,
     AppPreferencesData,
     ComponentStatus,
@@ -3261,6 +3262,7 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type MainState = {
+    config: AppConfigData;
     unrecoverableError?: UnrecoverableError;
     gotdList: GameOfTheDay[] | undefined;
     libraries: string[];

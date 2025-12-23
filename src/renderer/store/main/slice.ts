@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn, BackInit } from '@shared/back/types';
+import { getDefaultConfigData } from '@shared/config/util';
 import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import { uuid } from '@shared/utils/uuid';
@@ -99,6 +100,7 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
 
 export function initialMainState(): MainState {
   return {
+    config: getDefaultConfigData('win32'),
     gotdList: [],
     libraries: [],
     serverNames: [],
