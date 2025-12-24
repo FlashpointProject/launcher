@@ -62,7 +62,7 @@ export function SplashScreen(props: SplashScreenProps) {
   ) : undefined;
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div className='main-wrapper'>
       {splashScreen}
       {loadedAll ? props.children : undefined}
     </div>

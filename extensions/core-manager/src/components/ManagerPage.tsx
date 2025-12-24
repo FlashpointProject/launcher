@@ -1,6 +1,7 @@
 import { LeftSidebarItem } from 'flashpoint-launcher-renderer';
 import { LeftSidebar, StateWrapper } from 'flashpoint-launcher-renderer-ext/components';
 import { useState } from 'react';
+import { ComponentSubsection } from './ComponentSubsection';
 import { ExtensionSubsection } from './ExtensionSubsection';
 import { SubsectionSettings } from './SettingsSubsection';
 
@@ -45,7 +46,7 @@ export default function ManagerPage() {
           <ExtensionSubsection/>
         </StateWrapper>
         <StateWrapper show={subsection === 'support-packs'}>
-          <SubsectionSupportPacks/>
+          <ComponentSubsection/>
         </StateWrapper>
         <StateWrapper show={subsection === 'utilities'}>
           <SubsectionUtilities/>

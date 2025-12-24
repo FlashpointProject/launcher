@@ -1,14 +1,43 @@
 import axios from 'axios';
-import { commands, Disposable, ExtensionContext, installExtension, log, registerDisposable, uninstallExtension } from 'flashpoint-launcher';
+import { commands, config, Disposable, ExtensionContext, installExtension, log, registerDisposable, uninstallExtension } from 'flashpoint-launcher';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { DownloadExtCommand, UninstallExtCommand } from './commands';
+import { DownloadExtCommand, ReadInstalledComponents, UninstallExtCommand } from './commands';
 
 export async function activate(context: ExtensionContext): Promise<void> {
   const register = (disp: Disposable) => {
     registerDisposable(context.subscriptions, disp);
   };
+
+  register(
+    commands.registerCommand(ReadInstalledComponents, async () => {
+      const componentsPath = path.join(config.flashpointPath, 'Components');
+      await fs.promises.mkdir(componentsPath, { recursive: true });
+      const files = await fs.promises.readdir(componentsPath);
+      const components: ManagerInstalledComponentInfo[] = [];
+      for (const file of files) {
+        try {
+          const filePath = path.join(componentsPath, file);
+          const content = await fs.promises.readFile(filePath, { encoding: 'utf-8' });
+          const lines = content.split('\n');
+          const [hash, size] = lines[0].split(' ');
+          if (hash.length !== 8) {
+            throw 'Hash length invalid';
+          }
+          components.push({
+            id: file,
+            size: parseInt(size),
+            hash,
+            fileCount: lines.length - 1
+          });
+        } catch (err) {
+          log.error('Failed to read component: ' + file);
+        }
+      }
+      return components;
+    })
+  );
 
   register(
     commands.registerCommand(DownloadExtCommand, async (extId: string, url: string) => {

@@ -41,6 +41,7 @@
   flex-grow: 1;
 }
 
+.manager-component-row,
 .manager-extension-row {
   padding: 0.5rem;
   display: flex;

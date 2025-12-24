@@ -1,25 +1,24 @@
 import axios from 'axios';
 import { XMLParser } from 'fast-xml-parser';
 import { useAppSelector } from 'flashpoint-launcher-renderer-ext/hooks';
-import fs from 'fs';
-import path from 'path';
+import { runCommand } from 'flashpoint-launcher-renderer-ext/utils';
 import { useEffect, useState } from 'react';
+import { ReadInstalledComponents } from '../commands';
 import { selectComponentRootUrls } from '../select';
 
 export function ComponentSubsection() {
   const [remoteInfo, setRemoteInfo] = useState<ManagerComponentRemoteInfo[]>([]);
-  const [installedInfo, setInstalledInfo] = useState<Record<string, ManagerInstalledComponentInfo>>({});
+  const [installedInfo, setInstalledInfo] = useState<ManagerInstalledComponentInfo[]>([]);
   const [ready, setReady] = useState(false);
-  const componentsPath = useAppSelector(state => path.join(state.main.config.flashpointPath, 'Components'));
   const remoteComponentUrlsRaw = useAppSelector(selectComponentRootUrls);
 
   useEffect(() => {
-    readInstalledComponents(componentsPath)
+    readInstalledComponents()
     .then((data) => {
       setInstalledInfo(data);
       setReady(true);
     })
-  }, [componentsPath]);
+  }, []);
 
   useEffect(() => {
     const repoUrls = remoteComponentUrlsRaw
@@ -33,18 +32,26 @@ export function ComponentSubsection() {
     })
   }, [remoteComponentUrlsRaw]);
 
-  const componentList: Record<string, ManagerComponent> = {};
-  if (ready) {
-    for (const key in installedInfo) {
-      componentList[key] = {
-        installed: installedInfo[key],
-        canUpdate: false,
-        updateDiff: 0,
-      };
+  const componentList: ManagerComponent[] = installedInfo.map(comp => {
+    return {
+      id: comp.id,
+      installed: comp,
+      canUpdate: false,
+      updateDiff: 0
     }
+  });
+  if (ready) {
     for (const remote of remoteInfo) {
-      const comp = componentList[remote.id];
-      if (comp) {
+      const existingIdx = componentList.findIndex(c => c.id === c.id);
+      if (existingIdx === -1) {
+        componentList.push({
+          id: remote.id,
+          remote,
+          canUpdate: true,
+          updateDiff: remote.installSize
+        });
+      } else {
+        const comp = componentList[existingIdx];
         comp.remote = remote;
         const installedSize = comp.installed ? comp.installed.size : 0;
         const installedHash = comp.installed ? comp.installed.hash : '';
@@ -52,41 +59,34 @@ export function ComponentSubsection() {
           comp.canUpdate = true;
           comp.updateDiff = installedSize - remote.installSize;
         }
-      } else {
-        componentList[remote.id] = {
-          remote,
-          canUpdate: true,
-          updateDiff: remote.installSize
-        }
       }
     }
   }
 
+  return <div className='manager-page-subsection'>
+    <div className='manager-page-subsection-header'>Components</div>
+    <div className='manager-page-subsection-list simple-scroll'>
+      { componentList.length > 0 ? componentList.map((comp, index) => {
+        return (
+          <ComponentRow
+            comp={comp}
+            index={index} />
+        );
+      }) : <div>Loading...</div>}
+    </div>
+  </div>;
 }
 
-async function readInstalledComponents(componentsPath: string): Promise<Record<string, ManagerInstalledComponentInfo>> { 
-  await fs.promises.mkdir(componentsPath, { recursive: true });
-  const files = await fs.promises.readdir(componentsPath);
-  const components: Record<string, ManagerInstalledComponentInfo> = {};
-  for (const file of files) {
-    try {
-      const filePath = path.join(componentsPath, file);
-      const content = await fs.promises.readFile(filePath, { encoding: 'utf-8' });
-      const lines = content.split('\n');
-      const [hash, size] = lines[0].split(' ');
-      if (hash.length !== 8) {
-        throw 'Hash length invalid';
-      }
-      components[file] = {
-        size: parseInt(size),
-        hash,
-        fileCount: lines.length - 1
-      };
-    } catch (err) {
-      log.error('Manager', 'Failed to read component: ' + file);
-    }
-  }
-  return components;
+function ComponentRow({ comp, index }: ComponentRowProps) {
+  return (
+    <div className='manager-component-row'>
+      {comp.id}
+    </div>
+  );
+}
+
+async function readInstalledComponents(): Promise<ManagerInstalledComponentInfo[]> { 
+  return runCommand(ReadInstalledComponents);
 }
 
 async function getRemoteFromIndex(indexUrl: string): Promise<ManagerComponentRemoteInfo[]> {
@@ -141,27 +141,7 @@ async function getRemoteFromIndex(indexUrl: string): Promise<ManagerComponentRem
   return components;
 }
 
-type ManagerComponent = {
-  installed?: ManagerInstalledComponentInfo;
-  remote?: ManagerComponentRemoteInfo;
-  canUpdate: boolean;
-  updateDiff: number;
-}
-
-type ManagerInstalledComponentInfo = {
-  size: number;
-  hash: string;
-  fileCount: number;
-}
-
-type ManagerComponentRemoteInfo = {
-  id: string;
-  title: string;
-  description: string;
-  dateModified: string;
-  downloadSize: number;
-  installSize: number;
-  path: string;
-  hash: string;
-  downloadUrl: string;
+export type ComponentRowProps = {
+  comp: ManagerComponent;
+  index: number;
 }
