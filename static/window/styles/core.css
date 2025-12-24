@@ -2804,16 +2804,16 @@ body {
 
 /* ------ Splash Screen ------ */
 .splash-screen {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   user-select: none;
-  /* Position relative to the window - not the parent */
-  position: fixed;
+  position: absolute;
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 9999999999;
 }
 .splash-screen--fade-out {

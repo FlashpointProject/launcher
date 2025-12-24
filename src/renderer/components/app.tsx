@@ -134,7 +134,6 @@ export function App() {
   const stopRender = useAppSelector(state => state.main.stopRender);
   const socketOpen = useAppSelector(state => state.main.socketOpen);
   const openDialogs = useAppSelector(state => state.main.openDialogs);
-  const loadedAll = useAppSelector(state => state.main.loadedAll);
   const downloadOpen = useAppSelector(state => state.main.downloadOpen);
   const downloadVerifying = useAppSelector(state => state.main.downloadVerifying);
   const downloadSize = useAppSelector(state => state.main.downloadSize);
@@ -279,10 +278,7 @@ export function App() {
                 {/* First Open Dialog */}
                 {openDialogs.length > 0 && socketOpen && (
                   <Dialog dialog={openDialogs[0]} />
-                )}
-                {/* Splash screen */}
-                <SplashScreen />
-                {/* Title-bar (if enabled) */}
+                )}                {/* Title-bar (if enabled) */}
                 {useCustomTitleBar ?
                   customVersion ? (
                     <TitleBar title={customVersion} />
@@ -290,102 +286,100 @@ export function App() {
                     <TitleBar title={`${APP_TITLE} ${window.Shared.isDev ? '(Dev Mode)' : ''}`} />
                   ) : undefined}
                 {/* "Content" */}
-                {loadedAll ? (
-                  <>
-                    {/* Header */}
-                    <Header />
-                    {/* Main */}
-                    <div className='main' ref={contentRef} >
-                      { currentView !== undefined ? (
-                        <>
-                          { useActivityRoutes && (
-                            <ActivityRoutes
-                              manualUrl={manualUrl}
-                              customRoutes={customRoutes} />
+                <SplashScreen>
+                  {/* Header */}
+                  <Header />
+                  {/* Main */}
+                  <div className='main' ref={contentRef} >
+                    { currentView !== undefined ? (
+                      <>
+                        { useActivityRoutes && (
+                          <ActivityRoutes
+                            manualUrl={manualUrl}
+                            customRoutes={customRoutes} />
+                        )}
+                        <Routes>
+                          <Route
+                            path={Paths.LOADING}
+                            element={<LoadingPage/>}/>
+                          <Route
+                            path={Paths.HOME}
+                            element={useActivityRoutes ? <></> : <HomePage/>}/>
+                          <Route
+                            path={Paths.BROWSE}
+                            element={<></>}/>
+                          <Route
+                            path={Paths.TAGS}
+                            element={useActivityRoutes ? <></> : <TagsPage/>}/>
+                          <Route
+                            path={Paths.CATEGORIES}
+                            element={<TagCategoriesPage/>}/>
+                          {/* <Route
+                          path={Paths.DOWNLOADS}
+                          element={<DownloadsPage/>}/> */}
+                          <Route
+                            path={Paths.LOGS}
+                            element={useActivityRoutes ? <></> : <LogsPage/>}/>
+                          <Route
+                            path={Paths.CONFIG}
+                            element={<ConfigPage/>}/>
+                          <Route
+                            path={Paths.MANUAL}
+                            element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
+                          <Route
+                            path={Paths.ABOUT}
+                            element={<AboutPage/>}/>
+                          <Route
+                            path={Paths.CURATE}
+                            element={useActivityRoutes ? <></> : <CuratePage/>}/>
+                          <Route
+                            path={Paths.FPFSS}
+                            element={useActivityRoutes ? <></> : <FpfssPage/>}/>
+                          <Route
+                            path={Paths.DYNAMIC}
+                            element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
+                          { customRoutes.map(route =>
+                            <Route
+                              key={route.path}
+                              path={route.path}
+                              element={useActivityRoutes ? <></> : <DynamicComponent name={route.component} props={{}}/>}/>
                           )}
-                          <Routes>
-                            <Route
-                              path={Paths.LOADING}
-                              element={<LoadingPage/>}/>
-                            <Route
-                              path={Paths.HOME}
-                              element={useActivityRoutes ? <></> : <HomePage/>}/>
-                            <Route
-                              path={Paths.BROWSE}
-                              element={<></>}/>
-                            <Route
-                              path={Paths.TAGS}
-                              element={useActivityRoutes ? <></> : <TagsPage/>}/>
-                            <Route
-                              path={Paths.CATEGORIES}
-                              element={<TagCategoriesPage/>}/>
-                            {/* <Route
-                            path={Paths.DOWNLOADS}
-                            element={<DownloadsPage/>}/> */}
-                            <Route
-                              path={Paths.LOGS}
-                              element={useActivityRoutes ? <></> : <LogsPage/>}/>
-                            <Route
-                              path={Paths.CONFIG}
-                              element={<ConfigPage/>}/>
-                            <Route
-                              path={Paths.MANUAL}
-                              element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
-                            <Route
-                              path={Paths.ABOUT}
-                              element={<AboutPage/>}/>
-                            <Route
-                              path={Paths.CURATE}
-                              element={useActivityRoutes ? <></> : <CuratePage/>}/>
-                            <Route
-                              path={Paths.FPFSS}
-                              element={useActivityRoutes ? <></> : <FpfssPage/>}/>
-                            <Route
-                              path={Paths.DYNAMIC}
-                              element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
-                            { customRoutes.map(route =>
-                              <Route
-                                key={route.path}
-                                path={route.path}
-                                element={useActivityRoutes ? <></> : <DynamicComponent name={route.component} props={{}}/>}/>
-                            )}
-                            <Route element={<NotFoundPage/>}/>
-                          </Routes>
-                          <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
-                            {browsePageViewExists && browsePageViewName !== undefined && (
-                              <BrowsePage
-                                viewName={browsePageViewName}
-                                sourceTable='browse-page'/>
-                            )}
-                          </Activity>
-                          <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
-                            <ResizableSidebar
-                              show={browsePageShowRightSidebar}
-                              divider='before'
-                              width={browsePageRightSidebarWidth}
-                              onResize={onRightSidebarResize}>
-                              <RightBrowseSidebarView view={currentView}/>
-                            </ResizableSidebar>
-                          </Activity>
-                        </>
-                      ) : <NotFoundPage/> }
-                      <noscript className='nojs'>
-                        <div style={{ textAlign: 'center' }}>
-                          This website requires JavaScript to be enabled.
-                        </div>
-                      </noscript>
-                    </div>
-                    {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
-                    {enableEditing && tasks.length > 0 && (
-                      <TaskBar
-                        open={taskBarOpen}
-                        onToggleOpen={onToggleTaskBarOpen} />
-                    )}
-                    {/* Footer */}
-                    <Footer />
-                    {/* Meta Edit Popup */}
-                  </>
-                ) : undefined}
+                          <Route element={<NotFoundPage/>}/>
+                        </Routes>
+                        <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
+                          {browsePageViewExists && browsePageViewName !== undefined && (
+                            <BrowsePage
+                              viewName={browsePageViewName}
+                              sourceTable='browse-page'/>
+                          )}
+                        </Activity>
+                        <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
+                          <ResizableSidebar
+                            show={browsePageShowRightSidebar}
+                            divider='before'
+                            width={browsePageRightSidebarWidth}
+                            onResize={onRightSidebarResize}>
+                            <RightBrowseSidebarView view={currentView}/>
+                          </ResizableSidebar>
+                        </Activity>
+                      </>
+                    ) : <NotFoundPage/> }
+                    <noscript className='nojs'>
+                      <div style={{ textAlign: 'center' }}>
+                        This website requires JavaScript to be enabled.
+                      </div>
+                    </noscript>
+                  </div>
+                  {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
+                  {enableEditing && tasks.length > 0 && (
+                    <TaskBar
+                      open={taskBarOpen}
+                      onToggleOpen={onToggleTaskBarOpen} />
+                  )}
+                  {/* Footer */}
+                  <Footer />
+                  {/* Meta Edit Popup */}
+                </SplashScreen>
               </>
             ) : undefined}
             {downloadOpen && (

@@ -1,8 +1,10 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { BackInit } from '@shared/back/types';
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 
-export function SplashScreen() {
+type SplashScreenProps = PropsWithChildren;
+
+export function SplashScreen(props: SplashScreenProps) {
   const quitting = useAppSelector(state => state.main.quitting);
   const loadedAll = useAppSelector(state => state.main.loadedAll);
   const loaded = useAppSelector(state => state.main.loaded);
@@ -21,11 +23,7 @@ export function SplashScreen() {
     ? ' splash-screen--fade-out'
     : '';
 
-  if (finished && loadedAll && !quitting) {
-    return (<></>);
-  }
-
-  return (
+  const splashScreen = !finished ? (
     <div className={'splash-screen' + extraClass}>
       <div className='splash-screen__logo fp-logo-box'>
         <div className='fp-logo' />
@@ -60,6 +58,13 @@ export function SplashScreen() {
           </div>
         ) : undefined }
       </div>
+    </div>
+  ) : undefined;
+
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {splashScreen}
+      {loadedAll ? props.children : undefined}
     </div>
   );
 }
