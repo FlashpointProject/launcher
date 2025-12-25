@@ -43,7 +43,6 @@ export function CuratePage() {
   const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
   const shortcutPrefs = useAppSelector(state => state.preferences.shortcuts);
   const symlinkCurationContent = useAppSelector(state => state.preferences.symlinkCurationContent);
-  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const curationTemplates = useAppSelector(state => state.curate.curationTemplates);
   const extContextButtons = useAppSelector(state => state.main.contextButtons);
   const mad4fpEnabled = useAppSelector(state => state.main.mad4fpEnabled);
@@ -51,6 +50,7 @@ export function CuratePage() {
   const shortcut = useShortcut();
   const dispatch = useDispatch();
   const curation: CurationState | undefined = curate.curations.find(c => c.folder === currentCuration);
+  const source = useAppSelector(state => state.preferences.gameMetadataSources.find(s => s.id === curation?.fpfssInfo?.sourceId));
 
   const suggsDebounce = eventResponseDebouncerFactory<TagSuggestion[]>();
 
@@ -66,8 +66,8 @@ export function CuratePage() {
   const onTagFiltersInCurateChange = onCheckboxChange('tagFiltersInCurate');
 
   const onOpenSubmissionPage = () => {
-    if (curation?.fpfssInfo) {
-      const subPage = `${fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
+    if (curation?.fpfssInfo && source && source.fpfssUrl) {
+      const subPage = `${source.fpfssUrl}/web/submission/${curation.fpfssInfo.id}`;
       openUrlInWindow(subPage);
     }
   };

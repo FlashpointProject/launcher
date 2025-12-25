@@ -41,6 +41,7 @@ export function GameListItem(props: GameListItemProps) {
   if (isDragged)       { className += ' game-list-item--dragged';  }
   // Set element attributes
   const attributes: any = {};
+  attributes[GameListItem.sourceAttribute] = props.game?.owner;
   attributes[GameListItem.idAttribute] = props.game?.id;
   attributes[GameListItem.indexAttribute] = index;
   attributes[GameListItem.logoPathAttribute] = props.game?.logoPath;
@@ -92,6 +93,7 @@ export function GameListItem(props: GameListItemProps) {
 
 export namespace GameListItem {
   /** ID of the attribute used to store the game's id. */
+  export const sourceAttribute = 'data-source-id';
   export const idAttribute = 'data-game-id';
   export const indexAttribute = 'data-game-index';
   export const logoPathAttribute = 'data-game-logo-path';
@@ -103,12 +105,14 @@ export namespace GameListItem {
    * @param element GameListItem element.
    */
   export function getDragEventData(element: Element): GameDragEventData {
-    const gameId = element.getAttribute(GameListItem.idAttribute);
+    const sourceId = element.getAttribute(GameListItem.sourceAttribute) || '';
+    const gameId = element.getAttribute(GameListItem.idAttribute) || '';
     const index = num(element.getAttribute(GameListItem.indexAttribute));
     const logoPath = element.getAttribute(GameListItem.logoPathAttribute) || '';
     const screenshotPath = element.getAttribute(GameListItem.screenshotPathAttribute) || '';
     if (typeof gameId !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
     return {
+      sourceId,
       gameId,
       index,
       logoPath,

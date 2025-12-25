@@ -168,6 +168,7 @@ export enum BackIn {
   IMPORT_METADATA,
   SYNC_TAGGED,
   SYNC_ALL,
+  UPDATE_GAME_FROM_SOURCE,
 
   // Meta edits
   EXPORT_META_EDIT,
@@ -500,6 +501,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Developer
   [BackIn.SYNC_TAGGED]: (source: GameMetadataSource) => void;
   [BackIn.SYNC_ALL]: (source: GameMetadataSource) => boolean;
+  [BackIn.UPDATE_GAME_FROM_SOURCE]: (gameId: string) => void;
 
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
@@ -609,10 +611,15 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.UPDATE_GAME]: (game: Game) => void;
 
-  [BackOut.FPFSS_ACTION]: (extId: string) => FpfssUser | undefined;
+  [BackOut.FPFSS_ACTION]: (source: GameMetadataSource, extId: string) => FpfssActionPayload;
 
   [BackOut.UNRECOVERABLE_ERROR]: (error: UnrecoverableError) => void;
 }>
+
+export type FpfssActionPayload = {
+  source: GameMetadataSource;
+  user: FpfssUser;
+}
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;
 export type BackResParams<T extends BackRes> = Parameters<BackResTemplate[T]>;
@@ -807,10 +814,12 @@ export type FpfssUser = {
   avatarUrl: string;
   roles: string[];
   accessToken: string;
+  sourceId: string;
 }
 
 export type FpfssState = {
   user: FpfssUser | null;
+  users: Record<string, FpfssUser | undefined>;
   tagsSynced: boolean;
 }
 

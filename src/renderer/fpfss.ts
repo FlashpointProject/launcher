@@ -1,13 +1,17 @@
 import { FpfssUser } from '@shared/back/types';
-import { DialogState, DialogStateTemplate } from 'flashpoint-launcher';
+import { DialogState, DialogStateTemplate, GameMetadataSource } from 'flashpoint-launcher';
 import { createNewDialog } from './dialog';
 import { cancelDialog } from './store/main/slice';
 import { AppDispatch } from './store/store';
 import { axios, openUrlInWindow } from './Util';
 
-export async function fpfssLogin(dispatch: AppDispatch, fpfssBaseUrl: string): Promise<FpfssUser> {
+export async function fpfssLogin(dispatch: AppDispatch, source: GameMetadataSource): Promise<FpfssUser> {
   // Get device auth token from FPFSS
-  const tokenUrl = `${fpfssBaseUrl}/auth/device`;
+  const fpfssUrl = source.fpfssUrl;
+  if (!fpfssUrl) {
+    throw 'No fpfss support for this source';
+  }
+  const tokenUrl = `${fpfssUrl}/auth/device`;
   const data = {
     'client_id': 'flashpoint-launcher',
     'scope': 'identity game:read game:edit submission:read submission:read-files index:read',
@@ -27,8 +31,8 @@ export async function fpfssLogin(dispatch: AppDispatch, fpfssBaseUrl: string): P
     'interval': res.data['interval']
   };
 
-  const pollUrl = `${fpfssBaseUrl}/auth/token`;
-  const profileUrl = `${fpfssBaseUrl}/api/profile`;
+  const pollUrl = `${fpfssUrl}/auth/token`;
+  const profileUrl = `${fpfssUrl}/api/profile`;
   openUrlInWindow(token.verification_uri_complete);
   navigator.clipboard.writeText(token.verification_uri_complete);
 
@@ -67,7 +71,8 @@ export async function fpfssLogin(dispatch: AppDispatch, fpfssBaseUrl: string): P
               userId: profileRes.data['UserID'],
               avatarUrl: profileRes.data['AvatarURL'],
               roles: profileRes.data['Roles'],
-              accessToken: res.data['access_token']
+              accessToken: res.data['access_token'],
+              sourceId: source.id,
             };
             clearInterval(interval);
             resolve(user);
@@ -163,20 +168,3 @@ export function clearFpfssConsentExt(extId: string): void {
     console.error('Failed to parse consent data:', error);
   }
 }
-
-// async function doFpfssAuth(dispatch: AppDispatch): Promise<FpfssUser | null> {
-//   const user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog, this.props.preferencesData.fpfssBaseUrl)
-//   .catch((err) => {
-//     if (err !== 'User Cancelled') {
-//       alert(err);
-//     }
-//   }) as FpfssUser | null; // Weird void from inferred typing?
-//   if (user) {
-//     // Store in fpfss state
-//     dispatch(setUser(user));
-//     // Store in localstorage
-//     const userBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
-//     localStorage.setItem('fpfss_user', userBase64);
-//   }
-//   return user;
-// }

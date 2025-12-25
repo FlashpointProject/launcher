@@ -100,7 +100,6 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   searchLimit: 0,
   onlineManual: 'https://flashpointproject.github.io/manual/',
   offlineManual: '',
-  fpfssBaseUrl: 'https://fpfss.unstable.life',
   curateGroups: [],
   server: 'Apache Webserver',
   curateServer: 'Apache Webserver',
@@ -212,7 +211,6 @@ export function overwritePreferenceData(
   parser.prop('updateFeedUrl',                 v => source.updateFeedUrl                 = str(v), true);
   parser.prop('onlineManual',                  v => source.onlineManual                  = str(v), true);
   parser.prop('offlineManual',                 v => source.offlineManual                 = str(v), true);
-  parser.prop('fpfssBaseUrl',                  v => source.fpfssBaseUrl                  = str(v), true);
   parser.prop('fancyAnimations',               v => source.fancyAnimations               = !!v, true);
   parser.prop('useCustomTitlebar',             v => source.useCustomTitlebar             = !!v, true);
   parser.prop('searchLimit',                   v => source.searchLimit                   = num(v), true);
@@ -391,6 +389,10 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
   parser.prop('id',               v => source.id               = str(v), true);
   parser.prop('name',             v => source.name             = str(v));
   parser.prop('baseUrl',          v => source.baseUrl          = str(v));
+  parser.prop('fpfssUrl',         v => source.fpfssUrl         = str(v), true);
+  if (source.id === 'flashpoint-archive' && !source.fpfssUrl) {
+    source.fpfssUrl = 'https://fpfss.unstable.life';
+  }
   parseMetadataUpdateInfo(parser.prop('games'), source.games);
   parseMetadataUpdateInfo(parser.prop('tags'), source.tags);
   return source;

@@ -65,6 +65,7 @@ export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
   if (isDragged)  { className += ' game-grid-item--dragged';  }
 
   const attributes: any = {};
+  attributes[GameGridItem.sourceAttribute] = game?.owner;
   attributes[GameGridItem.idAttribute] = game?.id;
   attributes[GameGridItem.indexAttribute] = rowIndex;
   attributes[GameGridItem.logoPathAttribute] = props.game?.logoPath;
@@ -114,6 +115,7 @@ export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
 
 export namespace GameGridItem {
   /** ID of the attribute used to store the game's id. */
+  export const sourceAttribute = 'data-source-id';
   export const idAttribute = 'data-game-id';
   export const indexAttribute = 'data-game-index';
   export const logoPathAttribute = 'data-game-logo-path';
@@ -125,12 +127,14 @@ export namespace GameGridItem {
    * @param element GameGridItem element.
    */
   export function getDragEventData(element: Element): GameDragEventData {
-    const gameId = element.getAttribute(GameGridItem.idAttribute);
+    const sourceId = element.getAttribute(GameGridItem.sourceAttribute) || '';
+    const gameId = element.getAttribute(GameGridItem.idAttribute) || '';
     const index = num(element.getAttribute(GameGridItem.indexAttribute));
     const logoPath = element.getAttribute(GameGridItem.logoPathAttribute) || '';
     const screenshotPath = element.getAttribute(GameGridItem.screenshotPathAttribute) || '';
     if (typeof gameId !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
     return {
+      sourceId,
       gameId,
       index,
       logoPath,

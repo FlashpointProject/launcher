@@ -3,11 +3,12 @@ import {
   GameSearchOffset,
   GameSearchSortable,
   newSubfilter,
-  PartialTagCategory
+  PartialTagCategory,
+  RemoteGamesRes
 } from '@fparchive/flashpoint-archive';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
-import { deepCopy, downloadFile, padEnd, sizeToString } from '@shared/Util';
+import { deepCopy, downloadFile, mapFpfssGameToLocal, padEnd, sizeToString } from '@shared/Util';
 import {
   BackIn,
   BackInit,
@@ -411,6 +412,49 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }
     } finally {
       state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    }
+  });
+
+  state.socketServer.register(BackIn.UPDATE_GAME_FROM_SOURCE, async (event, gameId) => {
+    const game = await fpDatabase.findGame(gameId);
+    if (game) {
+      const source = state.preferences.gameMetadataSources.find(s => s.id === game.owner);
+      if (source) {
+        const url = source.baseUrl + '/api/game/' + game.id;
+        console.log(url);
+        const res = await axios.get(url);
+        console.log(JSON.stringify(res.data, undefined, 2));
+        const newGame = mapFpfssGameToLocal(res.data, source.id);
+        const tagRelations: Array<Array<string>> = [];
+        const platformRelations: Array<Array<string>> = [];
+        for (const tag of newGame.tags) {
+          const t = await fpDatabase.findTag(tag);
+          if (t) {
+            tagRelations.push([game.id, String(t.id)]);
+          }
+        }
+        for (const platform of newGame.platforms) {
+          const p = await fpDatabase.findTag(platform);
+          if (p) {
+            platformRelations.push([game.id, String(p.id)]);
+          }
+        }
+        const update: RemoteGamesRes = {
+          games: [{
+            ...newGame,
+            applicationPath: newGame.legacyApplicationPath,
+            launchCommand: newGame.legacyLaunchCommand,
+            platformName: newGame.primaryPlatform
+          }],
+          addApps: newGame.addApps ? newGame.addApps : [],
+          gameData: newGame.gameData ? newGame.gameData : [],
+          tagRelations,
+          platformRelations,
+        };
+        console.log(JSON.stringify(update, undefined, 2));
+        await fpDatabase.updateApplyGames(update, source.id);
+        broadcastGameUpdate(state, game.id);
+      }
     }
   });
 

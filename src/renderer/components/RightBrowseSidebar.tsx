@@ -49,7 +49,7 @@ export type RightBrowseSidebarProps = {
   onDiscardClick: () => void;
   onSaveGame: () => void;
 
-  onFpfssEditGame: (gameId: string) => void;
+  onFpfssEditGame: (sourceId: string, gameId: string) => void;
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 
@@ -232,8 +232,11 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
     }));
   };
 
-  const onFpfssEditGame = async (gameId: string) => {
-    dispatch(createFpfssEditGame(gameId)).unwrap()
+  const onFpfssEditGame = async (sourceId: string, gameId: string) => {
+    dispatch(createFpfssEditGame({
+      sourceId,
+      gameId
+    })).unwrap()
     .then(() => {
       navigate(Paths.FPFSS + '/' + gameId);
     })
@@ -288,7 +291,6 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
 export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const allStrings = useLocalization();
   const editingDisabled = useAppSelector(state => !state.preferences.enableEditing);
-  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const hideScreenshotSidebar = useAppSelector(state => state.preferences.hideScreenshotSidebar);
   const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
@@ -315,6 +317,8 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const gameTitle = useAppSelector(selectGameField(view.id, 'title'));
   const gameDeveloper = useAppSelector(selectGameField(view.id, 'developer'));
   const gameLibrary = useAppSelector(selectGameField(view.id, 'library'));
+  const gameOwner = useAppSelector(selectGameField(view.id, 'owner'));
+  const gameSource = useAppSelector((state) => state.preferences.gameMetadataSources.find(s => s.id === gameOwner));
 
   const lastGameId = useRef(game?.id);
   const lastPlaylistId = useRef(playlist?.id);
@@ -643,11 +647,11 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
                       </>
                     ) : ( /* While NOT Editing */
                       <>
-                        {fpfssBaseUrl && !editingDisabled && (
+                        {gameSource?.fpfssUrl && !editingDisabled && (
                           <div
                             className='browse-right-sidebar__title-row__buttons__edit-button'
                             title={strings.editFpfssGame}
-                            onClick={() => onFpfssEditGame(game.id)}>
+                            onClick={() => onFpfssEditGame(game.owner, game.id)}>
                             <OpenIcon icon='cloud-upload' />
                           </div>
                         )}

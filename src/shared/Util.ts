@@ -570,7 +570,7 @@ export type FpfssAddApp = {
   parent_game_id: string;
 };
 
-export function mapFpfssGameToLocal(data: any): Game {
+export function mapFpfssGameToLocal(data: any, owner?: string): Game {
   const fg = data as FpfssGame;
   const game: Game = {
     id: fg.id,
@@ -633,7 +633,7 @@ export function mapFpfssGameToLocal(data: any): Game {
     ruffleSupport: fg.ruffle_support || '',
     logoPath: fg.logo_path || '',
     screenshotPath: fg.screenshot_path || '',
-    owner: '',
+    owner: owner || '',
   };
   return game;
 }

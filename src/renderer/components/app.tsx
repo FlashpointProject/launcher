@@ -19,13 +19,14 @@ import { setTagCategories } from '@renderer/store/tagCategories/slice';
 import { addTask, setTask, setTaskBarOpen } from '@renderer/store/tasks/slice';
 import { idToGame } from '@renderer/util/async';
 import * as extUtils from '@renderer/util/ext';
-import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, FpfssActionPayload, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
 import { getFileServerURL, sizeToString } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
 import {
   DialogStateTemplate,
+  GameMetadataSource,
   Playlist
 } from 'flashpoint-launcher';
 import * as path from 'node:path';
@@ -512,33 +513,43 @@ function initApp(dispatch: AppDispatch) {
     }));
   };
 
+  // Delete old field
+  localStorage.removeItem('fpfss_user');
+
   // Load FPFSS user info and check that profile works
-  const userBase64 = localStorage.getItem('fpfss_user');
-  if (userBase64) {
-    try {
-      const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
-      // Test profile uri
-      const profileUrl = `${window.Shared.initialPreferences.fpfssBaseUrl}/api/profile`;
-      axios.get(profileUrl, {
-        headers: {
-          'Authorization': `Bearer ${user.accessToken}`
-        }
-      })
-      .then((res) => {
-        // Success, use most recent info and save to storage and state
-        user.username = res.data['Username'];
-        user.avatarUrl = res.data['AvatarURL'];
-        user.roles = res.data['Roles'];
-        dispatch(setFpfssUser(user));
-      })
-      .catch(() => {
-        // Failed auth
-        localStorage.removeItem('fpfss_user');
-      });
-    } catch (err) {
-      log.error('Launcher', 'Fpfss saved auth was invalid, clearing...');
-      localStorage.removeItem('fpfss_user');
+  const usersBase64 = localStorage.getItem('fpfss_users');
+  if (usersBase64) {
+    const users = JSON.parse(Buffer.from(usersBase64, 'base64').toString('utf-8')) as Record<string, FpfssUser>;
+    for (const sourceId in users) {
+      const user = users[sourceId];
+      const source = window.Shared.initialPreferences.gameMetadataSources.find(s => s.id === sourceId);
+      if (source && source.fpfssUrl) {
+        const profileUrl = `${source.fpfssUrl}/api/profile`;
+        axios.get(profileUrl, {
+          headers: {
+            'Authorization': `Bearer ${user.accessToken}`
+          }
+        })
+        .then((res) => {
+          // Success, use most recent info and save to storage and state
+          user.username = res.data['Username'];
+          user.avatarUrl = res.data['AvatarURL'];
+          user.roles = res.data['Roles'];
+          dispatch(setFpfssUser({
+            sourceId,
+            user
+          }));
+        })
+        .catch(() => {
+          // Failed auth
+          delete users[sourceId];
+          log.error('Launcher', `Fpfss saved auth was invalid for ${sourceId}, clearing...`);
+        });
+      }
     }
+
+    const newUsers = Buffer.from(JSON.stringify(users, null, 0)).toString('base64');
+    localStorage.setItem('fpfss_users', newUsers);
   }
 
   if (window.electronAPI !== undefined) {
@@ -930,13 +941,19 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     }));
   });
 
-  window.Shared.back.register(BackOut.FPFSS_ACTION, async (event, extId: string) => {
-    return new Promise((resolve, reject) => {
+  window.Shared.back.register(BackOut.FPFSS_ACTION, async (event, source: GameMetadataSource, extId: string) => {
+    return new Promise<FpfssActionPayload>((resolve, reject) => {
       const previousConsent = getFpfssConsentExt(extId);
       if (previousConsent) {
         // Consent already given, perform action
-        dispatch(performFpfssAction(async (user) => {
-          resolve(user);
+        dispatch(performFpfssAction({
+          source,
+          cb: async (source, user) => {
+            resolve({
+              source,
+              user
+            });
+          }
         }));
       } else {
         // Consent not given, ask user first
@@ -947,14 +964,19 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
         resolveNewDialog(dispatch, dialog)
         .then(({ button }) => {
           if (button === 0) {
-            dispatch(performFpfssAction(async (user) => {
-              if (user) {
-                saveFpfssConsentExt(extId, true);
-                resolve(user);
-              } else {
-                reject(new Error('Launcher was unable to get FPFSS token'));
-              }
-            }));
+            dispatch(performFpfssAction({
+              source,
+              cb: async (source, user) => {
+                if (user) {
+                  saveFpfssConsentExt(extId, true);
+                  resolve({
+                    source,
+                    user
+                  });
+                } else {
+                  reject(new Error('Launcher was unable to get FPFSS token'));
+                }
+              } }));
           } else {
             reject(new Error('User denied access to FPFSS token'));
           }

@@ -143,7 +143,7 @@ declare module 'flashpoint-launcher' {
   }
 
   const isGame: (content?: Content | Game) => content is Game;
-  const ensureGameDataDownloaded: (game: Game) => Promise<void>;
+  const ensureGameDataDownloaded: (game: Game) => Promise<boolean>;
 
   type SidebarDisplay = {
     order: string[];
@@ -700,6 +700,8 @@ declare module 'flashpoint-launcher' {
     screenshotPath: string;
     /** Priority handler when requesting logo or screenshots from file server */
     imageFileProvider?: string;
+    /** Metadata Owner (local / remote-name) */
+    owner: string;
   }
 
   interface Game extends Content {
@@ -780,8 +782,6 @@ declare module 'flashpoint-launcher' {
      * Valid values: 'standalone', '' (none)
      */
     ruffleSupport: string;
-    /** Metadata Owner (local / remote-name) */
-    owner: string;
     /** Extension data (key is ext id) */
     extData?: Record<string, any>;
   }
@@ -1159,8 +1159,6 @@ declare module 'flashpoint-launcher' {
     gameDataSources: GameDataSource[];
     /** Game Metadata sources */
     gameMetadataSources: GameMetadataSource[];
-    /** FPFSS base url (for authoring actions on remote metadata) */
-    fpfssBaseUrl: string;
     /** Name of the Server process to run */
     server: string;
     /** Name of the Server to use when running curations */
@@ -1289,6 +1287,7 @@ declare module 'flashpoint-launcher' {
     baseUrl: string;
     tags: MetadataUpdateInfo;
     games: MetadataUpdateInfo;
+    fpfssUrl?: string;
   }
 
   type MetadataUpdateInfo = {
@@ -1579,6 +1578,7 @@ declare module 'flashpoint-launcher' {
   }
 
   type CurationFpfssInfo = {
+    sourceId: string;
     id: string;
   };
 
@@ -1860,7 +1860,7 @@ declare module 'flashpoint-launcher' {
   }
 
   namespace fpfss {
-    function getAccessToken(): Promise<string>;
+    function getAccessToken(sourceId: string): Promise<string>;
   }
 
   type ResultsView<T extends Content> = {
@@ -3189,7 +3189,7 @@ declare module 'flashpoint-launcher-renderer' {
     playlistOrder: boolean;
     logoVersion: number;
     extremeTags: string[];
-    onContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
+    onContextMenu: (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => void;
     onMovePlaylistEntry: (sourceGameId: string, destGameId: string) => void;
   }
 
@@ -3430,7 +3430,7 @@ declare module 'flashpoint-launcher-renderer' {
 
   type MenuContextStateProps = {
     openMenu: (menu: MenuProps, pointer: Pointer) => void;
-    openGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string, pointer: Pointer) => void;
+    openGameContextMenu: (sourceId: string, gameId: string, logoPath: string, screenshotPath: string, pointer: Pointer) => void;
     closeMenu: () => void;
   };
 

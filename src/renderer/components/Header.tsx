@@ -8,7 +8,7 @@ import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { logoutFpfss } from '@renderer/store/fpfss/slice';
 import { deleteStoredView, renameStoredView, updatePreferences } from '@renderer/store/preferences/slice';
-import { addViews, deleteView, duplicateView, renameView } from '@renderer/store/search/slice';
+import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
 import { RootState } from '@renderer/store/store';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
@@ -16,7 +16,7 @@ import { DialogFieldProps, DialogState, DialogStateTemplate } from 'flashpoint-l
 import { CustomHeaderItemProps, MenuItemType } from 'flashpoint-launcher-renderer';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { joinLibraryRoute, openUrlInWindow } from '../Util';
+import { getViewNameFpfss, joinLibraryRoute, openUrlInWindow } from '../Util';
 import { DynamicComponent } from './DynamicComponent';
 import { OpenIcon } from './OpenIcon';
 
@@ -42,21 +42,24 @@ export function Header() {
   const loadViewsText = useAppSelector(state => state.preferences.loadViewsText);
   const hideNewViewButton = useAppSelector(state => state.preferences.hideNewViewButton);
   const enableEditing = useAppSelector(state => state.preferences.enableEditing);
-  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const onlineManual = useAppSelector(state => state.preferences.onlineManual);
   const offlineManual = useAppSelector(state => state.preferences.offlineManual);
-  const fpfssUser = useAppSelector(state => state.fpfss.user);
   const fpfssEditsOpen = useAppSelector(state => Object.keys(state.search.views).filter(k => k.startsWith('!fpfss-')).length > 0);
   const playlists = useAppSelector(state => state.main.playlists);
   const customRoutes = useAppSelector(state => state.main.displaySettings.customRoutes);
   const { openMenu } = useContextMenu();
   const viewName = useViewName();
+  const location = useLocation();
+  const viewNameFpfss = getViewNameFpfss(location.pathname);
   const allStrings = useLocalization();
   const strings = allStrings.app;
   const viewNames = useAppSelector(selectViewNames);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { confirmDialog, openConfirmDialog } = useConfirmDialog();
+  const fpfssViewOwner = useAppSelector(state => (viewNameFpfss && viewNameFpfss !== GENERAL_VIEW_ID) ? state.search.views[viewNameFpfss].editingGame?.owner : '');
+  const fpfssUser = useAppSelector(state => fpfssViewOwner ? state.fpfss.users[fpfssViewOwner] : undefined);
+  const fpfssSource = useAppSelector(state => state.preferences.gameMetadataSources.find(s => s.id === fpfssViewOwner));
 
   const onToggleLeftSidebarClick = () => {
     dispatch(updatePreferences({
@@ -310,13 +313,17 @@ export function Header() {
     {
       type: 'button',
       label: strings.fpfssProfile,
+      enabled: fpfssSource !== undefined && !!fpfssSource.fpfssUrl,
       onClick: () => {
-        openUrlInWindow(`${fpfssBaseUrl}/web/profile`);
+        if (fpfssSource && fpfssSource.fpfssUrl) {
+          openUrlInWindow(`${fpfssSource.fpfssUrl}/web/profile`);
+        }
       }
     },
     {
       type: 'button',
       label: strings.fpfssLogout,
+      enabled: fpfssSource !== undefined && !!fpfssSource.fpfssUrl,
       onClick: () => {
         dispatch(logoutFpfss()).unwrap()
         .then(() => {

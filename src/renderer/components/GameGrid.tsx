@@ -42,7 +42,7 @@ export type GameGridProps<T extends Content> = BrowsePageDisplayProps<T> & {
   /** Called when the user attempts to deselect a game. */
   onContentDeselect: (gameId?: string, col?: number, row?: number) => void;
   /** Called when the user attempts to open a context menu (at a game). */
-  onContextMenu?: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
+  onContextMenu?: (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when the user starts to drag a game. */
   onContentDragStart?: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
@@ -354,9 +354,9 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
    * @param event React event
    * @param gameId ID of Game to open context menu for
    */
-  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined, logoPath: string, screenshotPath: string): void => {
+  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, sourceId: string, gameId: string, logoPath: string, screenshotPath: string): void => {
     if (this.props.onContextMenu) {
-      if (gameId) { this.props.onContextMenu(event, gameId, logoPath, screenshotPath); }
+      if (gameId) { this.props.onContextMenu(event, sourceId, gameId, logoPath, screenshotPath); }
     }
   };
 

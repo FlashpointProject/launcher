@@ -30,8 +30,8 @@ export function RandomGames(props: RandomGamesProps) {
     }
   }
 
-  const onGameContextMenu = (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => {
-    openGameContextMenu(gameId, logoPath, screenshotPath, getPointer(event));
+  const onGameContextMenu = (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => {
+    openGameContextMenu(sourceId, gameId, logoPath, screenshotPath, getPointer(event));
   };
 
 

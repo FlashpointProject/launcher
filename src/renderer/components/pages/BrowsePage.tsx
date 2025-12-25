@@ -25,6 +25,7 @@ import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
 export type GameDragEventData = {
+  sourceId: string;
   gameId: string;
   index: number;
   logoPath: string;
@@ -82,8 +83,8 @@ export function BrowsePage(props: BrowsePageProps) {
   const contentTotal = useAppSelector(state => state.search.views[viewName].data.total);
   const searchId = useAppSelector(state => state.search.views[viewName].data.searchId);
 
-  const onGameContextMenu = (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => {
-    openGameContextMenu(gameId, logoPath, screenshotPath, getPointer(event));
+  const onGameContextMenu = (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => {
+    openGameContextMenu(sourceId, gameId, logoPath, screenshotPath, getPointer(event));
   };
 
   const onMovePlaylistGame = (sourceGameId: string, destGameId: string) => {

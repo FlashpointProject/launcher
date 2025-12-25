@@ -40,7 +40,7 @@ export type GameListProps<T extends Content> = BrowsePageDisplayProps<T> & {
   /** Called when the user attempts to launch a game. */
   onContentLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** Called when the user attempts to open a context menu (at a game). */
-  onContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
+  onContextMenu: (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when the user starts to drag a game. */
   onGameDragStart: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
@@ -265,8 +265,8 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
    * @param event React event
    * @param gameId ID of Game to open context meny for
    */
-  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string, logoPath: string, screenshotPath: string): void => {
-    this.props.onContextMenu(event, gameId, logoPath, screenshotPath);
+  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, sourceId: string, gameId: string, logoPath: string, screenshotPath: string): void => {
+    this.props.onContextMenu(event, sourceId, gameId, logoPath, screenshotPath);
   };
 
   /**

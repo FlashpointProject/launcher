@@ -364,9 +364,15 @@ export function main(init: Init): void {
         const hostname = new URL(state.preferences.onlineManual).hostname;
         allowedHosts.push(hostname);
       }
-      if (state.preferences && state.preferences.fpfssBaseUrl) {
-        const hostname = new URL(state.preferences.fpfssBaseUrl).hostname;
-        allowedHosts.push(hostname);
+      if (state.preferences && state.preferences.gameMetadataSources) {
+        for (const source of state.preferences.gameMetadataSources) {
+          if (source.fpfssUrl) {
+            const hostname = new URL(source.fpfssUrl).hostname;
+            allowedHosts.push(hostname);
+          }
+          const hostname = new URL(source.baseUrl).hostname;
+          allowedHosts.push(hostname);
+        }
       }
       const allow = (
         url && (

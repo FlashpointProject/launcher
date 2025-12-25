@@ -674,12 +674,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extFpfss: typeof flashpoint.fpfss = {
-    getAccessToken: async (): Promise<string> => {
+    getAccessToken: async (sourceId: string): Promise<string> => {
+      const source = state.preferences.gameMetadataSources.find(s => s.id === sourceId);
+      if (!source) {
+        throw 'No source found for ' + sourceId;
+      }
       if (!state.socketServer.lastClient) {
         throw new Error('No connected client to handle FPFSS action.');
       }
       try {
-        const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, extId);
+        const { user } = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, source, extId);
         if (user && user.accessToken) {
           return user.accessToken;
         } else {
@@ -688,7 +692,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       } catch (error) {
         const client = state.socketServer.lastClient;
         const openDialog = state.socketServer.showMessageBoxBack(state, client);
-        await openDialog({
+        openDialog({
           largeMessage: true,
           message: (error instanceof Error) ? error.message : String(error),
           buttons: [state.languageContainer.misc.ok]

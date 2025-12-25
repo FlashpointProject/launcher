@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setCurrentCuration } from '@renderer/store/curate/slice';
 import { createFpfssEditGame } from '@renderer/store/fpfss/slice';
+import store from '@renderer/store/store';
 import { getGameImagePath, getGameImageURL, getGamePath, openUrlInWindow } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { Paths } from '@shared/Paths';
@@ -40,7 +41,6 @@ export function MenuProvider({ children }: MenuContextProps) {
   const dispatch = useAppDispatch();
   const playlists = useAppSelector(state => state.main.playlists);
   const enableEditing = useAppSelector(state => state.preferences.enableEditing);
-  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const selectedPlaylistId = useAppSelector(state => state.main.selectedPlaylistId);
   const htdocsFolderPath = useAppSelector(state => state.preferences.htdocsFolderPath);
   const dataPacksFolderPath = useAppSelector(state => state.preferences.dataPacksFolderPath);
@@ -50,15 +50,20 @@ export function MenuProvider({ children }: MenuContextProps) {
   const menuItemHeight = Math.floor(calcScale(menuDefHeight, scale));
   const navigate = useNavigate();
 
-  const createGameContextMenu = (gameId: string, logoPath: string, screenshotPath: string): MenuItemType[] => {
-    const fpfssButtons: MenuItemType[] = fpfssBaseUrl ? [
+  const createGameContextMenu = (sourceId: string, gameId: string, logoPath: string, screenshotPath: string): MenuItemType[] => {
+    const state = store.getState();
+    const source = state.preferences.gameMetadataSources.find(s => s.id === sourceId);
+    const fpfssButtons: MenuItemType[] = enableEditing ? [
       {
         /* Edit via FPFSS */
         type: 'button',
         label: strings.browse.editFpfssGame,
-        enabled: enableEditing,
+        enabled: source !== undefined && !!source.fpfssUrl && enableEditing,
         onClick: () => {
-          dispatch(createFpfssEditGame(gameId)).unwrap()
+          dispatch(createFpfssEditGame({
+            sourceId,
+            gameId
+          })).unwrap()
           .then(() => {
             navigate(Paths.FPFSS + '/' + gameId);
           })
@@ -75,9 +80,9 @@ export function MenuProvider({ children }: MenuContextProps) {
         /* Show on FPFSS */
         type: 'button',
         label: strings.browse.showOnFpfss,
-        enabled: enableEditing,
+        enabled: source !== undefined && !!source.fpfssUrl && enableEditing,
         onClick: () => {
-          openUrlInWindow(`${fpfssBaseUrl}/web/game/${gameId}`);
+          openUrlInWindow(`${source?.fpfssUrl}/web/game/${gameId}`);
         }
       }
     ] : [];
@@ -288,8 +293,8 @@ export function MenuProvider({ children }: MenuContextProps) {
     setMenu(newMenu);
   };
 
-  const openGameContextMenu = (gameId: string, logoPath: string, screenshotPath: string, pointer: Pointer) => {
-    const contextButtons = createGameContextMenu(gameId, logoPath, screenshotPath);
+  const openGameContextMenu = (sourceId: string, gameId: string, logoPath: string, screenshotPath: string, pointer: Pointer) => {
+    const contextButtons = createGameContextMenu(sourceId, gameId, logoPath, screenshotPath);
     openMenu({ items: contextButtons }, pointer);
   };
 
