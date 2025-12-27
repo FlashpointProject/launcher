@@ -358,17 +358,24 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   return override;
 }
 
+function strOrArray(v: any) {
+  if (Array.isArray(v)) {
+    return v.join(' ');
+  } else {
+    return `${v}`;
+  }
+}
+
 function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDataSource {
   const source: GameDataSource = {
     type: 'raw',
     name: '',
-    arguments: [],
-    data: undefined
+    arguments: ''
   };
+
   parser.prop('type', v => source.type = str(v));
   parser.prop('name', v => source.name = str(v));
-  parser.prop('arguments').arrayRaw((item, index) => source.arguments.push(item));
-  parser.prop('data', v => source.data = v, true);
+  parser.prop('arguments', v => source.arguments = strOrArray(v), true);
   return source;
 }
 

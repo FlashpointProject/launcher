@@ -1,11 +1,7 @@
-import { ConfirmDialog, ConfirmDialogProps } from '@renderer/components/ConfirmDialog';
+import { ConfirmDialog } from '@renderer/components/ConfirmDialog';
 import { FloatingContainer } from '@renderer/components/FloatingContainer';
-import { Activity, ReactNode, useState } from 'react';
-
-type ConfirmDialogState = {
-  confirmDialog: ReactNode;
-  openConfirmDialog: (props: Omit<ConfirmDialogProps, 'onResult'>) => Promise<number>
-}
+import { ConfirmDialogProps, ConfirmDialogState } from 'flashpoint-launcher-renderer';
+import { Activity, useState } from 'react';
 
 export function useConfirmDialog(): ConfirmDialogState {
   const [isOpen, setIsOpen] = useState(false);

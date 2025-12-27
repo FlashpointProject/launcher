@@ -2,8 +2,8 @@ import { DownloadDetails } from '@shared/back/types';
 import { downloadFile } from '@shared/Util';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { GameData, GameDataProvider, GameDataSource } from 'flashpoint-launcher';
-import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { axios } from './dns';
 import { importGameDataSkipHash } from './download';
@@ -17,7 +17,7 @@ export const GameDataProviderRaw: GameDataProvider = {
     }
 
     const filename = getGameDataFilename(gameData);
-    const fullUrl = new URL(filename, source.arguments[0]).href;
+    const fullUrl = new URL(filename, source.arguments).href;
     console.log(fullUrl);
     const tempPath = path.join(dataPacksFolderPath, `${filename}.temp`);
     await downloadFile(axios, fullUrl, tempPath, abortSignal, onProgress, onDetails);

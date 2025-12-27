@@ -1284,8 +1284,7 @@ declare module 'flashpoint-launcher' {
   type GameDataSource = {
     type: string;
     name: string;
-    arguments: string[];
-    data: any;
+    arguments: string;
   }
 
   type GameMetadataSource = {
@@ -3563,6 +3562,18 @@ declare module 'flashpoint-launcher-renderer' {
     value: any;
   }
 
+  type ConfirmDialogProps = {
+    message: string;
+    buttons: string[];
+    cancelId?: number;
+    onResult: (result: number) => void;
+  }
+
+  type ConfirmDialogState = {
+    confirmDialog: ReactNode;
+    openConfirmDialog: (props: Omit<ConfirmDialogProps, 'onResult'>) => Promise<number>
+  }
+
   declare global {
     interface Window {
       log: LogFuncs;
@@ -3660,7 +3671,7 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
 declare module 'flashpoint-launcher-renderer-ext/hooks' {
   import { ThunkDispatch } from '@reduxjs/toolkit';
   import { LangContainer } from 'flashpoint-launcher';
-  import { MenuContextStateProps, RootState } from 'flashpoint-launcher-renderer';
+  import { ConfirmDialogState, MenuContextStateProps, RootState } from 'flashpoint-launcher-renderer';
   import { TypedUseSelectorHook } from 'react-redux';
   import { Location, NavigateFunction } from 'react-router-dom';
 
@@ -3670,6 +3681,7 @@ declare module 'flashpoint-launcher-renderer-ext/hooks' {
   const useAppSelector: TypedUseSelectorHook<RootState>;
   const useContextMenu: () => MenuContextStateProps;
   const useLocalization: () => LangContainer;
+  const useConfirmDialog: () => ConfirmDialogState;
 }
 
 

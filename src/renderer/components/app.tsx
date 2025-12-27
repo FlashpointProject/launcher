@@ -4,6 +4,7 @@ import { resolveNewDialog } from '@renderer/dialog';
 import { getFpfssConsentExt, saveFpfssConsentExt } from '@renderer/fpfss';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurationTemplates, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
@@ -482,6 +483,7 @@ function addExtIntercepts() {
     useAppSelector,
     useContextMenu,
     useLocalization,
+    useConfirmDialog,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/hooks');
 
   (window as any)['flashpoint-launcher-renderer-ext/actions/main'] = {

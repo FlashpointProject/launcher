@@ -93,15 +93,10 @@
   margin-left: 0.3rem;
 }
 
-.manager-source-table {
-  text-align: left;
+.manager-source-table-list > table:not(:first-child) {
+  border-top: 1px solid var(--layout__home-page-box-border);
 }
 
-.manager-source-table-row-key {
-  font-weight: 600;
-  padding-right: 0.3rem;
-}
-
-.manager-source-table-list > :not(:last-child) {
-  border-bottom: 1px solid var(--layout__home-page-box-border);
+.manager-data-delete-button {
+  margin-bottom: 0.2rem;
 }
