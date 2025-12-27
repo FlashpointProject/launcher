@@ -1,13 +1,14 @@
 import { BackIn } from '@shared/back/types';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import { LangContainer, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 import { TagAliasInputField } from './TagAliasInputField';

@@ -1,9 +1,10 @@
 import { memoizeOne } from '@shared/memoize';
+import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputFieldProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
-import { InputField, InputFieldProps } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;

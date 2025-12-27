@@ -1,10 +1,11 @@
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
-import { InputElement, InputField, InputFieldEntry } from '@renderer/components/InputField';
+import { InputField, InputFieldEntry } from '@renderer/components/InputField';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { editCurationMeta } from '@renderer/store/curate/slice';
 import { CurationMeta } from '@shared/curate/types';
 import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { DropdownInputField } from './DropdownInputField';

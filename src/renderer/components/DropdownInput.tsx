@@ -1,7 +1,8 @@
 import { useStateRef } from '@renderer/hooks/useStateRef';
 import { checkIfAncestor } from '@renderer/Util';
+import { InputElement, InputFieldProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { InputElement, InputField, InputFieldProps } from './InputField';
+import { InputField } from './InputField';
 
 /**
  * A reference callback to a value.

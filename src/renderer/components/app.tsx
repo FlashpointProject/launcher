@@ -57,6 +57,7 @@ import { Footer } from './Footer';
 import { SortableColumn } from './GameListHeader';
 import { Header } from './Header';
 import { HomePageBox } from './HomePageBox';
+import { InputField } from './InputField';
 import { LeftSidebar } from './LeftSidebar';
 import { AboutPage } from './pages/AboutPage';
 import { BrowsePage } from './pages/BrowsePage';
@@ -467,6 +468,7 @@ function addExtIntercepts() {
     ConfigBoxSelectInput,
     SimpleButton,
     CheckBox,
+    InputField,
     Dropdown,
     DropdownFrame,
     DropdownCheckboxRow,
@@ -489,6 +491,10 @@ function addExtIntercepts() {
     removeGameSidebarComponent,
     setExtConfigValue,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/actions/main');
+
+  (window as any)['flashpoint-launcher-renderer-ext/actions/preferences'] = {
+    updatePreferences,
+  } satisfies typeof import('flashpoint-launcher-renderer-ext/actions/preferences');
 }
 
 function initApp(dispatch: AppDispatch) {

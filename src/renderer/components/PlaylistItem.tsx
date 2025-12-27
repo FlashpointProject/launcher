@@ -1,7 +1,8 @@
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { Playlist } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItemContent } from './PlaylistContent';
 

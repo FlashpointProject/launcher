@@ -145,6 +145,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
     menuItem: 0.5,
   },
   useCustomTitlebar: true,
+  migration: 0,
 });
 
 /**
@@ -231,6 +232,7 @@ export function overwritePreferenceData(
   parser.prop('useSelectedGameScroll',         v => source.useSelectedGameScroll         = !!v, true);
   parser.prop('hideScreenshotSidebar',         v => source.hideScreenshotSidebar         = !!v, true);
   parser.prop('disabledExtensions',            v => source.disabledExtensions            = strArray(v), true);
+  parser.prop('migration',                     v => source.migration                     = num(v), true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {

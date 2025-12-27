@@ -1,10 +1,11 @@
 import { LangContext } from '@renderer/util/lang';
+import { LangContainer } from 'flashpoint-launcher';
+import { InputFieldProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { InputField, InputFieldProps } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { LangContainer } from 'flashpoint-launcher';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;

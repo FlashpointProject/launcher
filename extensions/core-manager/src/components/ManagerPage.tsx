@@ -1,7 +1,6 @@
 import { LeftSidebarItem } from 'flashpoint-launcher-renderer';
 import { LeftSidebar, StateWrapper } from 'flashpoint-launcher-renderer-ext/components';
 import { useState } from 'react';
-import { ComponentSubsection } from './ComponentSubsection';
 import { ExtensionSubsection } from './ExtensionSubsection';
 import { SubsectionSettings } from './SettingsSubsection';
 
@@ -15,13 +14,13 @@ export default function ManagerPage() {
       key: 'extensions',
       title: 'Extensions'
     },
-    {
-      key: 'support-packs',
-      title: 'Support Packs'
-    }, {
-      key: 'utilities',
-      title: 'Utilities'
-    },
+    // {
+    //   key: 'support-packs',
+    //   title: 'Support Packs'
+    // }, {
+    //   key: 'utilities',
+    //   title: 'Utilities'
+    // },
     {
       key: 'settings',
       title: 'Settings'
@@ -45,12 +44,12 @@ export default function ManagerPage() {
         <StateWrapper show={subsection === 'extensions'}>
           <ExtensionSubsection/>
         </StateWrapper>
-        <StateWrapper show={subsection === 'support-packs'}>
+        {/* <StateWrapper show={subsection === 'support-packs'}>
           <ComponentSubsection/>
         </StateWrapper>
         <StateWrapper show={subsection === 'utilities'}>
           <SubsectionUtilities/>
-        </StateWrapper>
+        </StateWrapper> */}
         <StateWrapper show={subsection === 'settings'}>
           <SubsectionSettings/>
         </StateWrapper>

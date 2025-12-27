@@ -1,8 +1,9 @@
-import * as React from 'react';
 import { memoizeOne } from '@shared/memoize';
+import { InputFieldProps } from 'flashpoint-launcher-renderer';
+import * as React from 'react';
 import { checkIfAncestor } from '../Util';
-import { InputField, InputFieldProps } from './InputField';
 import { DropdownItem } from './CurateBoxInputRow';
+import { InputField } from './InputField';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;

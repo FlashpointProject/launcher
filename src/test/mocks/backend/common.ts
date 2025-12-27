@@ -139,7 +139,8 @@ export const mockBackHandlers: Record<BackIn, any> = {
   [BackIn.DOWNLOADER_GET_STATE]: undefined,
   [BackIn.DOWNLOADER_SET_STATUS]: undefined,
   [BackIn.DOWNLOADER_ADD_MISSING_CONTENT]: undefined,
-  [BackIn.TEST_RECONNECTIONS]: undefined
+  [BackIn.TEST_RECONNECTIONS]: undefined,
+  [BackIn.UPDATE_GAME_FROM_SOURCE]: undefined,
 };
 
 export const handlers = [

@@ -15,7 +15,7 @@ import { sizeToString } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Game, GameLaunchOverride, LangContainer, PlaylistGame, ResultsView } from 'flashpoint-launcher';
-import { GameComponentProps, MenuItemType } from 'flashpoint-launcher-renderer';
+import { GameComponentProps, InputElement, MenuItemType } from 'flashpoint-launcher-renderer';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -27,7 +27,7 @@ import { selectGameField } from './GameComponents';
 import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 

@@ -1,11 +1,12 @@
+import { LangContainer, TagCategory } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { ColorResult, SketchPicker } from 'react-color';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { LangContainer, TagCategory } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected tag category (if any) */

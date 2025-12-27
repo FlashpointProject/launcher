@@ -22,6 +22,7 @@ export async function saveCurationFpfssInfo(folder: string, info: CurationFpfssI
 
 export function parseCurationFpfssInfo(data: any): CurationFpfssInfo {
   const info: CurationFpfssInfo = {
+    sourceId: '',
     id: ''
   };
 
@@ -29,6 +30,10 @@ export function parseCurationFpfssInfo(data: any): CurationFpfssInfo {
     input: data
   });
   parser.prop('id', v => info.id = str(v));
+  parser.prop('sourceId', v => info.id = str(v), true);
+  if (info.id === '') {
+    info.id = 'flashpoint-archive';
+  }
 
   return info;
 }

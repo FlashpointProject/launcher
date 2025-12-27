@@ -1,14 +1,99 @@
 import axios from 'axios';
-import { commands, config, Disposable, ExtensionContext, installExtension, log, registerDisposable, uninstallExtension } from 'flashpoint-launcher';
+import { commands, config, Disposable, ExtensionContext, installExtension, log, registerDisposable, uninstallExtension, unzipFile } from 'flashpoint-launcher';
 import fs from 'node:fs';
-import os from 'node:os';
+import os, { tmpdir } from 'node:os';
 import path from 'node:path';
-import { DownloadExtCommand, ReadInstalledComponents, UninstallExtCommand } from './commands';
+import { DownloadExtCommand, ReadInstalledComponents, UninstallExtCommand, UpdateComponentCommand } from './commands';
 
 export async function activate(context: ExtensionContext): Promise<void> {
   const register = (disp: Disposable) => {
     registerDisposable(context.subscriptions, disp);
   };
+
+  register(
+    commands.registerCommand(UpdateComponentCommand, async (component: ManagerComponent) => {
+      if (!component.remote) {
+        throw 'No remote available to update from';
+      }
+      const tempDir = path.join(tmpdir(), 'comp-install');
+      await fs.promises.mkdir(tempDir, { recursive: true });
+      const componentsPath = path.join(config.flashpointPath, 'Components');
+      await fs.promises.mkdir(componentsPath, { recursive: true });
+      const tempFile = path.join(tempDir, 'download.zip');
+      const file = fs.createWriteStream(tempFile);
+      const destDir = path.join(config.flashpointPath, component.remote.path);
+
+      // Download new package
+      const res = await axios.get(component.remote.downloadUrl, { responseType: 'stream' });
+      if (res.status != 200) {
+        throw new Error(`Status: ${res.status}`);
+      }
+      res.data.pipe(file);
+      await new Promise<void>((resolve, reject) => {
+        file.on('close', resolve);
+        file.on('error', reject);
+      });
+
+      // Extract package
+      const extractDir = path.join(tempDir, 'extract');
+      await unzipFile(tempFile, extractDir);
+
+      // Remove old files
+      if (component.installed) {
+        for (const file of component.installed.files) {
+          const filePath = path.join(config.flashpointPath, file);
+          if (fs.existsSync(filePath)) {
+            await fs.promises.unlink(filePath);
+          }
+        }
+      }
+
+      // Copy extracted files to destination directory
+      const installedFiles: string[] = [];
+      let totalSize = 0;
+
+      async function copyRecursive(src: string, dest: string) {
+        await fs.promises.mkdir(dest, { recursive: true });
+        const entries = await fs.promises.readdir(src, { withFileTypes: true });
+
+        for (const entry of entries) {
+          const srcPath = path.join(src, entry.name);
+          const destPath = path.join(dest, entry.name);
+
+          if (entry.isDirectory()) {
+            await copyRecursive(srcPath, destPath);
+          } else {
+            await fs.promises.copyFile(srcPath, destPath);
+            const stats = await fs.promises.stat(destPath);
+            totalSize += stats.size;
+            // Track relative path from destDir
+            const relativePath = path.relative(config.flashpointPath, destPath);
+            installedFiles.push(relativePath);
+          }
+        }
+      }
+
+      await copyRecursive(extractDir, destDir);
+
+      component.installed = {
+        id: component.remote.id,
+        fileCount: installedFiles.length,
+        files: installedFiles,
+        size: totalSize,
+        hash: component.remote.hash,
+      };
+
+      // Save component info
+      const compInfoFilePath = path.join(componentsPath, component.remote.id);
+      const fileWriter = fs.createWriteStream(compInfoFilePath);
+      fileWriter.write(`${component.remote.hash} ${component.installed.size}\n`);
+      for (const file of component.installed.files) {
+        fileWriter.write(file + '\n');
+      }
+      fileWriter.close();
+      alert('Done!');
+    })
+  );
 
   register(
     commands.registerCommand(ReadInstalledComponents, async () => {
@@ -29,7 +114,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
             id: file,
             size: parseInt(size),
             hash,
-            fileCount: lines.length - 1
+            fileCount: lines.length - 1,
+            files: lines,
           });
         } catch (err) {
           log.error('Failed to read component: ' + file);

@@ -1,9 +1,10 @@
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 
 export type PlaylistItemContentProps = {

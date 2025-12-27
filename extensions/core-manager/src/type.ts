@@ -11,6 +11,7 @@ type ManagerInstalledComponentInfo = {
   size: number;
   hash: string;
   fileCount: number;
+  files: string[];
 }
 
 type ManagerComponentRemoteInfo = {

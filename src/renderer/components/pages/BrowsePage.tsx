@@ -14,13 +14,12 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from '@shared/utils/uuid';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
-import { BrowsePageDisplayProps, MenuItemType } from 'flashpoint-launcher-renderer';
+import { BrowsePageDisplayProps, InputElement, MenuItemType } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { RefObject, useRef, useState } from 'react';
 import { createDataDownloadJson, gameDragDataType } from '../../Util';
 import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
 import { useFileLoader } from '../FileLoader';
-import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 

@@ -2,8 +2,8 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { gameDragDataType } from '@renderer/Util';
 import { Playlist } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
 

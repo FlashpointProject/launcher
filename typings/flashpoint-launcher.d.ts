@@ -3,7 +3,6 @@
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-
 // / <reference types="node" />
 
 /**
@@ -22,6 +21,7 @@
 
 declare module 'flashpoint-launcher' {
   import { FlashpointArchive, GameSearch } from '@fparchive/flashpoint-archive';
+  import { FastifyPluginCallback } from 'fastify';
   import { EventEmitter, Readable } from 'stream';
   import { TypedEmitter } from 'typed-emitter';
 
@@ -76,6 +76,11 @@ declare module 'flashpoint-launcher' {
      */
   function unzipFile(filePath: string, outDir: string, opts?: ZipExtractOptions): Promise<void>;
 
+  /**
+   * Register a fastify plugin for serving files over the file server
+   * @param plugin Fastify plugin callback
+   */
+  function registerFastifyPlugin(plugin: FastifyPluginCallback): void;
 
   /**
    * Installs an extension from an archive file (zip, 7z etc)
@@ -1209,6 +1214,8 @@ declare module 'flashpoint-launcher' {
     updateFeedUrl: string;
     /** Curate page pinned groups */
     curateGroups: CurateGroup[];
+    /** Migration number */
+    migration: number;
   };
 
   type CurateGroup = {
@@ -2912,6 +2919,38 @@ declare module 'flashpoint-launcher-renderer' {
   import { ReactNode } from 'react';
   import { Location } from 'react-router-dom';
 
+  /** Input element types used by this component. */
+  type InputElement = HTMLInputElement | HTMLTextAreaElement;
+
+  type InputFieldProps = {
+    /** Displayed text. */
+    text: string;
+    /** Placeholder text (used to set the "placeholder" attribute). */
+    placeholder?: string;
+    /**
+     * If the text element should be an "editable" element or not.
+     * If true, the text element will be an input or text area element (depending on of multiline is enabled).
+     * If false or undefined, the text element will be a paragraph element (<p>).
+     */
+    editable?: boolean;
+    /** If the text element should be disabled (only applicable to editable elements). */
+    disabled?: boolean;
+    /** If the text field should support multi-line text (while "editable"). */
+    multiline?: boolean;
+    /** Class name(s) of the element. */
+    className?: string;
+    /** Reference of the element. */
+    reference?: React.RefObject<any>;
+    /** Called when the text has been changed (while "editable"). */
+    onChange?: (event: React.ChangeEvent<InputElement>) => void;
+    /** Called when the text has been clicked. */
+    onClick?: (event: React.MouseEvent<InputElement | HTMLParagraphElement>) => void;
+    /** Called when a key is pressed (while "editable" and focused). */
+    onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
+    /** Use alternative form class */
+    form?: boolean;
+  };
+
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
     | 'tags'
@@ -2982,7 +3021,7 @@ declare module 'flashpoint-launcher-renderer' {
     swapChildren?: boolean;
     contentClassName?: string;
     bottomChildren?: React.JSX.Element | React.JSX.Element[];
-  }
+  } & React.PropsWithChildren;
 
   type ConfigBoxInputProps = ConfigBoxProps & InputFieldProps;
 
@@ -3576,6 +3615,7 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
     GameComponentDropdownSelectFieldProps,
     GameComponentInputFieldProps,
     HomePageBoxProps,
+    InputFieldProps,
     LeftSidebarProps,
     RandomGamesProps,
     SearchableSelectProps,
@@ -3610,6 +3650,7 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   const ConfigBoxSelectInput: ComponentType<ConfigBoxSelectInputProps>;
   const SimpleButton: ComponentType<SimpleButtonProps>;
   const CheckBox: ComponentType<CheckBoxProps>;
+  const InputField: ComponentType<InputFieldProps>;
   const Dropdown: <T>(props: DropdownProps<T>) => React.ReactElement;
   const DropdownFrame: <T>(props: DropdownFrameProps<T>) => React.ReactElement;
   const DropdownCheckboxRow: <T>(props: DropdownRowProps<DropdownCheckboxRowProps<T>>) => React.ReactElement;
@@ -3645,6 +3686,13 @@ declare module 'flashpoint-launcher-renderer-ext/actions/main' {
   const addGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
   const removeGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
   const setExtConfigValue: ActionCreatorWithPayload<ExtConfigValueAction>;
+}
+
+declare module 'flashpoint-launcher-renderer-ext/actions/preferences' {
+  import { ActionCreatorWithPayload } from '@reduxjs/toolkit';
+  import { AppPreferencesData, DeepPartial } from 'flashpoint-launcher';
+
+  const updatePreferences: ActionCreatorWithPayload<DeepPartial<AppPreferencesData>>;
 }
 
 /**

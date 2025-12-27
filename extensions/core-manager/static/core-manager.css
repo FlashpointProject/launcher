@@ -38,10 +38,10 @@
 }
 
 .manager-page-subsection-list {
+  overflow-y: auto;
   flex-grow: 1;
 }
 
-.manager-component-row,
 .manager-extension-row {
   padding: 0.5rem;
   display: flex;
@@ -91,4 +91,17 @@
 
 .manager-extension-row-buttons > :not(:first-child) {
   margin-left: 0.3rem;
+}
+
+.manager-source-table {
+  text-align: left;
+}
+
+.manager-source-table-row-key {
+  font-weight: 600;
+  padding-right: 0.3rem;
+}
+
+.manager-source-table-list > :not(:last-child) {
+  border-bottom: 1px solid var(--layout__home-page-box-border);
 }

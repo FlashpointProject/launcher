@@ -34,6 +34,7 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { isGame } from '@shared/utils/misc';
+import { FastifyPluginCallback } from 'fastify';
 import * as flashpoint from 'flashpoint-launcher';
 import { Game, IExtensionManifest, Task } from 'flashpoint-launcher';
 import * as fsExtra from 'fs-extra';
@@ -93,6 +94,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const unzipFile = (filePath: string, outDir: string, opts?: flashpoint.ZipExtractOptions): Promise<void> => {
     return unzipFileUtil(state, filePath, outDir, opts);
+  };
+
+  const registerFastifyPlugin = (plugin: FastifyPluginCallback): void => {
+    state.fileServer.register(plugin);
   };
 
   const installExtension = (filePath: string) => {
@@ -716,6 +721,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     reloadExtension: reloadExtension,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile,
+    registerFastifyPlugin,
     installExtension,
     uninstallExtension,
     getExtConfigValue: getExtConfigValue,

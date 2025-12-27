@@ -2,13 +2,13 @@ import { deepCopy } from '@shared/Util';
 import { BackIn, FetchedGameInfo, MiddlewareVersionPair } from '@shared/back/types';
 import * as Coerce from '@shared/utils/Coerce';
 import { ConfigProp, ConfigSchema, Game, GameConfig, GameMiddlewareConfig, GameMiddlewareInfo } from 'flashpoint-launcher';
-import { DropdownRowProps } from 'flashpoint-launcher-renderer';
+import { DropdownRowProps, InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement } from './ConfirmElement';
 import { Dropdown } from './Dropdown';
 import { FloatingContainer } from './FloatingContainer';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 

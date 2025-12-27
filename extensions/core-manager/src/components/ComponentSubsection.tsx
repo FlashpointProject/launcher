@@ -1,22 +1,21 @@
 import axios from 'axios';
 import { XMLParser } from 'fast-xml-parser';
+import { SimpleButton } from 'flashpoint-launcher-renderer-ext/components';
 import { useAppSelector } from 'flashpoint-launcher-renderer-ext/hooks';
 import { runCommand } from 'flashpoint-launcher-renderer-ext/utils';
 import { useEffect, useState } from 'react';
-import { ReadInstalledComponents } from '../commands';
+import { ReadInstalledComponents, UpdateComponentCommand } from '../commands';
 import { selectComponentRootUrls } from '../select';
 
 export function ComponentSubsection() {
   const [remoteInfo, setRemoteInfo] = useState<ManagerComponentRemoteInfo[]>([]);
   const [installedInfo, setInstalledInfo] = useState<ManagerInstalledComponentInfo[]>([]);
-  const [ready, setReady] = useState(false);
   const remoteComponentUrlsRaw = useAppSelector(selectComponentRootUrls);
 
   useEffect(() => {
     readInstalledComponents()
     .then((data) => {
       setInstalledInfo(data);
-      setReady(true);
     })
   }, []);
 
@@ -39,26 +38,24 @@ export function ComponentSubsection() {
       canUpdate: false,
       updateDiff: 0
     }
-  });
-  if (ready) {
-    for (const remote of remoteInfo) {
-      const existingIdx = componentList.findIndex(c => c.id === c.id);
-      if (existingIdx === -1) {
-        componentList.push({
-          id: remote.id,
-          remote,
-          canUpdate: true,
-          updateDiff: remote.installSize
-        });
-      } else {
-        const comp = componentList[existingIdx];
-        comp.remote = remote;
-        const installedSize = comp.installed ? comp.installed.size : 0;
-        const installedHash = comp.installed ? comp.installed.hash : '';
-        if (installedHash.toLowerCase() !== remote.hash.toLowerCase()) {
-          comp.canUpdate = true;
-          comp.updateDiff = installedSize - remote.installSize;
-        }
+  });    
+  for (const remote of remoteInfo) {
+    const existingIdx = componentList.findIndex(c => c.id === remote.id);
+    if (existingIdx === -1) {
+      componentList.push({
+        id: remote.id,
+        remote,
+        canUpdate: true,
+        updateDiff: remote.installSize
+      });
+    } else {
+      const comp = componentList[existingIdx];
+      comp.remote = remote;
+      const installedSize = comp.installed ? comp.installed.size : 0;
+      const installedHash = comp.installed ? comp.installed.hash : '';
+      if (installedHash.toLowerCase() !== remote.hash.toLowerCase()) {
+        comp.canUpdate = true;
+        comp.updateDiff = installedSize - remote.installSize;
       }
     }
   }
@@ -78,9 +75,42 @@ export function ComponentSubsection() {
 }
 
 function ComponentRow({ comp, index }: ComponentRowProps) {
+  const [busy, setBusy] = useState(false);
+  console.log(comp);
+
+  const title = comp.remote ? comp.remote.title : comp.id;
+
+  let rowClassName = 'manager-extension-row';
+  if (index % 2 === 0) { rowClassName += ' manager-extension-row--even'; }
+  
   return (
-    <div className='manager-component-row'>
-      {comp.id}
+    <div className={rowClassName}>
+      <div className='manager-extension-row-content'>
+        <div className='manager-extension-row-top'>
+          <div className='manager-extension-row-title'>{title}</div>
+        </div>
+        <div className='manager-extension-row-inner'>
+          <div>{comp.remote?.description}</div>
+          <div className='manager-extension-row-buttons'>
+          { comp.canUpdate && (
+            <SimpleButton
+              value={comp.installed ? 'Update' : 'Install'}
+              onClick={() => {
+                setBusy(true);
+                runCommand(UpdateComponentCommand, comp)
+                .catch((error) => {
+                  const errorString =  `Failed to install component: ${error}`;
+                  alert(errorString);
+                  log.error('Manager', errorString);
+                })
+              }} /> 
+            )}
+            { (!comp.canUpdate && comp.remote !== undefined) && (
+              <div><i>Up to Date</i></div>
+            ) }
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -98,9 +128,10 @@ async function getRemoteFromIndex(indexUrl: string): Promise<ManagerComponentRem
   const res = await axios.get(indexUrl);
   if (res.status < 300) {
     const data = parser.parse(res.data);
+    console.log(data);
 
     function processCategory(category: any, parentId: string = '') {
-      const categoryId = parentId ? `${parentId}-${category.id}` : category.id;
+      const categoryId = parentId ? `${parentId}-${category['@_id']}` : category['@_id'];
       
       // Process nested categories
       if (category.category) {
@@ -112,19 +143,19 @@ async function getRemoteFromIndex(indexUrl: string): Promise<ManagerComponentRem
       if (category.component) {
         const comps = Array.isArray(category.component) ? category.component : [category.component];
         comps.forEach((comp: any) => {
-          const componentId = `${categoryId}-${comp.id}`;
-          const baseUrl = data.list.url || indexUrl.substring(0, indexUrl.lastIndexOf('/') + 1);
+          const componentId = `${categoryId}-${comp['@_id']}`;
+          const baseUrl = data.list['@_url'] || indexUrl.substring(0, indexUrl.lastIndexOf('/') + 1);
           
           components.push({
             id: componentId,
-            title: comp.title || '',
-            description: comp.description || '',
-            dateModified: comp['date-modified'] || '',
-            downloadSize: parseInt(comp['download-size']) || 0,
-            installSize: parseInt(comp['install-size']) || 0,
-            path: comp.path || '',
-            hash: comp.hash || '',
-            downloadUrl: `${baseUrl}${componentId}.7z`
+            title: comp['@_title'] || '',
+            description: comp['@_description'] || '',
+            dateModified: comp['@_date-modified'] || '',
+            downloadSize: parseInt(comp['@_download-size']) || 0,
+            installSize: parseInt(comp['@_install-size']) || 0,
+            path: comp['@_path'] || '',
+            hash: comp['@_hash'] || '',
+            downloadUrl: `${baseUrl}${componentId}.zip`
           });
         });
       }
@@ -137,6 +168,8 @@ async function getRemoteFromIndex(indexUrl: string): Promise<ManagerComponentRem
   } else {
     throw 'Bad status code: ' + res.status;
   }
+
+  console.log(components);
 
   return components;
 }

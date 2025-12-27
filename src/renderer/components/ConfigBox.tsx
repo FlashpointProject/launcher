@@ -1,7 +1,7 @@
 import { ConfigBoxProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 
-export function ConfigBoxInner(props: React.PropsWithChildren<ConfigBoxProps>) {
+export function ConfigBoxInner(props: ConfigBoxProps) {
   return (
     <div className='setting__inner__row'>
       <div>
@@ -20,7 +20,7 @@ export function ConfigBoxInner(props: React.PropsWithChildren<ConfigBoxProps>) {
   );
 }
 
-export function ConfigBox(props: React.PropsWithChildren<ConfigBoxProps>) {
+export function ConfigBox(props: ConfigBoxProps) {
   return (
     <div className='setting__row'>
       <div className={`setting__row__top ${props.swapChildren ? 'setting__row__top--swapchildren' : ''}`}>

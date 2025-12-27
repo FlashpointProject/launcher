@@ -22,6 +22,7 @@ import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { mapRuffleSupportString } from '@shared/utils/misc';
 import { CurationState, LangContainer, LoadedCuration, Platform, PlatformAppPathSuggestions, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { BoxList } from './BoxList';
@@ -29,7 +30,7 @@ import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxContentTree } from './CurateBoxContentTree';
 import { CurateBoxRow } from './CurateBoxRow';
 import { CurateBoxWarnings } from './CurateBoxWarnings';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
