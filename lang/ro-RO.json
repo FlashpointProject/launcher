@@ -77,7 +77,7 @@
     "nukeInProgress": "Se elimină grupul. Așteptați…",
     "deleteTagFilter": "Ștergeți grupul de etichete filtru",
     "appPathOverrides": "Suprascrieți calea aplicației",
-    "appPathOverridesDesc": "Suprascrie calea aplicației văzută în partea din stânga cu cea văzută în partea din dreapta la lansarea jocurilor.",
+    "appPathOverridesDesc": "Suprascrie calea aplicației din partea stângă cu cea în partea dreaptă în momentul lansării jocurilor.",
     "visualsHeader": "Aspecte vizuale",
     "useCustomTitleBar": "Folosiți o bară de titlu personalizată",
     "useCustomTitleBarDesc": "Se va folosi o bară de titlu personalizată în partea de sus a ferestrei.",
