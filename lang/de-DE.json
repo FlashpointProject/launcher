@@ -91,7 +91,7 @@
     "screenshotPreviewModeDesc": "Preview the screenshot of a Game in Grid mode",
     "screenshotPreviewModeOff": "Off",
     "screenshotPreviewModeOn": "On (When Hovering)",
-    "screenshotPreviewModeAlways": "Always",
+    "screenshotPreviewModeAlways": "Immer",
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Erweitert",
