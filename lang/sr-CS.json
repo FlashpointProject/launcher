@@ -310,7 +310,7 @@
     "today": "Danas",
     "yesterday": "Juče",
     "daysAgo": "Pre {0} Dana",
-    "weeksAgo": "{0} Weeks Ago",
+    "weeksAgo": "{0} Pre Nedelje",
     "seconds": "{0} Sekundi",
     "minutes": "{0} minuta",
     "hours": "{0} Sati",
@@ -362,7 +362,7 @@
     "noLaunchCommand": "Nema komande pokretanja",
     "searching": "Tražim...",
     "library": "Biblioteka",
-    "noLibrary": "No Library",
+    "noLibrary": "Nema Biblioteke",
     "defaultLibrary": "Uobičajena biblioteka",
     "fpfssGame": "FPFSS Igra",
     "uninstallGame": "Deinstaliraj igru",
@@ -401,21 +401,21 @@
     "noGameMatchedSearch": "Pokušaj da tražiš nešto manje restriktivno.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "ruffleSupport": "Ruffle Support",
-    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "ruffleSupport": "Ruffle Podrška",
+    "showExtremeScreenshot": "Prikaži Ekstremne Snimke Ekrana",
     "busy": "Molim vas sačekajte...",
-    "openGameDataBrowser": "Open Game Data Browser",
-    "allGenericEntries": "All Entries",
+    "openGameDataBrowser": "Otvori Pretraživac Igara",
+    "allGenericEntries": "Svi Unosi",
     "usePlaylistOrder": "Use Playlist Order",
     "hideFilters": "Hide Filters",
-    "showFilters": "Show Filters",
+    "showFilters": "Prikaži filtere",
     "notArchived": "Nije Arhivirano",
     "archived": "Arhivirano",
     "playOnline": "Igraj Onlajn",
     "tagFilterIcon": "Tag Filter Icon",
     "runWithFlashPlayer": "Run with Flash Player",
-    "runWithRuffle": "Run with Ruffle",
-    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
+    "runWithRuffle": "Pokreni sa Ruffle",
+    "runWithRuffleUnsupported": "Pokreni sa Ruffle (Nepodržano)"
   },
   "tags": {
     "name": "Ime",
@@ -439,7 +439,7 @@
     "deleteTag": "Obriši tag",
     "deleteTagCategory": "Obriši tag kategoriju",
     "locked": "Zaključan dok se obrađuje...",
-    "filterIcon": "Icon Thumbnail"
+    "filterIcon": "Ikonica Sličice"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -525,10 +525,10 @@
     "contextCopyName": "Kopiraj naziv datoteke",
     "contextCopyPath": "Kopiraj putanju datotеkе",
     "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "contextShowInExplorer": "Prikazati Fajl u Pretraživaču",
+    "contextOpenFolderInExplorer": "Otvoriti Folder u Pretraživaču",
     "shortcuts": "Prečice",
-    "fpfssOpenSubmissionPage": "Open Submission Page"
+    "fpfssOpenSubmissionPage": "Otvori Stranicu za Podnošenje"
   },
   "playlist": {
     "enterDescriptionHere": "Unesi opis ovde...",
@@ -556,7 +556,7 @@
   "misc": {
     "noBlankFound": "{0} nije pronađena",
     "addBlank": "Dodaj {0}",
-    "removeBlank": "Remove {0}",
+    "removeBlank": "Ukloni {0}",
     "deleteAllBlankImages": "Izbriši sve {0} slike za ovu igru",
     "yes": "Da",
     "no": "Ne",
@@ -570,16 +570,16 @@
     "searching": "Tražim...",
     "loading": "Učitavanje...",
     "ok": "OKEJ",
-    "allow": "Allow",
-    "orCapitals": "OR",
-    "andCapitals": "AND"
+    "allow": "Dozvoliti",
+    "orCapitals": "ILI",
+    "andCapitals": "I"
   },
   "menu": {
     "viewThumbnailInFolder": "Pregledaj simboličnu sliku u fascikli",
     "viewScreenshotInFolder": "Pregledaj slike ekrana u fascikli",
-    "openFileLocation": "Show Game in Explorer",
-    "openLogoLocation": "Show Logo in Explorer",
-    "openScreenshotLocation": "Show Screenshot in Explorer",
+    "openFileLocation": "Prikaži Igru u Pretraživaču",
+    "openLogoLocation": "Prikaži Logotip u Pretraživaču",
+    "openScreenshotLocation": "Prikaži Snimak Ekrana u Pretraživaču",
     "addToFavorites": "Dodaj u Omiljene",
     "addToPlaylist": "Dodaj u plejlistu",
     "duplicateMetaOnly": "Dupliraj (samo metapodatke)",
@@ -590,10 +590,10 @@
     "exportMetaEdit": "Izvoz izmena metapodatka",
     "duplicatePlaylist": "Dupliraj plejlistu",
     "exportPlaylist": "Iznesi plejlistu",
-    "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL",
-    "downloadGame": "Download Game",
-    "downloadPlaylistContent": "Download Playlist Entries"
+    "makeCurationFromGame": "Napravi Kustos od Igre",
+    "copyShortcutURL": "Kopiraj Kratki URL",
+    "downloadGame": "Preuzimanje igre",
+    "downloadPlaylistContent": "Preuzimanje Plejlista"
   },
   "dialog": {
     "programNotFound": "Program nije pronađen!",
@@ -666,7 +666,7 @@
     "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
     "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible.",
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
-    "openWiki": "Open Wiki",
+    "openWiki": "Otvorena Enciklopedija",
     "openDiscord": "Pridružite se Discord Serveru",
     "doNotShowAgain": "Nе prikazuj ponovo",
     "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
