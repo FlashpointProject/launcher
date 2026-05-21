@@ -282,6 +282,7 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
 
 export function getViewNameFpfss(urlPath: string) {
   if (urlPath.startsWith(Paths.FPFSS)) {
+    console.log(urlPath);
     const pathSegments = urlPath.split('/').filter(v => !!v);
     const gameId = pathSegments[pathSegments.length - 1];
     return '!fpfss-' + gameId;

@@ -8,15 +8,17 @@ import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { logoutFpfss } from '@renderer/store/fpfss/slice';
 import { deleteStoredView, renameStoredView, updatePreferences } from '@renderer/store/preferences/slice';
-import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
+import { addViews, deleteView, duplicateView, renameView } from '@renderer/store/search/slice';
 import { RootState } from '@renderer/store/store';
+import { FpfssUser } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
-import { DialogFieldProps, DialogState, DialogStateTemplate } from 'flashpoint-launcher';
-import { CustomHeaderItemProps, MenuItemType } from 'flashpoint-launcher-renderer';
+import { DialogFieldProps, DialogState, DialogStateTemplate, GameMetadataSource } from 'flashpoint-launcher';
+import { CustomHeaderItemProps, DropdownRowProps, MenuItemType } from 'flashpoint-launcher-renderer';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getViewNameFpfss, joinLibraryRoute, openUrlInWindow } from '../Util';
+import { joinLibraryRoute, openUrlInWindow } from '../Util';
+import { Dropdown } from './Dropdown';
 import { DynamicComponent } from './DynamicComponent';
 import { OpenIcon } from './OpenIcon';
 
@@ -49,17 +51,18 @@ export function Header() {
   const customRoutes = useAppSelector(state => state.main.displaySettings.customRoutes);
   const { openMenu } = useContextMenu();
   const viewName = useViewName();
-  const location = useLocation();
-  const viewNameFpfss = getViewNameFpfss(location.pathname);
   const allStrings = useLocalization();
   const strings = allStrings.app;
   const viewNames = useAppSelector(selectViewNames);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { confirmDialog, openConfirmDialog } = useConfirmDialog();
-  const fpfssViewOwner = useAppSelector(state => (viewNameFpfss && viewNameFpfss !== GENERAL_VIEW_ID) ? state.search.views[viewNameFpfss].editingGame?.owner : '');
-  const fpfssUser = useAppSelector(state => fpfssViewOwner ? state.fpfss.users[fpfssViewOwner] : undefined);
-  const fpfssSource = useAppSelector(state => state.preferences.gameMetadataSources.find(s => s.id === fpfssViewOwner));
+  const fpfssUsers: DetailedFpfssUser[] = useAppSelector(state => Object.entries(state.fpfss.users).map((val) => {
+    return {
+      user: val[1],
+      source: state.preferences.gameMetadataSources.find(s => s.id === val[0])
+    };
+  }));
 
   const onToggleLeftSidebarClick = () => {
     dispatch(updatePreferences({
@@ -309,38 +312,6 @@ export function Header() {
     }
   };
 
-  const fpfssContextMenu: MenuItemType[] = [
-    {
-      type: 'button',
-      label: strings.fpfssProfile,
-      enabled: fpfssSource !== undefined && !!fpfssSource.fpfssUrl,
-      onClick: () => {
-        if (fpfssSource && fpfssSource.fpfssUrl) {
-          openUrlInWindow(`${fpfssSource.fpfssUrl}/web/profile`);
-        }
-      }
-    },
-    {
-      type: 'button',
-      label: strings.fpfssLogout,
-      enabled: fpfssSource !== undefined && !!fpfssSource.fpfssUrl,
-      onClick: () => {
-        dispatch(logoutFpfss()).unwrap()
-        .then(() => {
-          toast('Logged out of FPFSS', {
-            type: 'success'
-          });
-        })
-        .catch((err) => {
-          toast(`Failed to log out - ${err.message}`, {
-            type: 'error',
-            autoClose: false,
-          });
-        });
-      }
-    }
-  ];
-
   const browseButtons = useCustomViews ?
     viewNames.map(view => (
       <HeaderMenuItem
@@ -468,15 +439,14 @@ export function Header() {
       </div>
       {/* Right-most portion */}
       <div className='header__wrap header__right'>
-        {fpfssUser && (
-          <div className='header-user-box' onClick={(event) => {
-            openMenu({ items: fpfssContextMenu }, getPointer(event));
-          }}>
-            {/* FPFSS user status */}
-            <div className='header-user-icon' style={{ backgroundImage: `url(${fpfssUser.avatarUrl})` }}></div>
-            <div className='header-user-name'>{fpfssUser.username}</div>
-          </div>
-        )}
+        <Dropdown<FpfssProfileRowProps>
+          text='FPFSS Profiles'
+          rowProps={{
+            items: fpfssUsers
+          }}
+          rowCount={fpfssUsers.length}
+          rowRenderer={FpfssProfileRow}>
+        </Dropdown>
         <div>
           {/* Toggle Right Sidebar */}
           <div
@@ -532,5 +502,69 @@ function HeaderMenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }:
       onDrop={onDrop}>
       <Link to={link} className={`header__menu__item__link ${selected ? 'header__menu__item__link-selected' : ''}`}>{title}</Link>
     </li>
+  );
+}
+
+type DetailedFpfssUser = {
+  user?: FpfssUser;
+  source?: GameMetadataSource;
+}
+
+type FpfssProfileRowProps = {
+  items: DetailedFpfssUser[];
+}
+
+function FpfssProfileRow({ items, index }: DropdownRowProps<FpfssProfileRowProps>)
+{
+  const allStrings = useLocalization();
+  const strings = allStrings.app;
+  const dispatch = useAppDispatch();
+  const { openMenu } = useContextMenu();
+
+  const { user, source } = items[index];
+  const fpfssContextMenu: MenuItemType[] = [
+    {
+      type: 'button',
+      label: strings.fpfssProfile,
+      enabled: source !== undefined && !!source.fpfssUrl,
+      onClick: () => {
+        if (source && source.fpfssUrl) {
+          openUrlInWindow(`${source.fpfssUrl}/web/profile`);
+        }
+      }
+    },
+    {
+      type: 'button',
+      label: strings.fpfssLogout,
+      enabled: source !== undefined && !!source.fpfssUrl,
+      onClick: () => {
+        dispatch(logoutFpfss()).unwrap()
+        .then(() => {
+          toast('Logged out of FPFSS', {
+            type: 'success'
+          });
+        })
+        .catch((err) => {
+          toast(`Failed to log out - ${err.message}`, {
+            type: 'error',
+            autoClose: false,
+          });
+        });
+      }
+    }
+  ];
+
+  if (!user) {
+    return <div>Unknown User</div>;
+  }
+
+  return (
+    <div className='header-user-box' onClick={(event) => {
+      openMenu({ items: fpfssContextMenu }, getPointer(event));
+    }}>
+      {/* FPFSS user status */}
+      <div className='header-user-icon' style={{ backgroundImage: `url(${user.avatarUrl})` }}></div>
+      <div className='header-user-name'>{user.username}</div>
+    </div>
   );
 }
