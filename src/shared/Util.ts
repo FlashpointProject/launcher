@@ -1,3 +1,4 @@
+import { TokenBucket } from '@back/util/TokenBucket';
 import * as axiosImport from 'axios';
 import { AdditionalApp, AppConfigData, ContentTree, ContentTreeNode, FlatContentTree, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'node:fs';
@@ -444,7 +445,9 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   return 0;
 }
 
-export async function downloadFile(axios: axiosImport.AxiosInstance, url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
+export async function downloadFile(axios: axiosImport.AxiosInstance, url: string, filePath: string, abortSignal?: AbortSignal,
+  onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig,
+  speedBucket?: TokenBucket): Promise<number> {
   try {
     const res = await axios.get(url, {
       ...options,
@@ -476,8 +479,12 @@ export async function downloadFile(axios: axiosImport.AxiosInstance, url: string
         fileStream.write(chunk);
       });
       res.data.on('error', async () => {
-        fileStream.close();
-        await fs.promises.unlink(filePath);
+        fileStream.close(() => {
+          if (fs.existsSync(filePath))
+          {
+            fs.unlinkSync(filePath);
+          }
+        });
         reject(res.status);
       });
     });

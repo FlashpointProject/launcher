@@ -1371,6 +1371,13 @@ declare module 'flashpoint-launcher' {
     newState: ProcessState;
   };
 
+  type DownloaderStatusUpdate = {
+    status: DownloaderStatus;
+    total: number;
+    done: number;
+    failures: number;
+  }
+
   type DownloaderStatus = 'running' | 'stopped';
 
   type DownloadTaskStatus = 'waiting' | 'in_progress' | 'success' | 'failure';
@@ -1396,9 +1403,11 @@ declare module 'flashpoint-launcher' {
   }
 
   type DownloaderState = {
-    tasks: Record<string, DownloadTask>;
     workers: DownloadWorkerState[];
     state: DownloaderStatus;
+    total: number;
+    done: number;
+    failures: number;
   }
 
   type ManagedChildProcessEvents = {

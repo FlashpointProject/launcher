@@ -382,10 +382,10 @@ export function Header() {
                 link={Paths.CATEGORIES} />
             </>
           ) : undefined }
-          {/* <HeaderMenuItem
+          <HeaderMenuItem
             id={'header__downloads'}
             title={'Downloads'}
-            link={Paths.DOWNLOADS} /> */}
+            link={Paths.DOWNLOADS} />
           <HeaderMenuItem
             id={'header__logs'}
             title={strings.logs}

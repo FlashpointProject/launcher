@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
-import { DownloaderState, DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState } from 'flashpoint-launcher';
+import { DownloaderState, DownloaderStatus, DownloaderStatusUpdate, DownloadTask, DownloadWorkerState } from 'flashpoint-launcher';
 import { toast } from 'react-toastify';
 
 export type DownloadsState = DownloaderState;
@@ -8,42 +8,40 @@ export type DownloadsState = DownloaderState;
 const initialState: DownloadsState = {
   state: 'stopped',
   workers: [],
-  tasks: {},
+  total: 0,
+  done: 0,
+  failures: 0,
 };
 
 export type UpdateDownloaderTaskAction = DownloadTask;
 
-export type UpdateDownloaderStateAction = DownloaderStatus;
+export type UpdateDownloaderStateAction = DownloaderStatusUpdate;
 
 export type UpdateDownloadWorkerAction = DownloadWorkerState;
 
-const finishStates: DownloadTaskStatus[] = ['success', 'failure'];
-
 function updateToast(state: DownloaderState) {
   const toastOpen = toast.isActive('downloader');
-  const tasks = Object.values(state.tasks);
-  const totalFinished = tasks.reduce((prev, cur) => prev + (finishStates.includes(cur.status) ? 1 : 0), 0);
-  if (tasks.length === 0) {
+  if (state.total === 0) {
     return;
   }
   if (state.state === 'stopped' && !toastOpen) {
     return;
   }
-  if (state.state === 'running' && tasks.length === totalFinished && !toastOpen) {
+  if (state.state === 'running' && state.total === state.total && !toastOpen) {
     return;
   }
-  if (totalFinished !== tasks.length) {
-    console.log(totalFinished / tasks.length);
+  if (state.done !== state.total) {
+    console.log(state.done / state.total);
     if (toastOpen) {
       toast.update('downloader', {
-        render: `Downloading: ${totalFinished} of ${tasks.length}`,
+        render: `Downloading: ${state.done} of ${state.total}`,
         type: 'default',
-        progress: totalFinished / tasks.length,
+        progress: state.done / state.total,
       });
     } else {
-      toast(`Downloading: ${totalFinished} of ${tasks.length}`, {
+      toast(`Downloading: ${state.done} of ${state.total}`, {
         toastId: 'downloader',
-        progress: totalFinished / tasks.length,
+        progress: state.done / state.total,
         autoClose: false,
         closeButton: false,
       });
@@ -73,22 +71,16 @@ const downloadsSlice = createSlice({
   name: 'downloads',
   initialState,
   reducers: {
-    updateDownloaderTask(state: DownloadsState, { payload }: PayloadAction<UpdateDownloaderTaskAction>) {
-      state.tasks[payload.game.id] = payload;
-      updateToast(state);
-    },
-    updateDownloaderTasks(state: DownloadsState, { payload }: PayloadAction<DownloadTask[]>) {
-      for (const task of payload) {
-        state.tasks[task.game.id] = task;
-      }
-      updateToast(state);
-    },
     updateDownloaderStatus(state: DownloadsState, { payload }: PayloadAction<UpdateDownloaderStateAction>) {
-      if (state.state !== payload) {
-        state.state = payload;
+      state.total = payload.total;
+      state.done = payload.done;
+      state.failures = payload.failures;
+
+      if (state.state !== payload.status) {
+        state.state = payload.status;
         updateToast(state);
       } else {
-        state.state = payload;
+        state.state = payload.status;
       }
     },
     updateDownloaderWorker(state: DownloadsState, { payload }: PayloadAction<UpdateDownloadWorkerAction>) {
@@ -112,8 +104,6 @@ const downloadsSlice = createSlice({
 export const { actions: downloadsActions } = downloadsSlice;
 export const {
   updateDownloaderStatus,
-  updateDownloaderTask,
-  updateDownloaderTasks,
   updateDownloaderWorker,
   setDownloaderState,
   setStatus

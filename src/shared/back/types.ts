@@ -19,7 +19,7 @@ import {
   DialogState,
   DownloaderState,
   DownloaderStatus,
-  DownloadTask,
+  DownloaderStatusUpdate,
   DownloadWorkerState,
   ExtensionContribution,
   ExtOrder,
@@ -304,8 +304,6 @@ export enum BackOut {
   CREATE_TASK,
 
   UPDATE_DOWNLOADER_WHOLE_STATE,
-  UPDATE_DOWNLOADER_TASK,
-  UPDATE_DOWNLOADER_TASKS,
   UPDATE_DOWNLOADER_STATUS,
   UPDATE_DOWNLOADER_STATE_WORKER,
 
@@ -584,9 +582,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CREATE_TASK]: (task: Task) => void;
 
   [BackOut.UPDATE_DOWNLOADER_WHOLE_STATE]: (state: DownloaderState) => void;
-  [BackOut.UPDATE_DOWNLOADER_TASK]: (task: DownloadTask) => void;
-  [BackOut.UPDATE_DOWNLOADER_TASKS]: (tasks: DownloadTask[]) => void;
-  [BackOut.UPDATE_DOWNLOADER_STATUS]: (state: DownloaderStatus) => void;
+  [BackOut.UPDATE_DOWNLOADER_STATUS]: (state: DownloaderStatusUpdate) => void;
   [BackOut.UPDATE_DOWNLOADER_STATE_WORKER]: (worker: DownloadWorkerState) => void;
 
   [BackOut.FOCUS_WINDOW]: () => void;

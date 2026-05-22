@@ -381,7 +381,7 @@ function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDat
 
 function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>): GameMetadataSource {
   const source: GameMetadataSource = {
-    id: 'flashpoint-archive',
+    id: '',
     name: '',
     baseUrl: '',
     games: {

@@ -867,11 +867,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, async (event, playlistId) => {
-    if (state.downloader.status === 'running' && state.downloader) {
-      throw 'Downloader already busy, please wait until it has finished its current job';
-    }
-    state.downloader.clear();
-    state.downloader.start();
     const playlist = state.playlists.find(p => p.id === playlistId);
     if (playlist) {
       // Find a size estimate before initiating download
@@ -898,10 +893,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         const result = (await awaitDialog(state, dialogId)).buttonIdx;
 
         if (result === 1) {
-          state.downloader.stop();
           log.debug('Downloads', 'User aborted playlist download at size prompt');
           return false;
         }
+      }
+
+      if (state.downloader.status === 'stopped')
+      {
+        state.downloader.start();
       }
 
       log.info('Downloads', 'Adding playlist to downloader with ' + playlist.games.length + ' games');

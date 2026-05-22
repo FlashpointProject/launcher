@@ -13,7 +13,7 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 export function newGame(): Game {
   return {
     id: '',
-    owner: 'flashpoint-archive',
+    owner: 'local',
     library: '',
     title: '',
     alternateTitles: '',

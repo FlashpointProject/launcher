@@ -34,6 +34,9 @@ export class Downloader extends WrappedEventEmitter {
   private idleWorkers: DownloadWorker[] = []; // Array of idle workers
   public databaseQueue: EventQueue = new EventQueue;
   public status: DownloaderStatus;
+  private total: number = 0;
+  private done: number = 0;
+  private failures: number = 0;
 
   constructor(
     public readonly flashpointPath: string,
@@ -63,8 +66,8 @@ export class Downloader extends WrappedEventEmitter {
           this.assignTaskToIdleWorker(nextTask);
         }
       }
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_STATUS, this.status);
       this.emit('statusChange', this.status);
+      this.sendStatusUpdate();
     }
   }
 
@@ -76,8 +79,8 @@ export class Downloader extends WrappedEventEmitter {
         worker.abort();
       }
       this.idleWorkers = [...this.workers]; // Reset all workers to idle
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_STATUS, this.status);
       this.emit('statusChange', this.status);
+      this.sendStatusUpdate();
     }
   }
 
@@ -88,11 +91,17 @@ export class Downloader extends WrappedEventEmitter {
     }
     await promiseSleep(1000);
     this.tasks = {};
+    this.total = 0;
+    this.done = 0;
+    this.failures = 0;
     this.status = 'running';
+
     this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_WHOLE_STATE, {
       state: this.status,
-      tasks: this.getTasks(),
       workers: this.getWorkerStates(),
+      total: 0,
+      done: 0,
+      failures: 0,
     });
   }
 
@@ -110,7 +119,6 @@ export class Downloader extends WrappedEventEmitter {
 
   public addTasks(games: Game[]) {
     // Bulk send updates in sets of up to 2500
-    let updateQueue: DownloadTask[] = [];
     for (const game of games) {
       if (!this.tasks[game.id]) {
         const newTask: DownloadTask = {
@@ -121,28 +129,24 @@ export class Downloader extends WrappedEventEmitter {
           },
           errors: [],
         };
-        updateQueue.push(newTask);
-      }
-
-      if (updateQueue.length >= 2500) {
-        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASKS, updateQueue);
-        for (const task of updateQueue) {
-          this.tasks[task.game.id] = task;
-          this.assignTaskToIdleWorker(task);
-          this.emit('taskChange', task);
-        }
-        updateQueue = [];
+        this.tasks[game.id] = newTask;
+        this.total++;
+        this.assignTaskToIdleWorker(newTask);
+        this.emit('taskChange', newTask);
       }
     }
 
-    if (updateQueue.length > 0) {
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASKS, updateQueue);
-      for (const task of updateQueue) {
-        this.tasks[task.game.id] = task;
-        this.assignTaskToIdleWorker(task);
-        this.emit('taskChange', task);
-      }
-    }
+    this.sendStatusUpdate();
+  }
+
+  private sendStatusUpdate()
+  {
+    this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_STATUS, {
+      status: this.status,
+      total: this.total,
+      done: this.done,
+      failures: this.failures,
+    });
   }
 
   public addTask(game: Game): boolean {
@@ -158,7 +162,7 @@ export class Downloader extends WrappedEventEmitter {
       this.tasks[game.id] = newTask;
       this.assignTaskToIdleWorker(newTask);
       this.emit('taskChange', newTask);
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, newTask);
+      this.sendStatusUpdate();
       return true;
     }
     return false;
@@ -179,7 +183,6 @@ export class Downloader extends WrappedEventEmitter {
         task.errors = [];
         task.status = 'in_progress';
         this.emit('taskChange', task);
-        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, task);
         worker.assignTask(task);
       }
     }
@@ -193,18 +196,22 @@ export class Downloader extends WrappedEventEmitter {
         this.tasks[gameId].status = status;
         this.tasks[gameId].errors = errors;
         log.info('Downloader', `Task: ${gameId} - Status: ${status}`);
-        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
         this.emit('taskChange', this.tasks[gameId]);
       } else {
         this.tasks[gameId].status = 'waiting';
         log.info('Downloader', `Task: ${gameId} - Status: waiting`);
-        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
         this.emit('taskChange', this.tasks[gameId]);
       }
     }
 
+    if (status === 'success')
+    {
+      this.done++;
+    }
+
     if (status === 'failure' && this.status === 'running') {
       log.error('Downloader', `Download failure for ${gameId}: ${errors}`);
+      this.failures++;
     }
 
     const nextTask = this.getNextTask();
@@ -214,6 +221,7 @@ export class Downloader extends WrappedEventEmitter {
       // No tasks remaining, all workers idle, stop
       this.stop();
     }
+    this.sendStatusUpdate();
   }
 
   public onWorkerUpdate(worker: DownloadWorker) {
@@ -347,7 +355,7 @@ class DownloadWorker {
         // Did not find matching file, try and download
         try {
           await downloadGameData(gameData.id, this.downloader.state, signal, (progress) => {
-            this.stepProgress = progress;
+            this.stepProgress = progress / 100;
             this.downloader.onWorkerUpdate(this);
           }, () => {});
         } catch (e) {

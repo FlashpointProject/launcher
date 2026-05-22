@@ -8,7 +8,7 @@ import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurationTemplates, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
-import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks } from '@renderer/store/downloads/slice';
+import { setDownloaderState, updateDownloaderStatus, updateDownloaderWorker } from '@renderer/store/downloads/slice';
 import { performFpfssAction, setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
@@ -64,6 +64,7 @@ import { AboutPage } from './pages/AboutPage';
 import { BrowsePage } from './pages/BrowsePage';
 import { ConfigPage } from './pages/ConfigPage';
 import { CuratePage } from './pages/CuratePage';
+import { DownloadsPage } from './pages/Downloads';
 import { DynamicPage } from './pages/DynamicPage';
 import { FpfssPage } from './pages/FpfssPage';
 import { HomePage } from './pages/HomePage';
@@ -317,9 +318,9 @@ export function App() {
                           <Route
                             path={Paths.CATEGORIES}
                             element={<TagCategoriesPage/>}/>
-                          {/* <Route
-                          path={Paths.DOWNLOADS}
-                          element={<DownloadsPage/>}/> */}
+                          <Route
+                            path={Paths.DOWNLOADS}
+                            element={<DownloadsPage/>}/>
                           <Route
                             path={Paths.LOGS}
                             element={useActivityRoutes ? <></> : <LogsPage/>}/>
@@ -997,20 +998,12 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     dispatch(setDownloaderState(state));
   });
 
-  window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_TASK, async (event, task) => {
-    dispatch(updateDownloaderTask(task));
-  });
-
-  window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_TASKS, async (event, tasks) => {
-    dispatch(updateDownloaderTasks(tasks));
-  });
-
   window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_STATUS, async (event, status) => {
     dispatch(updateDownloaderStatus(status));
   });
 
   window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_STATE_WORKER, async (event, workerState) => {
-    // dispatch(updateDownloaderWorker(workerState));
+    dispatch(updateDownloaderWorker(workerState));
   });
 
   window.Shared.back.register(BackOut.OPEN_DYNAMIC_PAGE, async (event, name, props) => {
