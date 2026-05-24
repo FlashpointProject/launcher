@@ -30,7 +30,7 @@ export type EditableTextElementKeyArgs = {
 
 export type EditableTextElementProps<T> = {
   /** Function that renders the text element (render prop). */
-  children?: (args: EditableTextElementArgs<T>) => JSX.Element | undefined;
+  children?: (args: EditableTextElementArgs<T>) => React.JSX.Element | undefined;
   /** If the element is editable (if it can enter "edit mode"). */
   editable?: boolean;
   /** Called when editing is confirmed (when the user is done editing and attempts to "lock in" the edited text). */
@@ -55,21 +55,21 @@ export function EditableTextElement<T>(props: EditableTextElementProps<T>) {
   const [editing, setEditing] = React.useState(false);
   const [text, setText] = React.useState(props.text);
   // Callbacks
-  const startEdit = React.useCallback((): void => {
+  const startEdit = () => {
     if (props.editable) { setEditing(true); }
-  }, [props.editable, setEditing]);
-  const cancelEdit = React.useCallback((): void => {
+  };
+  const cancelEdit = () => {
     setEditing(false);
     if (props.onEditCancel) { props.onEditCancel(text); }
-  }, [props.onEditCancel, setEditing]);
-  const confirmEdit = React.useCallback((): void => {
+  };
+  const confirmEdit = () => {
     setEditing(false);
     if (props.onEditConfirm) { props.onEditConfirm(text); }
-  }, [props.onEditConfirm, setEditing]);
-  const onInputChange = React.useCallback((event: React.ChangeEvent<{ value: string }>): void => {
+  };
+  const onInputChange = (event: React.ChangeEvent<{ value: string }>) => {
     setText(event.target.value);
-  }, [setText]);
-  const onInputKeyDown = React.useCallback((event: React.KeyboardEvent): void => {
+  };
+  const onInputKeyDown = (event: React.KeyboardEvent) => {
     if (editing) {
       const func = props.onEditKeyDown || EditableTextElement.onEditKeyDown;
       func({
@@ -78,7 +78,7 @@ export function EditableTextElement<T>(props: EditableTextElementProps<T>) {
         confirm: confirmEdit,
       });
     }
-  }, [cancelEdit, confirmEdit, editing, props.onEditKeyDown]);
+  };
   // Stop editing if no longer editable
   if (!props.editable && editing) {
     setEditing(false);

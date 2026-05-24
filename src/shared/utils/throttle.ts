@@ -1,11 +1,11 @@
 import { AnyFunction, ArgumentTypesOf } from '../interfaces';
 
 /** A callable object that has the same argument types as T (and void as the return type). */
-interface CallableCopy<T extends AnyFunction> extends Function {
+interface CallableCopy<T extends AnyFunction> {
   (...args: ArgumentTypesOf<T>): void;
 }
 /** A callable object that has the same argument types as T (and Promise<void> as the return type). */
-interface CallableCopyAsync<T extends AnyFunction> extends Function {
+interface CallableCopyAsync<T extends AnyFunction> {
   (...args: ArgumentTypesOf<T>): Promise<void>;
 }
 
@@ -15,15 +15,15 @@ interface CallableCopyAsync<T extends AnyFunction> extends Function {
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */
-export function throttle<T extends AnyFunction>(callback: T, time:number): CallableCopy<T> {
+export function throttle<T extends AnyFunction>(callback: T, time: number): CallableCopy<T> {
   // Store timeout
   let timeout: ReturnType<typeof setTimeout> | undefined;
   // Function that receives and records the events
-  const throttler: CallableCopy<T> = function(...args) {
+  const throttler: CallableCopy<T> = function (...args) {
     // Check if currently throttling
     if (timeout != undefined) { return; }
     // Release event after some time
-    timeout = setTimeout(function() {
+    timeout = setTimeout(function () {
       timeout = undefined;
     }, time);
     callback(...args);
@@ -37,20 +37,38 @@ export function throttle<T extends AnyFunction>(callback: T, time:number): Calla
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */
-export function delayedThrottle<T extends AnyFunction>(callback: T, time:number): CallableCopy<T> {
+export function delayedThrottle<T extends AnyFunction>(callback: T, time: number): CallableCopy<T> {
   // Store timeout
   let timeout: ReturnType<typeof setTimeout> | undefined;
   // Function that receives and records the events
-  const throttler: CallableCopy<T> = function(...args) {
+  const throttler: CallableCopy<T> = function (...args) {
     // Check if currently throttling
     if (timeout != undefined) { return; }
     // Release event after some time
-    timeout = setTimeout(function() {
+    timeout = setTimeout(function () {
       timeout = undefined;
       callback(...args);
     }, time);
   };
   return throttler;
+}
+
+export function batchProcessor<Item>(callback: (items: Item[]) => void, time: number): (item: Item) => void {
+  // Store timeout and batch
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  let batch: Item[] = [];
+  // Function that receives and records the events
+  return function (item: Item) {
+    batch.push(item);
+    // Check if currently throttling
+    if (timeout != undefined) { return; }
+    // Release event after some time
+    timeout = setTimeout(function () {
+      timeout = undefined;
+      callback(batch);
+      batch = [];
+    }, time);
+  };
 }
 
 /**
@@ -59,11 +77,11 @@ export function delayedThrottle<T extends AnyFunction>(callback: T, time:number)
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */
-export function delayedThrottleAsync<T extends AnyFunction>(callback: T, time:number): CallableCopyAsync<T> {
+export function delayedThrottleAsync<T extends AnyFunction>(callback: T, time: number): CallableCopyAsync<T> {
   // Store timeout
   let timeout: ReturnType<typeof setTimeout> | undefined;
   // Function that receives and records the events
-  const throttler: CallableCopyAsync<T> = async function(...args) {
+  const throttler: CallableCopyAsync<T> = async function (...args) {
     return new Promise(resolve => {
       // Check if currently throttling
       if (timeout != undefined) {
@@ -71,7 +89,7 @@ export function delayedThrottleAsync<T extends AnyFunction>(callback: T, time:nu
         return;
       }
       // Release event after some time
-      timeout = setTimeout(async function() {
+      timeout = setTimeout(async function () {
         timeout = undefined;
         await callback(...args);
         resolve();

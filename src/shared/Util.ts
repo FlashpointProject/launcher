@@ -1,11 +1,42 @@
+import { TokenBucket } from '@back/util/TokenBucket';
 import * as axiosImport from 'axios';
-import { AdditionalApp, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
-import * as fs from 'fs';
-import * as path from 'path';
+import { AdditionalApp, AppConfigData, ContentTree, ContentTreeNode, FlatContentTree, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { DownloadDetails } from './back/types';
-import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+
+export function calcScale(defValue: number, scale: number): number {
+  const scaler = 0.3 + scale * 1.4;
+  return defValue * scaler;
+}
+
+export function genFlatContentTree(contentTree: ContentTree): FlatContentTree {
+  const flatContentTree: FlatContentTree = [];
+
+  // Navigate down tree in render order
+  const addNode = (depth: number, node: ContentTreeNode, tree: string[]) => {
+    const newTree = tree.concat([node.name]);
+    flatContentTree.push({
+      ...node,
+      depth: depth,
+      tree: newTree
+    });
+
+    if (node.nodeType === 'directory' && node.expanded) {
+      for (const child of node.children) {
+        addNode(depth + 1, child, newTree);
+      }
+    }
+  };
+
+  for (const node of contentTree.root.children) {
+    addNode(0, node, []);
+  }
+
+  return flatContentTree;
+}
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
@@ -355,6 +386,11 @@ export function createErrorProxy(title: string): any {
   });
 }
 
+const KB = 1024;
+const MB = KB * 1024;
+const GB = MB * 1024;
+const TB = GB * 1024;
+
 /**
  * Convert a size (in bytes) to a more human readable format.
  *
@@ -363,10 +399,11 @@ export function createErrorProxy(title: string): any {
  * @returns Size, but in a more human readable format.
  */
 export function sizeToString(size: number, precision = 3): string {
-  if (size < 1000)       { return `${size}B`; }
-  if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
-  if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
-  return `${(size / 1000000000).toPrecision(precision)}GB`;
+  if (size < KB) { return `${size}B`; }
+  if (size < MB) { return `${(size / KB).toPrecision(precision)}KB`; }
+  if (size < GB) { return `${(size / MB).toPrecision(precision)}MB`; }
+  if (size < TB) { return `${(size / GB).toPrecision(precision)}GB`; }
+  return `${(size / TB).toPrecision(precision)}TB`;
 }
 
 /**
@@ -414,7 +451,9 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   return 0;
 }
 
-export async function downloadFile(axios: axiosImport.AxiosInstance, url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
+export async function downloadFile(axios: axiosImport.AxiosInstance, url: string, filePath: string, abortSignal?: AbortSignal,
+  onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig,
+  speedBucket?: TokenBucket): Promise<number> {
   try {
     const res = await axios.get(url, {
       ...options,
@@ -423,7 +462,9 @@ export async function downloadFile(axios: axiosImport.AxiosInstance, url: string
     });
     let progress = 0;
     const contentLength = res.headers['content-length'];
-    onDetails && onDetails({ downloadSize: contentLength });
+    if (onDetails !== undefined) {
+      onDetails({ downloadSize: contentLength });
+    }
     const progressThrottle = onProgress && throttle(onProgress, 200);
     const fileStream = fs.createWriteStream(filePath);
     return new Promise<number>((resolve, reject) => {
@@ -432,16 +473,24 @@ export async function downloadFile(axios: axiosImport.AxiosInstance, url: string
       });
       res.data.on('end', () => {
         fileStream.close();
-        onProgress && onProgress(100);
+        if (onProgress !== undefined) {
+          onProgress(100);
+        }
       });
       res.data.on('data', (chunk: any) => {
         progress = progress + chunk.length;
-        progressThrottle && progressThrottle((progress / contentLength) * 100);
+        if (progressThrottle !== undefined) {
+          progressThrottle((progress / contentLength) * 100);
+        }
         fileStream.write(chunk);
       });
       res.data.on('error', async () => {
-        fileStream.close();
-        await fs.promises.unlink(filePath);
+        fileStream.close(() => {
+          if (fs.existsSync(filePath))
+          {
+            fs.unlinkSync(filePath);
+          }
+        });
         reject(res.status);
       });
     });
@@ -505,6 +554,8 @@ export type FpfssGame = {
   tags?: FpfssTag[];
   platforms?: FpfssPlatform[];
   ruffle_support?: string;
+  logo_path?: string;
+  screenshot_path?: string;
 }
 
 export type FpfssPlatform = {
@@ -532,7 +583,7 @@ export type FpfssAddApp = {
   parent_game_id: string;
 };
 
-export function mapFpfssGameToLocal(data: any): Game {
+export function mapFpfssGameToLocal(data: any, owner?: string): Game {
   const fg = data as FpfssGame;
   const game: Game = {
     id: fg.id,
@@ -593,6 +644,9 @@ export function mapFpfssGameToLocal(data: any): Game {
       };
     }) || [],
     ruffleSupport: fg.ruffle_support || '',
+    logoPath: fg.logo_path || '',
+    screenshotPath: fg.screenshot_path || '',
+    owner: owner || '',
   };
   return game;
 }
@@ -657,6 +711,8 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
       };
     }) || [],
     ruffle_support: game.ruffleSupport,
+    logo_path: game.logoPath,
+    screenshot_path: game.screenshotPath,
   };
   return fg;
 }

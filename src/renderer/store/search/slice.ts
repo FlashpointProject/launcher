@@ -1,15 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { deepCopy } from '@shared/Util';
-import { AdvancedFilter, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
-import {
-  ElementPosition
-} from '@fparchive/flashpoint-archive';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
-import { updatePreferencesData } from '@shared/preferences/util';
-import { number } from 'zod';
-import { stat } from 'fs';
+import { deepCopy } from '@shared/Util';
+import { AdvancedFilter, ExtOrder, Game, GameOrderBy, GameOrderReverse, Playlist, ResultsView, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
 import { RootState } from '../store';
 
 export const GENERAL_VIEW_ID = '!general!';
@@ -47,32 +41,12 @@ export type SearchAddDataActionData = {
   keyset?: PageKeyset;
 }
 
-export type ResultsView = {
-  id: string;
-  library?: string;
-  selectedGame?: Game,
-  selectedPlaylist?: Playlist,
-  data: ResultsViewData;
-  orderBy: GameOrderBy;
-  orderReverse: GameOrderReverse;
-  text: string;
-  textPositions: ElementPosition[];
-  advancedFilter: AdvancedFilter;
-  searchFilter: SearchQuery;
-  loaded: boolean;
-  expanded: boolean;
-  gridScrollCol?: number;
-  gridScrollRow?: number;
-  gridScrollTop?: number;
-  listScrollRow?: number;
-}
-
 type SearchDropdownDataSet = {
   key: string;
   tags: Tag[] | null;
   developers: string[] | null;
   publishers: string[] | null;
-  series: string[]| null;
+  series: string[] | null;
 }
 
 type SearchGridScrollAction = {
@@ -92,7 +66,7 @@ type SearchScrollTopAction = {
 }
 
 type SearchState = {
-  views: Record<string, ResultsView>;
+  views: Record<string, ResultsView<any>>;
   dropdowns: SearchDropdownDataSet;
 }
 
@@ -119,6 +93,11 @@ export type SearchOrderByAction = {
 export type SearchOrderReverseAction = {
   view: string;
   value: GameOrderReverse;
+}
+
+export type SearchExtOrderAction = {
+  view: string;
+  value: ExtOrder;
 }
 
 export type SearchAdvancedFilterAction = {
@@ -155,6 +134,8 @@ export type SearchCreateViewsAction = {
   views: string[];
   storedViews?: StoredView[];
   areLibraries: boolean;
+  loadViewsText: boolean;
+  playlists: Playlist[];
 }
 
 export type SearchDeleteViewAction = {
@@ -176,19 +157,24 @@ export type SearchDuplicateViewAction = {
   view: string;
 }
 
-const defaultGeneralState: ResultsView = {
+const defaultGeneralState: ResultsView<any> = {
   id: GENERAL_VIEW_ID,
   advancedFilter: getDefaultAdvancedFilter(),
   data: {
     searchId: 0,
     keyset: [],
-    games: [],
+    content: [],
     pages: {},
     metaState: RequestState.WAITING,
   },
   loaded: false,
   orderBy: 'title',
   orderReverse: 'ASC',
+  extOrder: {
+    extId: '',
+    key: '',
+    default: ''
+  },
   searchFilter: {
     ...getDefaultGameSearch(),
     viewId: GENERAL_VIEW_ID,
@@ -198,6 +184,8 @@ const defaultGeneralState: ResultsView = {
   text: '',
   textPositions: [],
   expanded: true,
+  isEditing: false,
+  isCustom: false,
 };
 
 const initialState: SearchState = {
@@ -222,6 +210,17 @@ export type RequestKeysetAction = {
 
 export type ForceSearchAction = {
   view: string;
+  useCustomViews: boolean;
+}
+
+export type SetEditingAction = {
+  view: string;
+  editing: boolean
+}
+
+export type UpdateEditGameAction = {
+  view: string;
+  game: Partial<Game>,
 }
 
 export const requestKeyset = createAsyncThunk(
@@ -231,7 +230,11 @@ export const requestKeyset = createAsyncThunk(
     const view = state.search.views[payload.view];
 
     if (view && payload.searchId === view.data.searchId) {
-      const data = await window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, view.searchFilter);
+      const data = await window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, view.searchFilter)
+      .catch((err) => {
+        console.log(err);
+        throw err;
+      });
       // Dispatch an action to handle the keyset data
       dispatch(addData({ view: payload.view, data: {
         searchId: payload.searchId,
@@ -247,14 +250,23 @@ export const forceSearch = createAsyncThunk(
   async (payload: ForceSearchAction, { getState, dispatch }) => {
     const { search, main } = getState() as RootState;
     const view = search.views[payload.view];
-    console.log('forced search');
 
     const advFilter = deepCopy(view.advancedFilter);
     // Get processed query
-    if (!window.Shared.preferences.data.useCustomViews) {
+    if (!payload.useCustomViews) {
       advFilter.library = {
         [view.id]: 'whitelist'
       };
+    }
+
+    // Make sure the extOrder exists
+    let extOrderExists = true;
+    if (view.extOrder) {
+      const extOrderKey = `ext_${view.extOrder.extId}_${view.extOrder.key}`;
+      const extOrders = main.extOrderables.map(e => `ext_${e.extId}_${e.key}`);
+      if (!extOrders.includes(extOrderKey)) {
+        extOrderExists = false;
+      }
     }
 
     const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
@@ -263,6 +275,11 @@ export const forceSearch = createAsyncThunk(
       text: view.text,
       advancedFilter: advFilter,
       orderBy: view.orderBy,
+      extOrder: extOrderExists ? view.extOrder : {
+        extId: '',
+        key: '',
+        default: ''
+      },
       orderDirection: view.orderReverse,
       playlist: view.selectedPlaylist
     });
@@ -286,7 +303,7 @@ const searchSlice = createSlice({
             data: {
               searchId: 0,
               keyset: [],
-              games: [],
+              content: [],
               pages: {},
               metaState: RequestState.WAITING,
             },
@@ -294,6 +311,11 @@ const searchSlice = createSlice({
             expanded: true,
             orderBy: 'title',
             orderReverse: 'ASC',
+            extOrder: {
+              extId: '',
+              key: '',
+              default: ''
+            },
             searchFilter: {
               ...getDefaultGameSearch(),
               viewId: view,
@@ -302,6 +324,8 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
+            isEditing: false,
+            isCustom: true,
           };
         }
       }
@@ -310,26 +334,23 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
-            if (window.Shared.preferences.data.loadViewsText) {
+            if (payload.loadViewsText) {
               view.text = storedView.text;
             }
             view.advancedFilter = storedView.advancedFilter;
             view.orderBy = storedView.orderBy;
             view.orderReverse = storedView.orderReverse;
+            view.extOrder = storedView.extOrder;
           }
         }
       }
     },
+    addFpfssView(state: SearchState, { payload }: PayloadAction<ResultsView<Game>>) {
+      state.views[payload.id] = payload;
+    },
     deleteView(state: SearchState, { payload }: PayloadAction<SearchDeleteViewAction>) {
       if (state.views[payload.view]) {
         delete state.views[payload.view];
-      }
-      const customViews = window.Shared.preferences.data.customViews;
-      if (customViews.filter(c => c !== payload.view).length === 0) {
-        customViews.push('Browse');
-        setTimeout(() => updatePreferencesData({
-          customViews,
-        }), 100);
       }
       if (Object.keys(state.views).length === 1) {
         // If we have no more browse views, add Browse
@@ -340,7 +361,7 @@ const searchSlice = createSlice({
           data: {
             searchId: 0,
             keyset: [],
-            games: [],
+            content: [],
             pages: {},
             metaState: RequestState.WAITING,
           },
@@ -348,6 +369,11 @@ const searchSlice = createSlice({
           expanded: true,
           orderBy: 'title',
           orderReverse: 'ASC',
+          extOrder: {
+            extId: '',
+            key: '',
+            default: ''
+          },
           searchFilter: {
             ...getDefaultGameSearch(),
             viewId: view,
@@ -356,6 +382,8 @@ const searchSlice = createSlice({
           },
           text: '',
           textPositions: [],
+          isEditing: false,
+          isCustom: true
         };
       }
     },
@@ -375,7 +403,7 @@ const searchSlice = createSlice({
           data: {
             searchId: 0,
             keyset: [],
-            games: [],
+            content: [],
             pages: {},
             metaState: RequestState.WAITING,
           },
@@ -383,11 +411,13 @@ const searchSlice = createSlice({
       }
     },
     createViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
-      const generalState = state.views[GENERAL_VIEW_ID];
-      // Clear existing views except general
-      state.views = {
-        [GENERAL_VIEW_ID]: generalState
-      };
+      // Clear existing views except general and FPFSS views
+      const keptKeys = Object.keys(state.views).filter(key => key === GENERAL_VIEW_ID || key.startsWith('!fpfss-'));
+      const newViews: typeof state.views = {};
+      for (const key of keptKeys) {
+        newViews[key] = state.views[key];
+      }
+      state.views = newViews;
       for (const view of payload.views) {
         if (!state.views[view]) {
           state.views[view] = {
@@ -396,7 +426,7 @@ const searchSlice = createSlice({
             data: {
               searchId: 0,
               keyset: [],
-              games: [],
+              content: [],
               pages: {},
               metaState: RequestState.WAITING,
             },
@@ -404,6 +434,11 @@ const searchSlice = createSlice({
             expanded: true,
             orderBy: 'title',
             orderReverse: 'ASC',
+            extOrder: {
+              extId: '',
+              key: '',
+              default: ''
+            },
             searchFilter: {
               ...getDefaultGameSearch(),
               viewId: view,
@@ -412,6 +447,8 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
+            isEditing: false,
+            isCustom: !payload.areLibraries,
           };
         }
       }
@@ -420,13 +457,18 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
-            if (window.Shared.preferences.data.loadViewsText) {
+            const playlist = payload.playlists.find(p => p.id === storedView.selectedPlaylistId);
+            if (playlist) {
+              view.selectedPlaylist = playlist;
+            }
+            if (payload.loadViewsText) {
               view.text = storedView.text;
             }
             view.advancedFilter = storedView.advancedFilter;
             view.orderBy = storedView.orderBy;
             view.orderReverse = storedView.orderReverse;
             view.expanded = storedView.expanded;
+            view.extOrder = storedView.extOrder;
           }
         }
       }
@@ -456,7 +498,7 @@ const searchSlice = createSlice({
         if (view.searchFilter.searchId < payload.filter.searchId) {
           view.searchFilter = payload.filter;
           view.data.keyset = [];
-          view.data.games = {};
+          view.data.content = {};
           view.data.pages = {};
           view.data.total = undefined;
           view.data.metaState = RequestState.REQUESTED;
@@ -471,7 +513,7 @@ const searchSlice = createSlice({
             searchId: payload.searchId,
             pages: {},
             keyset: [],
-            games: {},
+            content: {},
             total: undefined,
             metaState: RequestState.REQUESTED,
           };
@@ -488,6 +530,12 @@ const searchSlice = createSlice({
       const view = state.views[payload.view];
       if (view) {
         view.orderReverse = payload.value;
+      }
+    },
+    setExtOrder(state: SearchState, { payload }: PayloadAction<SearchExtOrderAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        view.extOrder = payload.value;
       }
     },
     setAdvancedFilter(state: SearchState, { payload }: PayloadAction<SearchAdvancedFilterAction>) {
@@ -544,7 +592,7 @@ const searchSlice = createSlice({
 
 
           // Try and move them in the results view
-          const games = Object.entries(view.data.games).map<GameRecordsArray>(([key, value]) => [Number(key), value]);
+          const games = Object.entries(view.data.content).map<GameRecordsArray>(([key, value]) => [Number(key), value]);
           const sourceGameEntry = games.find((g) => g[1].id === sourceGameId);
           const destGameEntry = games.find((g) => g[1].id === destGameId);
           if (sourceGameEntry && destGameEntry) {
@@ -564,18 +612,49 @@ const searchSlice = createSlice({
               }
             }
           }
-          view.data.games = Object.fromEntries(games);
+          view.data.content = Object.fromEntries(games);
 
           // Update the playlist file
           window.Shared.back.send(BackIn.SAVE_PLAYLIST, view.selectedPlaylist);
         }
       }
     },
+    setEditing(state: SearchState, { payload }: PayloadAction<SetEditingAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        if (view.isEditing && !payload.editing) {
+          view.editingGame = undefined;
+          view.isEditing = false;
+        }
+
+        if (!view.isEditing && payload.editing && view.selectedGame !== undefined) {
+          view.editingGame = deepCopy(view.selectedGame);
+          view.isEditing = true;
+        }
+      }
+    },
+    updateEditGame(state: SearchState, { payload }: PayloadAction<UpdateEditGameAction>) {
+      const view = state.views[payload.view];
+      if (view && view.editingGame) {
+        view.editingGame = {
+          ...view.editingGame,
+          ...payload.game
+        };
+      }
+    },
     updateGame(state: SearchState, { payload }: PayloadAction<Game>) {
       for (const viewName of Object.keys(state.views)) {
         const view = state.views[viewName];
-        if (view.selectedGame && view.selectedGame.id === payload.id) {
+        // Update in selection
+        if (view.selectedGame?.id === payload.id) {
           view.selectedGame = payload;
+        }
+        // Update in search results
+        for (const [idx, game] of Object.entries(view.data.content)) {
+          if (game?.id === payload.id) {
+            view.data.content[Number(idx)] = payload;
+            break;
+          }
         }
       }
     },
@@ -640,7 +719,7 @@ const searchSlice = createSlice({
             searchId: data.searchId,
             pages: {},
             keyset: [],
-            games: {},
+            content: {},
             total: undefined,
             metaState: RequestState.REQUESTED,
           };
@@ -681,7 +760,7 @@ const searchSlice = createSlice({
           } else {
             const startIdx = VIEW_PAGE_SIZE * data.page;
             for (let i = 0; i < data.games.length; i++) {
-              view.data.games[startIdx + i] = data.games[i];
+              view.data.content[startIdx + i] = data.games[i];
             }
             view.data.pages[data.page] = RequestState.RECEIVED;
           }
@@ -708,14 +787,19 @@ export const {
   setSearchId,
   setOrderBy,
   setOrderReverse,
+  setExtOrder,
   setAdvancedFilter,
   movePlaylistGame,
   requestRange,
+  setEditing,
+  updateEditGame,
   updateGame,
   setExpanded,
   resetDropdownData,
   setDropdownData,
   setGridScroll,
+  setGridScrollTop,
   setListScroll,
+  addFpfssView,
   addData } = searchSlice.actions;
 export default searchSlice.reducer;

@@ -1,15 +1,16 @@
-import { useView } from '@renderer/hooks/search';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
+import { useViewName } from '@renderer/hooks/search';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import { forceSearch, setAdvancedFilter, setExpanded, setExtOrder, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
+import { BackIn } from '@shared/back/types';
 import { getDefaultAdvancedFilter } from '@shared/search/util';
 import { formatString } from '@shared/utils/StringFormatter';
-import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
+import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
+import { SearchComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { useContext, useMemo, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
+import { AutoSizer, List, ListRowProps } from 'react-virtualized';
+import { DynamicComponent } from './DynamicComponent';
 import { GameOrder } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
@@ -25,20 +26,35 @@ export const categoryOrder = [
 ];
 
 export function SearchBar() {
-  const view = useView();
-  const dispatch = useDispatch();
-  const strings = useContext(LangContext);
-  const { main: mainState, tagCategories, search } = useAppSelector((state) => state);
-  const [shiftHeld, setShiftHeld] = useState(false);
+  const dispatch = useAppDispatch();
+  const strings = useLocalization();
+  const viewName = useViewName();
+  const searchFilter = useAppSelector(state => state.search.views[viewName].searchFilter);
+  const advancedFilter = useAppSelector(state => state.search.views[viewName].advancedFilter);
+  const insidePlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist !== undefined);
+  const extOrder = useAppSelector(state => state.search.views[viewName].extOrder);
+  const filtersExpanded = useAppSelector(state => state.search.views[viewName].expanded);
+  const searchText = useAppSelector(state => state.search.views[viewName].text);
+  const orderBy = useAppSelector(state => state.search.views[viewName].orderBy);
+  const orderReverse = useAppSelector(state => state.search.views[viewName].orderReverse);
+  const displaySettings = useAppSelector(state => state.main.displaySettings);
+  const libraries = useAppSelector(state => state.main.libraries);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const suggestions = useAppSelector(state => state.main.suggestions);
+  const searchDropdowns = useAppSelector(state => state.search.dropdowns);
+  const tagCategories = useAppSelector(state => state.tagCategories);
+  const enableEditing = useAppSelector(state => state.preferences.enableEditing);
+  const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
-      view: view.id,
+      view: viewName,
       text: event.target.value
     }));
     if (event.target.value === '') {
       dispatch(forceSearch({
-        view: view.id
+        view: viewName,
+        useCustomViews,
       }));
     }
   };
@@ -58,16 +74,17 @@ export function SearchBar() {
       event.preventDefault();
       if (event.shiftKey) {
         dispatch(setAdvancedFilter({
-          view: view.id,
+          view: viewName,
           filter: getDefaultAdvancedFilter(),
         }));
       }
       dispatch(setSearchText({
-        view: view.id,
+        view: viewName,
         text: ''
       }));
       dispatch(forceSearch({
-        view: view.id
+        view: viewName,
+        useCustomViews,
       }));
       const element = searchInputRef.current;
       if (element) {
@@ -82,20 +99,20 @@ export function SearchBar() {
     return () => {
       window.removeEventListener('keypress', onKeypress);
     };
-  }, []);
+  });
 
   const onToggleExpanded = (value: boolean) => {
     dispatch(setExpanded({
-      view: view.id,
+      view: viewName,
       expanded: value
     }));
-  }
+  };
 
   const onInstalledChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
-      view: view.id,
+      view: viewName,
       filter: {
-        ...view.advancedFilter,
+        ...advancedFilter,
         installed: value,
       }
     }));
@@ -103,9 +120,9 @@ export function SearchBar() {
 
   const onLegacyChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
-      view: view.id,
+      view: viewName,
       filter: {
-        ...view.advancedFilter,
+        ...advancedFilter,
         legacy: value,
       }
     }));
@@ -113,9 +130,9 @@ export function SearchBar() {
 
   const onPlaylistOrderChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
-      view: view.id,
+      view: viewName,
       filter: {
-        ...view.advancedFilter,
+        ...advancedFilter,
         playlistOrder: !!value,
       }
     }));
@@ -124,8 +141,8 @@ export function SearchBar() {
   const onWhitelistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
       console.log(`${key}: ${value} - whitelist`);
-      const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
-      let newValues = {
+      const existingFilter = advancedFilter[key] as Record<string, AdvancedFilterToggle>;
+      const newValues = {
         ...existingFilter
       };
       if (value in newValues) {
@@ -139,9 +156,9 @@ export function SearchBar() {
       }
 
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           [key]: newValues,
         }
       }));
@@ -151,8 +168,8 @@ export function SearchBar() {
   const onBlacklistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
       console.log(`${key}: ${value} - blacklist`);
-      const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
-      let newValues = {
+      const existingFilter = advancedFilter[key] as Record<string, AdvancedFilterToggle>;
+      const newValues = {
         ...existingFilter
       };
       if (value in newValues) {
@@ -166,9 +183,9 @@ export function SearchBar() {
       }
 
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           [key]: newValues,
         }
       }));
@@ -178,9 +195,9 @@ export function SearchBar() {
   const onClearFactory = (key: keyof AdvancedFilter) => {
     return () => {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           [key]: [],
         }
       }));
@@ -190,17 +207,17 @@ export function SearchBar() {
   const onSetAndToggleFactory = (key: keyof AdvancedFilter) => {
     return (value: boolean) => {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           andToggles: {
-            ...view.advancedFilter.andToggles,
-            [key as keyof AdvancedFilterAndToggles]: value
+            ...advancedFilter.andToggles,
+            [key]: value
           }
         }
       }));
     };
-  }
+  };
 
   const onWhitelistLibrary = onWhitelistFactory('library');
   const onBlacklistLibrary = onBlacklistFactory('library');
@@ -211,12 +228,12 @@ export function SearchBar() {
   const onBlacklistPlayMode = onBlacklistFactory('playMode');
   const onClearPlayMode = onClearFactory('playMode');
   const onSetAndTogglePlayMode = onSetAndToggleFactory('playMode');
-  
+
   const onWhitelistDeveloper = onWhitelistFactory('developer');
   const onBlacklistDeveloper = onBlacklistFactory('developer');
   const onClearDeveloper = onClearFactory('developer');
   const onSetAndToggleDeveloper = onSetAndToggleFactory('developer');
-  
+
   const onWhitelistPublisher = onWhitelistFactory('publisher');
   const onBlacklistPublisher = onBlacklistFactory('publisher');
   const onClearPublisher = onClearFactory('publisher');
@@ -249,12 +266,12 @@ export function SearchBar() {
     })) : [];
   };
 
-  const libraryItems = useMemo(() => simpleSelectItems(mainState.libraries), [mainState.libraries]);
-  const playModeItems = useMemo(() => simpleSelectItems(mainState.suggestions.playMode), [mainState.suggestions.playMode]);
-  const platformItems = useMemo(() => simpleSelectItems(mainState.suggestions.platforms), [mainState.suggestions.platforms]);
-  const developerItems = useMemo(() => simpleSelectItems(search.dropdowns.developers), [search.dropdowns.developers]);
-  const publisherItems = useMemo(() => simpleSelectItems(search.dropdowns.publishers), [search.dropdowns.publishers]);
-  const seriesItems = useMemo(() => simpleSelectItems(search.dropdowns.series), [search.dropdowns.series]);
+  const libraryItems = simpleSelectItems(libraries);
+  const playModeItems = simpleSelectItems(suggestions.playMode);
+  const platformItems = simpleSelectItems(suggestions.platforms);
+  const developerItems = simpleSelectItems(searchDropdowns.developers);
+  const publisherItems = simpleSelectItems(searchDropdowns.publishers);
+  const seriesItems = simpleSelectItems(searchDropdowns.series);
   const ruffleSupportItems: SearchableSelectItem[] = [{
     value: '',
     orderVal: ''
@@ -262,27 +279,21 @@ export function SearchBar() {
     value: 'standalone',
     orderVal: 'Standalone'
   }];
-  const tagItems = useMemo((): TagSelectItem[] => {
-    if (search.dropdowns.tags) {
-      return search.dropdowns.tags.map(tag => {
-        const categoryId = tag.category ? categoryOrder.indexOf(tag.category) : 99999;
-        return {
-          value: tag.name,
-          orderVal: `${categoryId} ${tag.name} ${tag.aliases.join((' '))}`,
-          tag: tag,
-        }
-      });
-    } else {
-      return [];
-    }
-  }, [search.dropdowns.tags]);
+  const tagItems = searchDropdowns.tags ? searchDropdowns.tags.map(tag => {
+    const categoryId = tag.category ? categoryOrder.indexOf(tag.category) : 99999;
+    return {
+      value: tag.name,
+      orderVal: `${categoryId} ${tag.name} ${tag.aliases.join((' '))}`,
+      tag: tag,
+    };
+  }) : [];
 
   const genSelectItem = (missing: string): SearchableSelectItem => {
     return {
       value: missing,
       orderVal: `zzzzzzz${missing}`,
     };
-  }
+  };
 
   const genTagItem = (missing: string): TagSelectItem => {
     return {
@@ -297,10 +308,10 @@ export function SearchBar() {
       orderVal: `zzzzzzz${missing}`,
       value: missing,
     };
-  }
+  };
 
   const platformLabelRenderer = (item: SearchableSelectItem) => {
-    const platformIcon = getPlatformIconURL(item.value, mainState.logoVersion);
+    const platformIcon = getPlatformIconURL(item.value, logoVersion);
 
     return (
       <div className='platform-label-row'>
@@ -336,16 +347,17 @@ export function SearchBar() {
   const onClearSearch = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (event.shiftKey) {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: getDefaultAdvancedFilter(),
       }));
     }
     dispatch(setSearchText({
-      view: view.id,
+      view: viewName,
       text: ''
     }));
     dispatch(forceSearch({
-      view: view.id
+      view: viewName,
+      useCustomViews,
     }));
   };
 
@@ -354,7 +366,17 @@ export function SearchBar() {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
-  }, [view.id]);
+  }, [viewName]);
+
+  const searchComponentProps: SearchComponentProps = {
+    advancedFilter: advancedFilter,
+    setAdvancedFilter: (advFilter) => {
+      dispatch(setAdvancedFilter({
+        view: viewName,
+        filter: advFilter,
+      }));
+    }
+  };
 
   return (
     <div className='search-bar-wrapper search-bar-wrapper--expanded-simple'>
@@ -367,64 +389,70 @@ export function SearchBar() {
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 dispatch(forceSearch({
-                  view: view.id
+                  view: viewName,
+                  useCustomViews,
                 }));
               }
             }}
             ref={searchInputRef}
             placeholder={strings.app.searchPlaceholder}
             className='search-bar-text-input'
-            value={view.text}
+            value={searchText}
             onChange={onTextChange} />
-            <div 
-              className="search-bar-text-input-icon"
-              onClick={onClearSearch}>
-              <OpenIcon icon='circle-x'/>
-            </div>
+          <div
+            className="search-bar-text-input-icon"
+            onClick={onClearSearch}>
+            <OpenIcon icon='circle-x'/>
+          </div>
         </div>
         <GameOrder
-          orderBy={view.orderBy}
-          orderReverse={view.orderReverse}
+          orderBy={orderBy}
+          orderReverse={orderReverse}
+          extOrder={extOrder}
           onChange={(event) => {
             dispatch(setOrderBy({
-              view: view.id,
+              view: viewName,
               value: event.orderBy
             }));
             dispatch(setOrderReverse({
-              view: view.id,
+              view: viewName,
               value: event.orderReverse
+            }));
+            dispatch(setExtOrder({
+              view: viewName,
+              value: event.extOrder
             }));
           }} />
         <SimpleButton
           style={{ height: '100%' }}
-          value={view.expanded ? strings.browse.hideFilters : strings.browse.showFilters }
-          onClick={() => onToggleExpanded(!view.expanded)} />
+          value={filtersExpanded ? strings.browse.hideFilters : strings.browse.showFilters }
+          onClick={() => onToggleExpanded(!filtersExpanded)} />
       </div>
-      {view.expanded && (
+      {filtersExpanded && (
         <div className='search-bar-expansion search-bar-expansion-simple'>
           <ThreeStateCheckbox
             title={strings.browse.installed}
-            value={view.advancedFilter.installed}
+            value={advancedFilter.installed}
             onChange={onInstalledChange} />
-          {window.Shared.preferences.data.enableEditing && (
+          {enableEditing && (
             <ThreeStateCheckbox
               title={strings.browse.legacyGame}
-              value={view.advancedFilter.legacy}
+              value={advancedFilter.legacy}
               onChange={onLegacyChange} />
           )}
-          {view.selectedPlaylist && (
+          {insidePlaylist && (
             <ThreeStateCheckbox
               title={strings.browse.usePlaylistOrder}
-              value={view.advancedFilter.playlistOrder}
+              value={advancedFilter.playlistOrder}
               twoState={true}
               onChange={onPlaylistOrderChange} />
           )}
-          {window.Shared.preferences.data.useCustomViews && (
+          {useCustomViews && (
             <SearchableSelect
               title={strings.browse.library}
               items={libraryItems}
-              andToggle={view.advancedFilter.andToggles.library}
-              selected={view.advancedFilter.library}
+              andToggle={advancedFilter.andToggles.library}
+              selected={advancedFilter.library}
               generateItem={genSelectItem}
               onWhitelist={onWhitelistLibrary}
               onBlacklist={onBlacklistLibrary}
@@ -437,8 +465,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.ruffleSupport}
             items={ruffleSupportItems}
-            andToggle={view.advancedFilter.andToggles.ruffleSupport}
-            selected={view.advancedFilter.ruffleSupport}
+            andToggle={advancedFilter.andToggles.ruffleSupport}
+            selected={advancedFilter.ruffleSupport}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistRuffleSupport}
             onBlacklist={onBlacklistRuffleSupport}
@@ -447,8 +475,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.app.developer}
             items={developerItems}
-            andToggle={view.advancedFilter.andToggles.developer}
-            selected={view.advancedFilter.developer}
+            andToggle={advancedFilter.andToggles.developer}
+            selected={advancedFilter.developer}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistDeveloper}
             onBlacklist={onBlacklistDeveloper}
@@ -457,8 +485,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.publisher}
             items={publisherItems}
-            andToggle={view.advancedFilter.andToggles.publisher}
-            selected={view.advancedFilter.publisher}
+            andToggle={advancedFilter.andToggles.publisher}
+            selected={advancedFilter.publisher}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistPublisher}
             onBlacklist={onBlacklistPublisher}
@@ -467,8 +495,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.series}
             items={seriesItems}
-            andToggle={view.advancedFilter.andToggles.series}
-            selected={view.advancedFilter.series}
+            andToggle={advancedFilter.andToggles.series}
+            selected={advancedFilter.series}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistSeries}
             onBlacklist={onBlacklistSeries}
@@ -477,8 +505,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.playMode}
             items={playModeItems}
-            andToggle={view.advancedFilter.andToggles.playMode}
-            selected={view.advancedFilter.playMode}
+            andToggle={advancedFilter.andToggles.playMode}
+            selected={advancedFilter.playMode}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistPlayMode}
             onBlacklist={onBlacklistPlayMode}
@@ -487,9 +515,9 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.platform}
             items={platformItems}
-            andToggle={view.advancedFilter.andToggles.platform}
+            andToggle={advancedFilter.andToggles.platform}
             labelRenderer={platformLabelRenderer}
-            selected={view.advancedFilter.platform}
+            selected={advancedFilter.platform}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistPlatform}
             onBlacklist={onBlacklistPlatform}
@@ -498,19 +526,30 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.tags}
             items={tagItems}
-            andToggle={view.advancedFilter.andToggles.tags}
+            andToggle={advancedFilter.andToggles.tags}
             labelRenderer={tagLabelRenderer}
-            selected={view.advancedFilter.tags}
+            selected={advancedFilter.tags}
             generateItem={genTagItem}
             onWhitelist={onWhitelistTag}
             onBlacklist={onBlacklistTag}
             onClear={onClearTags}
             onSetAndToggle={onSetAndToggleTags} />
+          { displaySettings.searchComponents.map((name) => {
+            return (
+              <DynamicComponent key={name} name={name} props={searchComponentProps}/>
+            );
+          }) }
+          <SimpleButton
+            value="Download All Results"
+            onClick={() => {
+              window.Shared.back.send(BackIn.DOWNLOAD_SEARCH_RESULTS, searchFilter);
+            }}/>
         </div>
       )}
     </div>
   );
 }
+
 
 type ThreeStateCheckboxProps = {
   value?: boolean;
@@ -563,7 +602,7 @@ type SearchableSelectProps<T extends SearchableSelectItem> = {
   onClear: () => void;
   onSetAndToggle: (value: boolean) => void;
   mapName?: (name: string) => string;
-  labelRenderer?: (item: T, selected: boolean) => JSX.Element;
+  labelRenderer?: (item: T, selected: boolean) => React.JSX.Element;
   generateItem: (missing: string) => T;
 }
 
@@ -576,8 +615,8 @@ type TagSelectItem = {
   tag: Tag;
 } & SearchableSelectItem;
 
-function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
-  const { title, items, selected, andToggle, onWhitelist, onBlacklist, onClear, onSetAndToggle, mapName, labelRenderer } = props;
+export function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
+  const { title, items, selected, andToggle, generateItem, onWhitelist, onBlacklist, onClear, onSetAndToggle, mapName, labelRenderer } = props;
   const [expanded, setExpanded] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -592,20 +631,6 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
     }
   };
 
-  const orderedItems = useMemo(() => {
-    const newItems = [...items];
-    const missingItems = { ...selected };
-    for (const item of newItems) {
-      if (item.value in missingItems) {
-        delete missingItems[item.value];
-      }
-    }
-    for (const missingItem of Object.keys(missingItems)) {
-      newItems.push(props.generateItem(missingItem));
-    }
-    return newItems.sort((a, b) => a.orderVal.localeCompare(b.orderVal));
-  }, [items, selected]);
-
   React.useEffect(() => {
     // Add event listener to handle clicks outside the dropdown
     document.addEventListener('mousedown', handleClickOutside);
@@ -614,7 +639,7 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  });
 
   return (
     <div
@@ -639,7 +664,8 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
         </div>
         {expanded && (
           <SearchableSelectDropdown
-            items={orderedItems}
+            items={items}
+            generateItem={generateItem}
             andToggle={andToggle}
             onWhitelist={onWhitelist}
             onBlacklist={onBlacklist}
@@ -656,29 +682,46 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
 
 type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
   items: T[];
+  generateItem: (missing: string) => T;
   andToggle: boolean;
   selected: Record<string, AdvancedFilterToggle>;
-  labelRenderer?: (item: T, selected: boolean) => JSX.Element;
+  labelRenderer?: (item: T, selected: boolean) => React.JSX.Element;
   mapName?: (id: string) => string;
   onWhitelist: (item: string) => void;
   onBlacklist: (item: string) => void;
   onSetAndToggle: (value: boolean) => void;
 }
 
-const reservedKeys = ["Shift", "Control", "Escape", "Alt", "AltGraph", "Super", "Hyper"];
+const reservedKeys = ['Shift', 'Control', 'Escape', 'Alt', 'AltGraph', 'Super', 'Hyper'];
 
 function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
-  const strings = useContext(LangContext);
-  const { items, selected, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
+  const strings = useLocalization();
+  const { items: rawItems, selected, generateItem, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = React.useState('');
-  const [storedItems, setStoredItems] = React.useState(items); // 'cache' the items
   const [selectedIndex, setSelectedIndex] = React.useState(-1); // Track the selected index
+
+  const getOrderedItems = (items: T[]) => {
+    const newItems = [...items];
+    const missingItems = { ...selected };
+    for (const item of newItems) {
+      if (item.value in missingItems) {
+        delete missingItems[item.value];
+      }
+    }
+    for (const missingItem of Object.keys(missingItems)) {
+      newItems.push(generateItem(missingItem));
+    }
+    return newItems.sort((a, b) => a.orderVal.localeCompare(b.orderVal));
+  };
+
+  const items = getOrderedItems(rawItems);
+  const [storedItems, setStoredItems] = React.useState(items); // 'cache' the items
 
   // Split the items into 2 halves - Selected and not selected, then merge
 
-  const filteredItems = React.useMemo(() => {
+  const getFilteredItems = () => {
     const lowerSearch = search.toLowerCase().replace(' ', '');
     const selectedItems = storedItems.filter((item) => item.value in selected);
     selectedItems.sort((a, b) => {
@@ -689,13 +732,14 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
         return -1;
       }
       return a.value.toLowerCase().localeCompare(b.value.toLowerCase());
-    })
+    });
 
     return [
       ...selectedItems,
       ...storedItems.filter((item) => !(item.value in selected) && item.orderVal.toLowerCase().includes(lowerSearch)),
     ];
-  }, [search, storedItems]);
+  };
+  const filteredItems = getFilteredItems();
 
   // Handle arrow key navigation when the input field is focused
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -742,10 +786,10 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
     if (Object.keys(selected).length === 0) {
       setStoredItems(items);
     }
-  }, [items]);
+  }, [items, selected]);
 
   const handleItemClick = (itemValue: string, index: number) => {
-    onWhitelist(itemValue); 
+    onWhitelist(itemValue);
     // Always make sure the input is focused
     inputRef.current?.focus();
     // Update the selected index
@@ -754,7 +798,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
 
   const handleItemContextMenu = (event: React.MouseEvent, itemValue: string, index: number) => {
     event.stopPropagation(); // Prevent onClear getting hit above
-    onBlacklist(itemValue); 
+    onBlacklist(itemValue);
     // Always make sure the input is focused
     inputRef.current?.focus();
     // Update the selected index

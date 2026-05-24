@@ -3,14 +3,14 @@ import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle } from '
 
 function getWhitelistedKeys(record: Record<string, AdvancedFilterToggle>): string[] {
   return Object.entries(record)
-    .filter(e => e[1] === 'whitelist')
-    .map(e => e[0]);
+  .filter(e => e[1] === 'whitelist')
+  .map(e => e[0]);
 }
 
 function getBlacklistedKeys(record: Record<string, AdvancedFilterToggle>): string[] {
   return Object.entries(record)
-    .filter(e => e[1] === 'blacklist')
-    .map(e => e[0]);
+  .filter(e => e[1] === 'blacklist')
+  .map(e => e[0]);
 }
 
 export function getDefaultGameSearch(): GameSearch {
@@ -21,6 +21,7 @@ export function getDefaultGameSearch(): GameSearch {
       platforms: false,
       gameData: false,
       addApps: false,
+      extData: true,
     },
     limit: 999999999,
     slim: false,
@@ -34,7 +35,7 @@ export function getDefaultGameSearch(): GameSearch {
 export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
   return {
     playlistOrder: true,
-    library: library ? {[library]: 'whitelist'} : {},
+    library: library ? { [library]: 'whitelist' } : {},
     playMode: {},
     platform: {},
     tags: {},
@@ -42,6 +43,10 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
     publisher: {},
     series: {},
     ruffleSupport: {},
+    ext: {
+      bools: {},
+      toggles: {},
+    },
     andToggles: {
       library: false,
       playMode: false,
@@ -51,6 +56,7 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
       publisher: false,
       series: false,
       ruffleSupport: false,
+      ext: {},
     }
   };
 }
@@ -109,7 +115,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
       if (!andToggle) {
         newFilter.matchAny = true;
       }
-      newFilter.exactWhitelist[fieldKey] = val;
+      newFilter.exactWhitelist[fieldKey] = val as any;
       filter.subfilters.push(newFilter);
     }
   };
@@ -124,14 +130,14 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
         if (!andToggle) {
           newFilter.matchAny = true;
         }
-        newFilter.exactWhitelist[fieldKey] = [''];
+        newFilter.exactWhitelist[fieldKey] = [''] as any;
         filter.subfilters.push(newFilter);
       } else {
         const newFilter = getDefaultGameFilter();
         if (!andToggle) {
           newFilter.matchAny = true;
         }
-        newFilter.whitelist[fieldKey] = val;
+        newFilter.whitelist[fieldKey] = val as any;
         filter.subfilters.push(newFilter);
       }
     }
@@ -143,7 +149,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     if (val.length > 0) {
       const newFilter = getDefaultGameFilter();
       newFilter.matchAny = true;
-      newFilter.exactBlacklist[fieldKey] = val;
+      newFilter.exactBlacklist[fieldKey] = val as any;
       filter.subfilters.push(newFilter);
     }
   };
@@ -155,12 +161,12 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
       if (val.length === 1 && val[0] === '') {
         const newFilter = getDefaultGameFilter();
         newFilter.matchAny = true;
-        newFilter.exactBlacklist[fieldKey] = [''];
+        newFilter.exactBlacklist[fieldKey] = [''] as any;
         filter.subfilters.push(newFilter);
       } else {
         const newFilter = getDefaultGameFilter();
         newFilter.matchAny = true;
-        newFilter.blacklist[fieldKey] = val;
+        newFilter.blacklist[fieldKey] = val as any;
         filter.subfilters.push(newFilter);
       }
     }
@@ -183,6 +189,65 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
   exactBlacklistFunc('series', 'series');
   exactBlacklistFunc('tags', 'tags');
   exactBlacklistFunc('ruffleSupport', 'ruffleSupport');
+
+  // Add ext adv filters
+  for (const extId of Object.keys(advFilter.ext.toggles)) {
+    const extAndToggles = advFilter.andToggles.ext[extId] || {};
+    const extFilter = advFilter.ext.toggles[extId]!;
+    for (const key of Object.keys(extFilter)) {
+      const andToggle = !!extAndToggles[key];
+
+      const whitelistVals = getWhitelistedKeys(extFilter[key]);
+      if (whitelistVals.length > 0) {
+        if (whitelistVals.length === 1 && whitelistVals[0] === '') {
+          const newFilter = getDefaultGameFilter();
+          if (!andToggle) {
+            newFilter.matchAny = true;
+          }
+          newFilter.exactWhitelist.ext = {
+            [extId]: {
+              [key]: ['']
+            }
+          };
+          filter.subfilters.push(newFilter);
+        } else {
+          const newFilter = getDefaultGameFilter();
+          if (!andToggle) {
+            newFilter.matchAny = true;
+          }
+          newFilter.whitelist.ext = {
+            [extId]: {
+              [key]: whitelistVals
+            }
+          };
+          filter.subfilters.push(newFilter);
+        }
+      }
+
+      const blacklistedVals = getBlacklistedKeys(extFilter[key]);
+      if (blacklistedVals.length > 0) {
+        if (blacklistedVals.length === 1 && blacklistedVals[0] === '') {
+          const newFilter = getDefaultGameFilter();
+          newFilter.matchAny = true;
+          newFilter.exactWhitelist.ext = {
+            [extId]: {
+              [key]: ['']
+            }
+          };
+          filter.subfilters.push(newFilter);
+        } else {
+          const newFilter = getDefaultGameFilter();
+          newFilter.matchAny = true;
+          newFilter.blacklist.ext = {
+            [extId]: {
+              [key]: blacklistedVals
+            }
+          };
+          filter.subfilters.push(newFilter);
+        }
+      }
+    }
+  }
 
   return filter;
 }

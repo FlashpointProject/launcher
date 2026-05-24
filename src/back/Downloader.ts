@@ -1,16 +1,17 @@
-import { Game } from '@fparchive/flashpoint-archive';
-import { downloadGameData } from './download';
-import { fpDatabase } from '.';
-import * as fs from 'fs-extra';
-import * as crypto from 'crypto';
-import * as path from 'path';
-import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, GameDataSource } from 'flashpoint-launcher';
-import { axios } from './dns';
-import { BackState } from './types';
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 import { BackOut } from '@shared/back/types';
+import { getGameDataFilename } from '@shared/utils/misc';
+import { AxiosError } from 'axios';
+import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, Game, GameDataSource } from 'flashpoint-launcher';
+import * as fs from 'fs-extra';
+import * as path from 'node:path';
+import { fpDatabase } from '.';
+import { axios } from './dns';
+import { downloadGameData } from './download';
+import { BackState } from './types';
+import { EventQueue } from './util/EventQueue';
 import { promiseSleep } from './util/misc';
 import { WrappedEventEmitter } from './util/WrappedEventEmitter';
-import { EventQueue } from './util/EventQueue';
 
 export interface Downloader {
   on  (event: string, listener: (...args: any[]) => void): this;
@@ -31,8 +32,11 @@ export class Downloader extends WrappedEventEmitter {
   private tasks: Record<string, DownloadTask> = {}; // Queue of tasks to be executed
   private workers: DownloadWorker[] = []; // Array of workers
   private idleWorkers: DownloadWorker[] = []; // Array of idle workers
-  public databaseQueue: EventQueue = new EventQueue
+  public databaseQueue: EventQueue = new EventQueue;
   public status: DownloaderStatus;
+  private total: number = 0;
+  private done: number = 0;
+  private failures: number = 0;
 
   constructor(
     public readonly flashpointPath: string,
@@ -40,7 +44,7 @@ export class Downloader extends WrappedEventEmitter {
     public readonly imageFolderPath: string,
     public readonly onDemandBaseUrl: string,
     public readonly sources: GameDataSource[],
-    private state: BackState,
+    public state: BackState,
     workerCount: number
   ) {
     super();
@@ -50,7 +54,7 @@ export class Downloader extends WrappedEventEmitter {
       this.workers.push(worker);
       this.idleWorkers.push(worker);
     }
-    this.status = 'running';
+    this.status = 'stopped';
   }
 
   public start() {
@@ -62,8 +66,8 @@ export class Downloader extends WrappedEventEmitter {
           this.assignTaskToIdleWorker(nextTask);
         }
       }
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_STATUS, this.status);
       this.emit('statusChange', this.status);
+      this.sendStatusUpdate();
     }
   }
 
@@ -75,8 +79,8 @@ export class Downloader extends WrappedEventEmitter {
         worker.abort();
       }
       this.idleWorkers = [...this.workers]; // Reset all workers to idle
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_STATUS, this.status);
       this.emit('statusChange', this.status);
+      this.sendStatusUpdate();
     }
   }
 
@@ -87,28 +91,86 @@ export class Downloader extends WrappedEventEmitter {
     }
     await promiseSleep(1000);
     this.tasks = {};
+    this.total = 0;
+    this.done = 0;
+    this.failures = 0;
     this.status = 'running';
+
+    this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_WHOLE_STATE, {
+      state: this.status,
+      workers: this.getWorkerStates(),
+      total: 0,
+      done: 0,
+      failures: 0,
+    });
   }
 
   public getTotal(): number {
-    return Object.values(this.tasks).length;
+    return this.total;
+  }
+
+  public getDone(): number {
+    return this.done;
+  }
+
+  public getFailures(): number {
+    return this.failures;
   }
 
   public getTasks(): Record<string, DownloadTask> {
     return this.tasks;
   }
 
+  public getWorkerStates(): DownloadWorkerState[] {
+    return this.workers.map(worker => worker.getState());
+  }
+
+  public addTasks(games: Game[]) {
+    // Bulk send updates in sets of up to 2500
+    for (const game of games) {
+      if (!this.tasks[game.id]) {
+        const newTask: DownloadTask = {
+          status: 'waiting',
+          game: {
+            id: game.id,
+            title: game.title,
+          },
+          errors: [],
+        };
+        this.tasks[game.id] = newTask;
+        this.total++;
+        this.assignTaskToIdleWorker(newTask);
+        this.emit('taskChange', newTask);
+      }
+    }
+
+    this.sendStatusUpdate();
+  }
+
+  private sendStatusUpdate()
+  {
+    this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_STATUS, {
+      status: this.status,
+      total: this.total,
+      done: this.done,
+      failures: this.failures,
+    });
+  }
+
   public addTask(game: Game): boolean {
     if (!this.tasks[game.id]) {
       const newTask: DownloadTask = {
         status: 'waiting',
-        game,
+        game: {
+          id: game.id,
+          title: game.title,
+        },
         errors: [],
       };
       this.tasks[game.id] = newTask;
       this.assignTaskToIdleWorker(newTask);
       this.emit('taskChange', newTask);
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, newTask);
+      this.sendStatusUpdate();
       return true;
     }
     return false;
@@ -123,17 +185,13 @@ export class Downloader extends WrappedEventEmitter {
 
   private assignTaskToIdleWorker(task: DownloadTask): void {
     if (this.status === 'running' && this.idleWorkers.length > 0) {
-      log.debug('Downloads', 'Starting task');
       const worker = this.idleWorkers.shift(); // Get the first idle worker
       if (worker) {
         task.errors = [];
         task.status = 'in_progress';
         this.emit('taskChange', task);
-        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, task);
         worker.assignTask(task);
       }
-    } else {
-      log.debug('Downloads', 'Not running');
     }
   }
 
@@ -141,17 +199,34 @@ export class Downloader extends WrappedEventEmitter {
   public signalStatus(worker: DownloadWorker, gameId: string, status: DownloadTaskStatus, errors: string[]): void {
     this.idleWorkers.push(worker);
     if (this.tasks[gameId]) {
-      this.tasks[gameId].status = status;
-      this.tasks[gameId].errors = errors;
-      log.info('Downloader', `Task: ${gameId} - Status: ${status}`);
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
-      this.emit('taskChange', this.tasks[gameId]);
+      if (this.status === 'running') {
+        this.tasks[gameId].status = status;
+        this.tasks[gameId].errors = errors;
+        this.emit('taskChange', this.tasks[gameId]);
+      } else {
+        this.tasks[gameId].status = 'waiting';
+        this.emit('taskChange', this.tasks[gameId]);
+      }
+    }
+
+    if (status === 'success')
+    {
+      this.done++;
+    }
+
+    if (status === 'failure' && this.status === 'running') {
+      log.error('Downloader', `Download failure for ${gameId}: ${errors}`);
+      this.failures++;
     }
 
     const nextTask = this.getNextTask();
     if (nextTask) {
       this.assignTaskToIdleWorker(nextTask);
+    } else if (this.idleWorkers.length === this.workers.length) {
+      // No tasks remaining, all workers idle, stop
+      this.stop();
     }
+    this.sendStatusUpdate();
   }
 
   public onWorkerUpdate(worker: DownloadWorker) {
@@ -166,6 +241,7 @@ class DownloadWorker {
   private step = 1;
   private totalSteps = 3;
   private stepProgress = 0.0;
+  private taskText = '';
   private statusText = '';
 
   constructor(
@@ -179,8 +255,9 @@ class DownloadWorker {
       step: this.step,
       totalSteps: this.totalSteps,
       stepProgress: this.stepProgress,
+      taskText: this.taskText,
       text: this.statusText,
-    }
+    };
   }
 
   // Start the worker to begin processing URLs
@@ -191,13 +268,21 @@ class DownloadWorker {
   }
 
   private async execute(signal: AbortSignal, task: DownloadTask): Promise<void> {
+    this.taskText = `Downloading '${task.game.title}'...`;
     this.step = 1;
     this.stepProgress = 0;
     this.statusText = 'Downloading logo...';
     this.downloader.onWorkerUpdate(this);
-    const { game } = task;
-    const gameId = game.id;
+    const gameInfo = task.game;
+    const gameId = gameInfo.id;
     const errors: string[] = [];
+
+    const game = await fpDatabase.findGame(gameId);
+    if (!game) {
+      errors.push(`Failed to find game with id ${gameId}`);
+      this.downloader.signalStatus(this, gameId, 'failure', errors);
+      return;
+    }
 
     // Download game images
     const logoPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, game.logoPath);
@@ -208,7 +293,7 @@ class DownloadWorker {
         await this.downloadImage(game.logoPath, signal);
       } catch (e) {
         this.downloader.signalStatus(this, gameId, 'failure', errors);
-        errors.push(`${e}`);
+        errors.push(`Failed downloading game logo: ${e}`);
       }
     }
 
@@ -225,7 +310,7 @@ class DownloadWorker {
       try {
         await this.downloadImage(game.screenshotPath, signal);
       } catch (e) {
-        errors.push(`${e}`);
+        errors.push(`Failed downloading game screenshot: ${e}`);
       }
     }
 
@@ -238,40 +323,48 @@ class DownloadWorker {
     this.statusText = 'Downloading game data...';
     this.step = 3;
 
+    const foundGameData = await fpDatabase.findGameData(game.id);
+
     // Download game data
-    if (game.gameData) {
+    if (foundGameData) {
       this.stepProgress = 0;
-      for (const gameData of game.gameData) {
+      for (const gameData of foundGameData) {
         // Calc the path on disk and check if the file already matches
-        const realPath = path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
+        const realPath = path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath, getGameDataFilename(gameData));
         if (fs.existsSync(realPath)) {
-          if (gameData.path !== realPath || gameData.presentOnDisk === false) {
-            gameData.path = realPath;
+          if (gameData.presentOnDisk === false) {
             gameData.presentOnDisk = true;
-            game.activeDataOnDisk = true;
             await new Promise<void>((resolve, reject) => {
               this.downloader.databaseQueue.push(async () => {
                 try {
-                  await fpDatabase.saveGameData(gameData);
-                  await fpDatabase.saveGame(game);
+                  await fpDatabase.saveGameData({
+                    id: gameData.id,
+                    gameId: gameId,
+                    path: realPath,
+                    presentOnDisk: true,
+                  });
+                  await fpDatabase.saveGame({
+                    id: gameId,
+                    activeDataOnDisk: true
+                  });
                   resolve();
                 } catch (err) {
                   reject(err);
                 }
-              })
-            })
+              });
+            });
           }
           continue;
         }
 
         // Did not find matching file, try and download
         try {
-          await downloadGameData(gameData.id, path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath), this.downloader.sources, signal, (progress) => {
-            this.stepProgress = progress;
+          await downloadGameData(gameData.id, this.downloader.state, signal, (progress) => {
+            this.stepProgress = progress / 100;
             this.downloader.onWorkerUpdate(this);
-          }, () => {}, this.downloader.databaseQueue);
+          }, () => {});
         } catch (e) {
-          errors.push(`${e}`);
+          errors.push(`Failed downloading game data: ${e}`);
         }
 
         this.statusText = 'Done';
@@ -293,7 +386,7 @@ class DownloadWorker {
   }
 
   private async downloadImage(subPath: string, signal: AbortSignal) {
-    let url = this.downloader.onDemandBaseUrl + (this.downloader.onDemandBaseUrl.endsWith('/') ? '' : '/') + subPath;
+    const url = this.downloader.onDemandBaseUrl + (this.downloader.onDemandBaseUrl.endsWith('/') ? '' : '/') + subPath;
     await axios.get(url, { responseType: 'arraybuffer', signal })
     .then(async (res) => {
       // Save response to image file
@@ -304,17 +397,11 @@ class DownloadWorker {
 
       await fs.ensureDir(path.dirname(filePath));
       await fs.promises.writeFile(filePath, imageData, 'binary');
-    });
-  }
-
-  private async calculateFileHash(filePath: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const hash = crypto.createHash('sha256');
-      const stream = fs.createReadStream(filePath);
-
-      stream.on('data', (chunk) => hash.update(chunk));
-      stream.on('end', () => resolve(hash.digest('hex')));
-      stream.on('error', (error) => reject(error));
+    })
+    .catch((err: AxiosError) => {
+      if (err.response?.status !== 404) {
+        throw err;
+      }
     });
   }
 

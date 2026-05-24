@@ -1,7 +1,7 @@
 /** URL Paths of the different pages */
 export enum Paths {
   HOME       = '/',
-  BROWSE     = '/browse',
+  BROWSE     = '/browse/*',
   TAGS       = '/tags',
   CATEGORIES = '/categories',
   LOGS       = '/logs',
@@ -9,7 +9,8 @@ export enum Paths {
   CONFIG     = '/config',
   ABOUT      = '/about',
   CURATE     = '/curate',
-  DEVELOPER  = '/developer',
   LOADING    = '/loading',
   DOWNLOADS  = '/downloads',
+  DYNAMIC    = '/dynamic',
+  FPFSS      = '/fpfss',
 }

@@ -1,80 +1,81 @@
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, DownloadDetails } from '@shared/back/types';
+import { getCurationFolder } from '@shared/curate/util';
+import { LogoSet } from '@shared/extensions/interfaces';
+import { getDefaultLocalization } from '@shared/lang';
+import { LogLevel } from '@shared/Log/interface';
+import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
   createErrorProxy, deepCopy,
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
-import * as os from 'os';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails, FpfssUser } from '@shared/back/types';
-import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
-import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
-import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
-import { LangFileContent, getDefaultLocalization } from '@shared/lang';
-import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { defaultPreferencesData } from '@shared/preferences/util';
-import { validateSemiUUID } from '@shared/utils/uuid';
 import { FPA_VERSION, VERSION } from '@shared/version';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as http from 'http';
-import * as mime from 'mime';
 import { Progress, add, extractFull } from 'node-7z';
-import * as path from 'path';
+import * as path from 'node:path';
+import * as os from 'os';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function
+import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
   CURATIONS_FOLDER_TEMP,
-  CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
+  CURATIONS_FOLDER_TEMPLATES,
+  CURATIONS_FOLDER_WORKING,
+  CURATION_META_FILENAMES
 } from '@shared/constants';
-import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
+import { formatString } from '@shared/utils/StringFormatter';
+import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
+import { UnrecoverableError } from 'flashpoint-launcher-renderer';
+import { parseArgs } from 'node:util';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
-import { loadExecMappingsFile } from './Execs';
-import { ExtConfigFile } from './ExtConfigFile';
-import { InstancedAbortController } from './InstancedAbortController';
-import { ManagedChildProcess } from './ManagedChildProcess';
-import { PlaylistFile } from './PlaylistFile';
-import { ServicesFile } from './ServicesFile';
-import { SocketServer } from './SocketServer';
-import { newThemeWatcher } from './Themes';
 import { CONFIG_FILENAME, DISCORD_LINK, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE, WIKI_AV_TROUBLESHOOTING } from './constants';
+import { saveCurationFpfssInfo } from './curate/fpfss';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
-import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
+import { getAllApplicationPaths, getAllLibraries, getAllPlayModes, getAllStatuses } from './DatabaseCache';
 import { downloadGameData } from './download';
+import { Downloader } from './Downloader';
+import { loadExecMappingsFile } from './Execs';
+import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import {
   FPLNodeModuleFactory,
   INodeModuleFactory,
-  installNodeInterceptor,
   registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command, RegisteredMiddleware } from './extensions/types';
+import { loadExtension } from './extensions/util';
+import { webgameContentRunner } from './flashpoint/WebgameContentRunner';
+import { GameDataProviderRaw } from './GameDataProvider';
+import { InstancedAbortController } from './InstancedAbortController';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { SystemEnvMiddleware } from './middleware';
+import { PlaylistFile } from './PlaylistFile';
 import { registerRequestCallbacks } from './responses';
-import { genContentTree } from './rust';
-import { BackState, ImageDownloadItem } from './types';
+import { ServicesFile } from './ServicesFile';
+import { SocketServer } from './SocketServer';
+import { newSystemThemeWatcher, newThemeWatcher } from './Themes';
+import { BackState } from './types';
+import { awaitDialog } from './util/dialog';
 import { EventQueue } from './util/EventQueue';
-import { FileServer, serveFile } from './util/FileServer';
+import { onDidInstallGameData, onDidRemoveGame, onDidRemovePlaylistGame, onDidUninstallGameData, onDidUpdateGame, onDidUpdatePlaylist, onDidUpdatePlaylistGame, onServiceChange, onWillImportCuration, onWillUninstallGameData } from './util/events';
+import { SimpleDownloader, startFileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
+import { dispose } from './util/lifecycle';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
-import { createContainer, exit, getMacPATH, runService } from './util/misc';
+import { createContainer, exit, getMacPATH, langFilesToInfo, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { onDidInstallGameData, onDidRemoveGame, onDidRemovePlaylistGame, onDidUninstallGameData, onDidUpdateGame, onDidUpdatePlaylist, onDidUpdatePlaylistGame, onServiceChange, onWillImportCuration, onWillUninstallGameData } from './util/events';
-import { dispose } from './util/lifecycle';
-import { formatString } from '@shared/utils/StringFormatter';
-import { awaitDialog } from './util/dialog';
-import { saveCurationFpfssInfo } from './curate/fpfss';
-import { axios } from './dns';
-import { Downloader } from './Downloader';
 
 export const VERBOSE = {
   enabled: false
@@ -82,31 +83,32 @@ export const VERBOSE = {
 
 export const fpDatabase = new FlashpointArchive();
 
-const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
-
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
 const send: Required<typeof process.send> = process.send
   ? process.send.bind(process)
-  : (() => { throw new Error('process.send is undefined.'); });
+  : (val: any) => true;
 
-const CONCURRENT_IMAGE_DOWNLOADS = 6;
-
-const state: BackState = {
+export const state: BackState = {
+  startTime: Date.now(),
   readyForInit: false,
   ignoreQuit: false,
   runInit: false,
   isExit: false,
   isDev: false,
+  isElectron: false,
   verbose: false,
+  updateInProgress: false,
   logFile: createErrorProxy('logFile'),
   socketServer: new SocketServer(),
-  fileServer: new FileServer(),
+  curationsReady: false,
+  onDemandImageDownloader: new SimpleDownloader(),
   fileServerPort: -1,
   fileServerDownloads: {
     queue: [],
     current: [],
   },
+  fileServer: createErrorProxy('fileServer'),
   downloader: createErrorProxy('downloader'),
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
@@ -114,8 +116,6 @@ const state: BackState = {
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
-  version: createErrorProxy('version'),
-  versionStr: createErrorProxy('versionStr'),
   suggestions: createErrorProxy('suggestions'),
   acceptRemote: createErrorProxy('acceptRemote'),
   customVersion: undefined,
@@ -126,12 +126,10 @@ const state: BackState = {
     [BackInit.DATABASE_READY]: false,
     [BackInit.DATABASE]: false,
     [BackInit.PLAYLISTS]: false,
-    [BackInit.CURATE]: false,
     [BackInit.EXEC_MAPPINGS]: false,
     [BackInit.EXTENSIONS]: false,
   },
   initEmitter: new EventEmitter() as any,
-  queries: {},
   log: [],
   serviceInfo: undefined,
   services: new Map<string, ManagedChildProcess>(),
@@ -172,8 +170,10 @@ const state: BackState = {
       onDidInstallGameData: onDidInstallGameData,
       onDidUninstallGameData: onDidUninstallGameData,
       onWillImportCuration: onWillImportCuration,
+      onInterceptGetGame: new ApiEmitter<flashpoint.Game>(),
     },
     curations: {
+      onCurationsReady: new ApiEmitter(),
       onDidCurationListChange: new ApiEmitter(),
       onDidCurationChange: new ApiEmitter(),
       onWillGenCurationWarnings: new ApiEmitter()
@@ -198,10 +198,13 @@ const state: BackState = {
     logoSets: new Map<string, LogoSet>(),
     themes: new Map<string, Theme>(),
     middlewares: new Map<string, RegisteredMiddleware>(),
+    contentRunners: new Map<string, flashpoint.ContentRunner>(),
+    dataSources: new Map<string, flashpoint.GameDataProvider>,
   },
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
   loadedCurations: [],
+  curationTemplates: [],
   platformAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
@@ -216,14 +219,6 @@ main();
 
 async function main() {
   registerRequestCallbacks(state, initialize);
-  state.fileServer.registerRequestHandler('themes', onFileServerRequestThemes);
-  state.fileServer.registerRequestHandler('images', onFileServerRequestImages);
-  state.fileServer.registerRequestHandler('logos', onFileServerRequestLogos);
-  state.fileServer.registerRequestHandler('exticons', onFileServerRequestExtIcons);
-  state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
-  state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
-  state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile));
-  state.fileServer.registerRequestHandler('curation', (p, u, req, res) => onFileServerRequestPostCuration(p, u, req, res, path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP), loadCurationArchive));
 
   // Database manipulation
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
@@ -267,38 +262,138 @@ async function main() {
     BackIn.CURATE_SYNC_CURATIONS,
     BackIn.CURATE_IMPORT,
     // ?
-    BackIn.SYNC_GAME_METADATA,
     BackIn.SYNC_TAGGED,
     // Meta Edits
     BackIn.EXPORT_META_EDIT,
     BackIn.IMPORT_META_EDITS,
   ]);
 
-  process.once('message', prepForInit);
+  const args = getArgs();
+  const config: BackInitArgs = {
+    configFolder: args['config-folder'],
+    isDev: args.dev,
+    verbose: args.verbose,
+    // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+    localeCode: 'en',
+    exePath: args['exe-path'],
+    acceptRemote: args['accept-remote'],
+  };
+  state.isElectron = args.electron;
+
+  prepForInit(config);
+  process.on('SIGTERM', () => { exit(state); });
+  process.on('SIGINT', () => { exit(state); });
   process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
 }
 
-async function prepForInit(message: any): Promise<void> {
+function getArgs() {
+  // Parse command line arguments
+  const { values: args } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      'electron': {
+        type: 'boolean',
+        default: false
+      },
+      'config-folder': {
+        type: 'string',
+        short: 'c',
+        default: process.cwd()
+      },
+      'dev': {
+        type: 'boolean',
+        short: 'd',
+        default: process.env.NODE_ENV === 'development'
+      },
+      'verbose': {
+        type: 'boolean',
+        short: 'v',
+        default: false
+      },
+      'locale': {
+        type: 'string',
+        short: 'l',
+        default: 'en'
+      },
+      'exe-path': {
+        type: 'string',
+        short: 'e',
+        default: process.cwd()
+      },
+      'accept-remote': {
+        type: 'boolean',
+        short: 'r',
+        default: false
+      },
+      'help': {
+        type: 'boolean',
+        short: 'h'
+      }
+    },
+    allowPositionals: false
+  });
+
+  // Show help if requested
+  if (args.help) {
+    console.log(`
+  Usage: node index.js [options]
+  
+  Options:
+    --electron                  Running in Electron
+    -c, --config-folder <path>  Configuration folder path (default: current directory)
+    -d, --dev                   Enable development mode
+    -v, --verbose               Enable verbose logging
+    -l, --locale <code>         Locale code (default: en)
+    -e, --exe-path <path>       Executable path (default: current directory)
+    -r, --accept-remote         Accept remote connections
+    -h, --help                  Show this help message
+      `);
+    process.exit(0);
+  }
+
+  return args;
+}
+
+function registerExceptionCatchers() {
+  const excepted = (error: UnrecoverableError) => {
+    state.socketServer.broadcast(BackOut.UNRECOVERABLE_ERROR, error);
+  };
+
+  process.on('uncaughtException', (error, origin) => {
+    if (error instanceof Error) {
+      excepted({
+        header: origin === 'uncaughtException' ?  'Uncaught Exception' : 'Unhandled Rejection',
+        message: error.message,
+        type: error.name,
+        stackTrace: error.stack
+      });
+    } else {
+      excepted({
+        header: 'Uncaught Exception',
+        message: `${error}`,
+      });
+    }
+  });
+}
+
+async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   console.log(`--- Build Version: ${VERSION} ---`);
   console.log('Back - Initializing...');
 
-  const content: BackInitArgs = JSON.parse(message);
-  state.isDev = content.isDev;
-  state.verbose = content.verbose;
-  state.configFolder = content.configFolder;
-  state.localeCode = content.localeCode;
-  state.exePath = content.exePath;
-  state.version = content.version;
-  console.log(`Version: ${state.version}`);
-  state.versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
-  state.acceptRemote = content.acceptRemote;
+  state.isDev = initConfig.isDev;
+  state.verbose = initConfig.verbose;
+  state.configFolder = initConfig.configFolder;
+  state.localeCode = initConfig.localeCode;
+  state.exePath = initConfig.exePath;
+  state.acceptRemote = initConfig.acceptRemote;
   state.logFile = new LogFile(
     state.isDev ?
       path.join(process.cwd(), 'launcher.log')
-      : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(content.exePath), 'launcher.log'));
+      : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(initConfig.exePath), 'launcher.log'));
 
-  const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
-  global.log = {
+  const addLog = (entry: flashpoint.ILogEntry): number => { return state.log.push(entry) - 1; };
+  // Typescript get supset here despite it working globally elsewhere :(
+  (global as any).log = {
     trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
     debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
     info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
@@ -309,13 +404,17 @@ async function prepForInit(message: any): Promise<void> {
   log.info('Launcher', `Build Version: ${VERSION}`);
   log.info('Launcher', `FPA Version: ${FPA_VERSION}`);
 
-  state.socketServer.secret = content.secret;
+  state.socketServer.secret = 'flashpoint-launcher';
+  state.socketServer.register(BackIn.GET_START_TIME, () => {
+    return state.startTime;
+  });
+  registerExceptionCatchers();
 
-  log.info('Launcher', `Starting Flashpoint Launcher ${state.versionStr}`);
+  log.info('Launcher', 'Starting Flashpoint Launcher');
 
   // Set SevenZip binary path
   {
-    const basePath = state.isDev ? process.cwd() : path.dirname(state.exePath);
+    const basePath = (!state.isDev && state.isElectron) ? path.dirname(state.exePath) : process.cwd();
     switch (process.platform) {
       case 'darwin': state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/mac', '7za'); break;
       case 'win32':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/win', process.arch, '7za'); break;
@@ -396,6 +495,11 @@ async function prepForInit(message: any): Promise<void> {
 
   console.log('Back - Loaded Preferences');
 
+  state.fileServer = await startFileServer();
+  state.fileServerPort = state.fileServer.addresses()[0].port;
+
+  console.log('Back - Started File Server');
+
   // Hook into stdout for logging
   const realWrite = process.stdout.write.bind(process.stdout);
   process.stdout.write = ((string: any, encodingOrCb: any, cb: any) => {
@@ -450,7 +554,7 @@ async function prepForInit(message: any): Promise<void> {
     // Add event listeners
     state.languageWatcher.on('add', onLangAddOrChange);
     state.languageWatcher.on('change', onLangAddOrChange);
-    state.languageWatcher.on('remove', (filename: string, offsetPath: string) => {
+    state.languageWatcher.on('remove', (filename: string, stats: fs.Stats, offsetPath: string) => {
       state.languageQueue.push(() => {
         const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
         const index = state.languages.findIndex(l => l.filename === filePath);
@@ -478,7 +582,7 @@ async function prepForInit(message: any): Promise<void> {
           state.languages.push(lang);
         }
 
-        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, state.languages);
+        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, langFilesToInfo(state.languages));
 
         if (lang.code === state.preferences.currentLanguage ||
             lang.code === state.localeCode ||
@@ -496,7 +600,10 @@ async function prepForInit(message: any): Promise<void> {
   });
   state.languageWatcher.on('error', console.error);
   // On mac, exePath is Flashpoint.app/Contents/MacOS/flashpoint, and lang is at Flashpoint.app/Contents/lang.
-  const langFolder = path.join(state.isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(state.exePath), '..') : path.dirname(state.exePath), 'lang');
+  const langFolder = path.join((!state.isDev && state.isElectron) ?
+    process.platform == 'darwin' ? path.resolve(path.dirname(state.exePath), '..') : path.dirname(state.exePath) :
+    process.cwd(),
+  'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
@@ -543,10 +650,20 @@ async function prepForInit(message: any): Promise<void> {
   }
   console.log('Back - Parsed Playlists');
 
+  // Register sources
+
+  state.registry.dataSources.set(GameDataProviderRaw.id, GameDataProviderRaw);
+
   // Load Extensions
 
   await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
-  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath), state.isDev);
+  state.extensionsService = new ExtensionService(
+    state.config,
+    path.join(state.config.flashpointPath, state.preferences.extensionsPath),
+    state.isDev,
+    state.isElectron,
+    state.exePath,
+  );
   await state.extensionsService.installedExtensionsReady.wait();
 
   console.log('Back - Parsed Extensions');
@@ -566,18 +683,32 @@ async function prepForInit(message: any): Promise<void> {
   } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
-  const themeContributions = await state.extensionsService.getContributions('themes');
+  const themeContributions = await state.extensionsService.getEnabledContributions('themes', state.preferences.disabledExtensions);
   for (const c of themeContributions) {
     for (const theme of c.value) {
       const ext = await state.extensionsService.getExtension(c.extId);
       if (ext) {
-        const realPath = path.join(ext.extensionPath, theme.path);
+        const basePath = path.resolve(ext.extensionPath, 'static');
+        const realPath = path.resolve(basePath, theme.path);
+        if (!realPath.startsWith(basePath)) {
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme, it must be inside the 'static' directory "${theme.id}"\n`);
+          continue;
+        }
         try {
-          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
+          await newThemeWatcher(theme.id, basePath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
         } catch (error) {
           log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme "${theme.id}"\n${error}`);
         }
       }
+    }
+  }
+
+  // Setup system theme listener for dev
+  if (state.isDev) {
+    try {
+      newSystemThemeWatcher('./build/window/styles', state);
+    } catch (error) {
+      log.error('Laucher', 'Failed to start System theme watcher despite being in dev mode');
     }
   }
 
@@ -589,45 +720,45 @@ async function prepForInit(message: any): Promise<void> {
   console.log('Back - Registered System Middleware');
 
   // Find the first available port in the range
-  state.fileServerPort = await new Promise(resolve => {
-    const minPort = state.config.imagesPortMin;
-    const maxPort = state.config.imagesPortMax;
+  // state.fileServerPort = await new Promise(resolve => {
+  //   const minPort = state.config.imagesPortMin;
+  //   const maxPort = state.config.imagesPortMax;
 
-    let port = minPort - 1;
-    state.fileServer.server.once('listening', onceListening);
-    state.fileServer.server.on('error', onError);
-    tryListen();
+  //   let port = minPort - 1;
+  //   state.fileServer.server.once('listening', onceListening);
+  //   state.fileServer.server.on('error', onError);
+  //   tryListen();
 
-    function onceListening() {
-      console.log('Back - Opened File Server');
-      done(undefined);
-    }
-    function onError(error: Error) {
-      if ((error as any).code === 'EADDRINUSE') {
-        tryListen();
-      } else {
-        done(error);
-      }
-    }
-    function tryListen() {
-      if (port++ < maxPort) {
-        const hostname = state.acceptRemote ? undefined : 'localhost';
-        state.fileServer.server.listen(port, hostname);
-      } else {
-        done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
-      }
-    }
-    function done(error: Error | undefined) {
-      state.fileServer.server.off('listening', onceListening);
-      state.fileServer.server.off('error', onError);
-      if (error) {
-        log.info('Back', 'Failed to open HTTP server.\n' + error);
-        resolve(-1);
-      } else {
-        resolve(port);
-      }
-    }
-  });
+  //   function onceListening() {
+  //     console.log('Back - Opened File Server');
+  //     done(undefined);
+  //   }
+  //   function onError(error: Error) {
+  //     if ((error as any).code === 'EADDRINUSE') {
+  //       tryListen();
+  //     } else {
+  //       done(error);
+  //     }
+  //   }
+  //   function tryListen() {
+  //     if (port++ < maxPort) {
+  //       const hostname = state.acceptRemote ? undefined : 'localhost';
+  //       state.fileServer.server.listen(port, hostname);
+  //     } else {
+  //       done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
+  //     }
+  //   }
+  //   function done(error: Error | undefined) {
+  //     state.fileServer.server.off('listening', onceListening);
+  //     state.fileServer.server.off('error', onError);
+  //     if (error) {
+  //       log.info('Back', 'Failed to open HTTP server.\n' + error);
+  //       resolve(-1);
+  //     } else {
+  //       resolve(port);
+  //     }
+  //   }
+  // });
 
   const hostname = state.acceptRemote ? undefined : 'localhost';
 
@@ -637,7 +768,7 @@ async function prepForInit(message: any): Promise<void> {
   // Exit if it failed to open the server
   if (state.socketServer.port < 0) {
     console.log('Back - Failed to open Socket Server, Exiting...');
-    setImmediate(exit);
+    setImmediate(() => exit(state));
     return;
   }
 
@@ -647,11 +778,17 @@ async function prepForInit(message: any): Promise<void> {
   process.on('message', onProcessMessage);
   state.readyForInit = true;
 
+  await promiseSleep(3000);
+
   // Respond
-  send({ port: state.socketServer.port, config: state.config, prefs: state.preferences }, () => {
-    console.log('Back - Ready for Init');
-    state.apiEmitters.onDidInit.fire();
-  });
+  if (process.send) {
+    process.send({ port: state.socketServer.port, config: state.config, prefs: state.preferences }, undefined, undefined,
+      () => {
+        console.log('Back - Ready for Init');
+        state.apiEmitters.onDidInit.fire();
+      });
+  }
+
 }
 
 async function onProcessMessage(message: any): Promise<void> {
@@ -747,17 +884,18 @@ async function initialize() {
   }
 
   state.init[BackInit.DATABASE_READY] = true;
-  state.initEmitter.emit(BackInit.DATABASE_READY);
 
   // Populate unique values
   state.suggestions = {
     tags: [],
-    playMode: await fpDatabase.findAllGamePlayModes(),
+    playMode: await getAllPlayModes(state),
     platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
-    status: await fpDatabase.findAllGameStatuses(),
-    applicationPath: await fpDatabase.findAllGameApplicationPaths(),
-    library: await fpDatabase.findAllGameLibraries(),
+    status: await getAllStatuses(state),
+    applicationPath: await getAllApplicationPaths(state),
+    library: await getAllLibraries(state),
   };
+
+  state.initEmitter.emit(BackInit.DATABASE_READY);
 
   // Check for Flashpoint Manager Updates
 
@@ -799,7 +937,6 @@ async function initialize() {
                 state
               };
               statuses.push(status);
-              log.debug('Launcher', `Parsed: ${JSON.stringify({ ...status, state: ComponentState[status.state] })}`);
             } catch (err) {
               log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
             }
@@ -899,7 +1036,7 @@ async function initialize() {
             const msg = formatString(state.languageContainer.dialog.badAntiVirus, output.trim()) as string;
             const client = state.socketServer.clients.clients[state.socketServer.clients.clients.length - 1]; // Latest client
             const func = state.socketServer.showMessageBoxBack(state, client);
-            const dialogId = await func({
+            const dialogId = func({
               message: msg,
               largeMessage: true,
               buttons: [state.languageContainer.dialog.openWiki, state.languageContainer.dialog.openDiscord, state.languageContainer.dialog.doNotShowAgain],
@@ -965,9 +1102,15 @@ async function initialize() {
 
   console.log('Back - Initialized Database');
 
-  // Load curations
+  // Read curation template filenames
+  const templatesPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMPLATES);
+  await fs.ensureDir(templatesPath);
+  state.curationTemplates = (await fs.promises.readdir(templatesPath, { withFileTypes: true }))
+  .filter(f => f.isFile())
+  .map(f => f.name);
 
-  // Go through all curation folders
+  // Load curations asynchronously
+
   const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
   fs.promises.readdir(rootPath)
   .then(async (folders) => {
@@ -977,16 +1120,20 @@ async function initialize() {
   })
   .then(() => {
     console.log('Back - Initialized Curations');
-    state.init[BackInit.CURATE] = true;
-    state.initEmitter.emit(BackInit.CURATE);
+    state.curationsReady = true;
+    state.apiEmitters.curations.onCurationsReady.fire();
+    state.socketServer.broadcast(BackOut.CURATE_LOADED);
   })
   .catch((error: any) => {
     log.error('Launcher', `Failed to load curations\n${error.toString()}`);
     exit(state);
   });
 
+  // Add built in providers
+  state.registry.contentRunners.set(webgameContentRunner.id, webgameContentRunner);
+
   // Init extensions
-  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
+  const addExtLogFactory = (extId: string) => (entry: flashpoint.ILogEntry) => {
     state.extensionsService.logExtension(extId, entry);
   };
 
@@ -994,17 +1141,17 @@ async function initialize() {
   registerInterceptor(new FPLNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),
     addExtLogFactory,
-    state.versionStr,
+    '',
     state,
   ),
   state.moduleInterceptor);
-  installNodeInterceptor(state.moduleInterceptor)
+  state.extensionsService.installInterceptor(state.moduleInterceptor)
   .then(async () => {
     // Load each extension
     await state.extensionsService.getExtensions()
     .then(async (exts) => {
       // Set any ext config defaults
-      for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
+      for (const contrib of (await state.extensionsService.getEnabledContributions('configuration', state.preferences.disabledExtensions))) {
         for (const extConfig of contrib.value) {
           for (const key in extConfig.properties) {
             // Value not set, use default
@@ -1052,7 +1199,6 @@ async function initialize() {
                   fullPath: realPath,
                   files: files
                 });
-                log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
               } catch (error) {
                 log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
               }
@@ -1064,7 +1210,7 @@ async function initialize() {
       }
 
       // Init Ext Logo Sets
-      await state.extensionsService.getContributions('logoSets')
+      await state.extensionsService.getEnabledContributions('logoSets', state.preferences.disabledExtensions)
       .then(async (logoSetContributions) => {
         for (const c of logoSetContributions) {
           for (const logoSet of c.value) {
@@ -1094,12 +1240,12 @@ async function initialize() {
       });
 
       await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-      exts.forEach(ext => {
-        state.extensionsService.loadExtension(ext.id)
+      for (const ext of exts) {
+        await loadExtension(state, ext)
         .catch((error: any) => {
           log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading extension\n${error}`);
         });
-      });
+      }
     });
   })
   .then(() => {
@@ -1117,7 +1263,7 @@ function getCurationFilePath(folder: string, relativePath: string) {
   return path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, relativePath);
 }
 
-async function onUpdateCurationFile(folder: string, relativePath: string, data: Buffer) {
+export async function onUpdateCurationFile(folder: string, relativePath: string, data: Buffer) {
   const filePath = getCurationFilePath(folder, relativePath);
   await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
   await fs.promises.writeFile(filePath, data);
@@ -1141,7 +1287,7 @@ async function onUpdateCurationFile(folder: string, relativePath: string, data: 
   }
 }
 
-async function onRemoveCurationFile(folder: string, relativePath: string) {
+export async function onRemoveCurationFile(folder: string, relativePath: string) {
   const filePath = getCurationFilePath(folder, relativePath);
   await fs.remove(filePath);
   // Send updates for image changes
@@ -1160,197 +1306,50 @@ async function onRemoveCurationFile(folder: string, relativePath: string) {
   }
 }
 
-function onFileServerRequestExtData(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
-  // Split URL section into parts (/extdata/<extId>/<relativePath>)
-  const splitPath = pathname.split('/');
-  const extId = splitPath.length > 0 ? splitPath[0] : '';
-  const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
-  state.extensionsService.getExtension(extId)
-  .then(ext => {
-    if (ext) {
-      // Only serve from <extPath>/static/
-      const staticPath = path.join(ext.extensionPath, 'static');
-      const filePath = path.join(staticPath, relativePath);
-      if (filePath.startsWith(staticPath)) {
-        serveFile(req, res, filePath);
-      } else {
-        log.warn('Launcher', `Illegal file request: "${filePath}"`);
-      }
-    }
-  });
-}
-
-function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
-  state.extensionsService.getExtension(pathname)
-  .then((ext) => {
-    if (ext && ext.manifest.icon) {
-      const filePath = path.join(ext.extensionPath, ext.manifest.icon);
-      if (filePath.startsWith(ext.extensionPath)) {
-        serveFile(req, res, filePath);
-      } else {
-        log.warn('Launcher', `Illegal file request: "${filePath}"`);
-      }
-    }
-  });
-}
-
-function onFileServerRequestThemes(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
-  const splitPath = pathname.split('/');
-  // Find theme associated with the path (/Theme/<themeId>/<relativePath>)
-  const themeId = splitPath.length > 0 ? splitPath[0] : '';
-  const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
-  const theme = state.registry.themes.get(themeId);
-  if (theme) {
-    const filePath = path.join(theme.basePath, theme.themePath, relativePath);
-    // Don't allow files outside of theme path
-    const relative = path.relative(theme.basePath, filePath);
-    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-      serveFile(req, res, filePath);
-    } else {
-      log.warn('Launcher', `Illegal file request: "${filePath}"`);
-    }
-  }
-}
-
-async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const splitPath = pathname.split('/');
-  const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-  const filePath = path.join(imageFolder, pathname);
-  if (filePath.startsWith(imageFolder)) {
-    if (req.method === 'POST') {
-      const fileName = path.basename(pathname);
-      if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const chunks: any[] = [];
-        req.on('data', (chunk) => {
-          chunks.push(chunk);
-        })
-        .on('end', async () => {
-          const data = Buffer.concat(chunks);
-          await fs.promises.writeFile(filePath, data);
-          res.writeHead(200);
-          res.end();
-        })
-        .on('error', async (err) => {
-          log.error('Launcher', `Error writing Game image - ${err}`);
-          res.writeHead(500);
-          res.end();
-        });
-        return;
-      }
-      res.writeHead(400);
-      res.end();
-    }
-    else if (req.method === 'GET' || req.method === 'HEAD') {
-      req.on('error', (err) => {
-        log.error('Launcher', `Error serving Game image - ${err}`);
-        res.writeHead(500);
-        res.end();
-      });
-      fs.stat(filePath)
-      .then((stats) => {
-        // Respond with file
-        res.writeHead(200, {
-          'Content-Type': mime.getType(path.extname(filePath)) || '',
-          'Content-Length': stats.size,
-        });
-        if (req.method === 'GET') {
-          const stream = fs.createReadStream(filePath);
-          stream.on('error', error => {
-            console.warn(`File server failed to stream file. ${error}`);
-            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-            if (!res.writableEnded) { res.end(); }
-          });
-          stream.pipe(res);
-        } else {
-          res.end();
-        }
-      })
-      .catch(async (err) => {
-        if (err.code !== 'ENOENT') {
-          // Can't read file
-          res.writeHead(404);
-          res.end();
-        } else {
-          // File missing
-          if (!state.preferences.onDemandImages) {
-            // Not downloading new files
-            res.writeHead(404);
-            res.end();
-          } else {
-            // Remove any older duplicate requests
-            const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
-            if (index >= 0) {
-              const item = state.fileServerDownloads.queue[index];
-              item.res.writeHead(404);
-              item.res.end();
-              state.fileServerDownloads.queue.splice(index, 1);
-            }
-
-            // Add to download queue
-            const item: ImageDownloadItem = {
-              subPath: pathname,
-              req: req,
-              res: res,
-              cancelled: false,
-            };
-            state.fileServerDownloads.queue.push(item);
-            req.once('close', () => { item.cancelled = true; });
-            updateFileServerDownloadQueue()
-            .catch((err) => {
-              log.error('Launcher', 'Somethign really broke in updateFileServerDownloadQueue: ' + err);
-            });
-          }
-        }
-      });
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
-  }
-}
-
-function onFileServerRequestLogos(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
-  const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
-  const logoFolder = logoSet && logoSet.files.includes(pathname)
-    ? logoSet.fullPath
-    : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
-  const filePath = path.join(logoFolder, pathname);
-  if (filePath.startsWith(logoFolder)) {
-    fs.access(filePath, fs.constants.F_OK, async (err) => {
-      if (err) {
-        // Maybe we're on a case sensitive platform?
-        try {
-          const folder = path.dirname(filePath);
-          const filename = path.basename(filePath);
-          if (filePath.startsWith(logoFolder)) {
-            const files = await fs.readdir(folder);
-            for (const file of files) {
-              if (file.toLowerCase() == filename.toLowerCase()) {
-                serveFile(req, res, path.join(folder, file));
-                return;
-              }
-            }
-          }
-        } catch { /** Let error drop to return default image instead */ }
-        // File doesn't exist, serve default image
-        const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
-        const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
-        if (replacementFilePath.startsWith(basePath)) {
-          fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
-            if (err) {
-              serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
-            } else {
-              serveFile(req, res, replacementFilePath);
-            }
-          });
-        }
-      } else {
-        serveFile(req, res, filePath);
-      }
-    });
-  }
-}
+// async function onFileServerRequestRuffle(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+//   const ruffleFolder = path.join(state.config.flashpointPath, 'Data', 'Ruffle');
+//   const filePath = path.join(ruffleFolder, pathname);
+//   if (filePath.startsWith(ruffleFolder)) {
+//     if (req.method === 'GET' || req.method === 'HEAD') {
+//       req.on('error', (err) => {
+//         log.error('Launcher', `Error serving Game file - ${err}`);
+//         if (!res.writableEnded) {
+//           res.writeHead(500);
+//           res.end();
+//         }
+//       });
+//       const stats = await fs.promises.stat(filePath)
+//       .catch(() => {
+//         res.writeHead(404);
+//         res.end();
+//       });
+//       if (stats) {
+//         // Respond with file
+//         res.writeHead(200, {
+//           'Content-Type': mime.getType(path.extname(filePath)) || '',
+//           'Content-Length': stats.size,
+//         });
+//         if (req.method === 'GET') {
+//           const stream = fs.createReadStream(filePath);
+//           stream.on('error', error => {
+//             console.warn(`File server failed to stream file. ${error}`);
+//             stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+//             if (!res.writableEnded) { res.end(); }
+//           });
+//           stream.pipe(res);
+//         } else {
+//           res.end();
+//         }
+//       } else {
+//         res.writeHead(404);
+//         res.end();
+//       }
+//     } else {
+//       res.writeHead(404);
+//       res.end();
+//     }
+//   }
+// }
 
 /**
  * Execute a back process (a)synchronously.
@@ -1417,60 +1416,7 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
   });
 }
 
-
-async function updateFileServerDownloadQueue() {
-  // @NOTE This will fail to stream the image to the client if it fails to save it to the disk.
-
-  // Fill all available current slots
-  while (state.fileServerDownloads.current.length < CONCURRENT_IMAGE_DOWNLOADS) {
-    const item = state.fileServerDownloads.queue.pop();
-
-    if (!item) { break; } // Queue is empty
-
-    if (item.cancelled) { continue; }
-
-    state.fileServerDownloads.current.push(item);
-
-    // Start download
-    let url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
-    // Add compressed modifier if enabled
-    if (state.preferences.onDemandImagesCompressed) {
-      url += '?type=jpg';
-    }
-    // Use arraybuffer since it's small memory footprint anyway
-    await axios.get(url, { responseType: 'arraybuffer' })
-    .then(async (res) => {
-      // Save response to image file
-      const imageData = res.data;
-
-      const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-      const filePath = path.join(imageFolder, item.subPath);
-
-      await fs.ensureDir(path.dirname(filePath));
-      await fs.promises.writeFile(filePath, imageData, 'binary');
-
-      item.res.writeHead(200);
-      item.res.write(imageData);
-    })
-    .catch((err) => {
-      item.res.writeHead(404);
-      log.error('Launcher', 'Failure downloading image on demand: ' + err);
-    })
-    .finally(async () => {
-      removeFileServerDownloadItem(item);
-    });
-  }
-}
-
-async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<void> {
-  item.res.end();
-
-  // Remove item from current
-  const index = state.fileServerDownloads.current.indexOf(item);
-  if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
-}
-
-export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoint.CurationFpfssInfo | null, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
+export async function loadCurationArchive(filePath: string, clearUuid?: boolean, fpfssInfo?: flashpoint.CurationFpfssInfo, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
   const key = uuid();
   const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
   // Extract to temp folder
@@ -1502,6 +1448,9 @@ export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoin
   // Load curation
   const parsedMeta = await readCurationMeta(curationPath, state.platformAppPaths);
   if (!parsedMeta) { throw new Error('Fail'); }
+  if (clearUuid) {
+    parsedMeta.uuid = uuid();
+  }
 
   const loadedCuration: flashpoint.LoadedCuration = {
     folder: key,
@@ -1509,28 +1458,20 @@ export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoin
     group: parsedMeta.group,
     game: parsedMeta.game,
     addApps: parsedMeta.addApps,
-    fpfssInfo,
+    fpfssInfo: fpfssInfo || null,
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
   const alreadyImported = await fpDatabase.findGame(loadedCuration.uuid) !== null;
   const curation: flashpoint.CurationState = {
     ...loadedCuration,
+    contentRequested: false,
     alreadyImported,
     warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
   };
   if (fpfssInfo) {
     await saveCurationFpfssInfo(getCurationFolder(curation, state.config.flashpointPath), fpfssInfo);
   }
-
-  genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
-  .then((contentTree) => {
-    const curationIdx = state.loadedCurations.findIndex((c) => c.folder === key);
-    if (curationIdx >= 0) {
-      state.loadedCurations[curationIdx].contents = contentTree;
-      state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, key, contentTree);
-    }
-  });
 
   state.loadedCurations.push({
     ...curation,
@@ -1607,19 +1548,13 @@ export async function checkAndDownloadGameData(activeDataId: number) {
       state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-    try {
-      await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails)
-      .finally(() => {
-        // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-        setTimeout(() => {
-          state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-        }, 250);
-      });
-    } catch (error: any) {
-      state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-      log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-      return;
-    }
+    await downloadGameData(gameData.id, state, state.downloadController.signal(), onProgress, onDetails)
+    .finally(() => {
+      // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+      setTimeout(() => {
+        state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+      }, 250);
+    });
   }
 }
 

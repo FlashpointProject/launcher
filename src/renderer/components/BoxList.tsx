@@ -7,7 +7,7 @@ export type BoxListProps<ItemType> = {
   getIndexAttr: (item: ItemType) => number;
   getItemValue: (item: ItemType) => string;
   getColor?: (item: ItemType) => string | undefined;
-  renderIcon?: (item: ItemType) => JSX.Element;
+  renderIcon?: (item: ItemType) => React.JSX.Element;
   primaryValue?: string;
   changePrimaryValue?: (newPrimary: string) => void;
 }

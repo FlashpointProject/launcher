@@ -1,56 +1,70 @@
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { BackInit } from '@shared/back/types';
+import { PropsWithChildren, useEffect, useState } from 'react';
 
-export type SplashScreenProps = {
-  quitting: boolean,
-  loadedAll: boolean;
-  loaded: { [key in BackInit]: boolean; };
-}
+type SplashScreenProps = PropsWithChildren;
 
 export function SplashScreen(props: SplashScreenProps) {
-  const extraClass = (props.loadedAll && !props.quitting)
+  const quitting = useAppSelector(state => state.main.quitting);
+  const loadedAll = useAppSelector(state => state.main.loadedAll);
+  const loaded = useAppSelector(state => state.main.loaded);
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    if (loadedAll && !quitting) {
+      // Give time for anim to happen, then stop rendering entire component
+      setTimeout(() => {
+        setFinished(true);
+      }, 2000);
+    }
+  }, [loadedAll, quitting]);
+
+  const extraClass = (loadedAll && !quitting)
     ? ' splash-screen--fade-out'
     : '';
 
-  return (
+  const splashScreen = !finished ? (
     <div className={'splash-screen' + extraClass}>
       <div className='splash-screen__logo fp-logo-box'>
         <div className='fp-logo' />
       </div>
       <div className='splash-screen__status-block'>
         <div className='splash-screen__status-header'>
-          { props.quitting ? 'Closing Down' : 'Loading' }
+          { quitting ? 'Closing Down' : 'Loading' }
         </div>
-        { !props.loaded[BackInit.DATABASE] ? (
+        { !loaded[BackInit.DATABASE] ? (
           <div className='splash-screen__status'>
             Database
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.PLAYLISTS] ? (
+        { !loaded[BackInit.PLAYLISTS] ? (
           <div className='splash-screen__status'>
             Playlists
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.CURATE] ? (
-          <div className='splash-screen__status'>
-            Curations
-          </div>
-        ) : undefined }
-        { !props.loaded[BackInit.SERVICES] ? (
+        { !loaded[BackInit.SERVICES] ? (
           <div className='splash-screen__status'>
             Services
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.EXTENSIONS] ? (
+        { !loaded[BackInit.EXTENSIONS] ? (
           <div className='splash-screen__status'>
             Extensions
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.EXEC_MAPPINGS] ? (
+        { !loaded[BackInit.EXEC_MAPPINGS] ? (
           <div className='splash-screen__status'>
             Exec Mappings
           </div>
         ) : undefined }
       </div>
+    </div>
+  ) : undefined;
+
+  return (
+    <div className='main-wrapper'>
+      {splashScreen}
+      {loadedAll ? props.children : undefined}
     </div>
   );
 }

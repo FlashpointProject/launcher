@@ -1,62 +1,170 @@
-import * as React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { checkIfAncestor } from '../Util';
-
-export type DropdownProps = {
-  /** Extra class name to add to dropdown frame */
-  className?: string;
-  headerClassName?: string;
-  /** Element(s) to show in the drop-down element (only visible when expanded). */
-  children: React.ReactNode;
-  /** Text to show in the text field (always visible). */
-  text: string;
-  form?: boolean;
-};
+import { DropdownCheckboxRowProps, DropdownFrameProps, DropdownProps, DropdownRowProps, DropdownStringRowProps } from 'flashpoint-launcher-renderer';
+import { Activity, useEffect, useMemo, useRef, useState } from 'react';
 
 // A text element, with a drop-down element that can be shown/hidden.
-export function Dropdown(props: DropdownProps) {
+export function DropdownFrame({ children, form, text, className, headerClassName }: DropdownFrameProps) {
   // Hooks
   const [expanded, setExpanded] = useState<boolean>(false);
-  const contentRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { // ("Hide" the drop-downs content if the user clicks outside the content element)
-    if (expanded) {
-      const onGlobalMouseDown = (event: MouseEvent) => {
-        if (!event.defaultPrevented) {
-          if (!checkIfAncestor(event.target as HTMLElement | null, contentRef.current)) {
-            setExpanded(false);
-          }
-        }
-      };
-      document.addEventListener('mousedown', onGlobalMouseDown);
-      return () => { document.removeEventListener('mousedown', onGlobalMouseDown); };
-    }
-  }, [expanded, contentRef]);
-  const onMouseDown = useCallback((event: React.MouseEvent) => {
-    if (event.button === 0) { // (Left mouse button)
-      setExpanded(!expanded);
-    }
-  }, [expanded]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const baseClass = props.form ? 'simple-dropdown-form' : 'simple-dropdown';
+  const onToggleExpanded = () => {
+    setExpanded(!expanded);
+  };
+
+  // Close dropdown when clicking outside of it
+  const handleClickOutside = (event: any) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setExpanded(false);
+    }
+  };
+
+  useEffect(() => {
+    // Add event listener to handle clicks outside the dropdown
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const baseClass = form ? 'simple-dropdown-form' : 'simple-dropdown';
 
   // Render
   return (
-    <div className={`${baseClass} ${props.className}`}>
+    <div
+      className={`${baseClass} ${className}`}
+      onClick={onToggleExpanded}>
       <div
-        className={`${baseClass}__select-box ${props.headerClassName}`}
-        onMouseDown={onMouseDown}
+        className={`${baseClass}__select-box ${headerClassName}`}
         tabIndex={0}>
         <div className={`${baseClass}__select-text`}>
-          { props.text }
+          {text}
         </div>
         <div className={`${baseClass}__select-icon`} />
       </div>
       <div
         className={`${baseClass}__content` + (expanded ? '' : ` ${baseClass}__content--hidden`)}
-        onMouseUp={() => setExpanded(false)}
-        ref={contentRef}>
-        { props.children }
+        ref={dropdownRef}
+        onClick={(e) => e.stopPropagation()}>
+        <Activity mode={expanded ? 'visible' : 'hidden'}>
+          {children}
+        </Activity>
       </div>
     </div>
+  );
+}
+
+// A text element, with a drop-down element that can be shown/hidden.
+export function Dropdown<T>({ rowCount, rowRenderer: RowRenderer, rowProps, form, text, className, headerClassName }: DropdownProps<T>) {
+  // Hooks
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const onToggleExpanded = () => {
+    setExpanded(!expanded);
+  };
+
+  // Close dropdown when clicking outside of it
+  const handleClickOutside = (event: any) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setExpanded(false);
+    }
+  };
+
+  useEffect(() => {
+    // Add event listener to handle clicks outside the dropdown
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const baseClass = form ? 'simple-dropdown-form' : 'simple-dropdown';
+
+  const rows = useMemo(() => {
+    const rows = [];
+    for (let i = 0; i < rowCount; i++) {
+      rows.push(
+        <RowRenderer key={i} index={i} closeDropdown={() => setExpanded(false)} {...rowProps} />
+      );
+    }
+    return rows;
+  }, [RowRenderer, rowCount, rowProps]);
+
+  // Render
+  return (
+    <div
+      className={`${baseClass} ${className}`}
+      onClick={onToggleExpanded}>
+      <div
+        className={`${baseClass}__select-box ${headerClassName}`}
+        tabIndex={0}>
+        <div className={`${baseClass}__select-text`}>
+          {text}
+        </div>
+        <div className={`${baseClass}__select-icon`} />
+      </div>
+      <div
+        className={`${baseClass}__content` + (expanded ? '' : ` ${baseClass}__content--hidden`)}
+        ref={dropdownRef}
+        onClick={(e) => e.stopPropagation()}>
+        <Activity mode={expanded ? 'visible' : 'hidden'}>
+          {rows}
+        </Activity>
+      </div>
+    </div>
+  );
+}
+
+export function DropdownCheckboxRow<T>({
+  labels, labelRenderer: LabelRenderer, onToggle, isChecked, index
+}: DropdownRowProps<DropdownCheckboxRowProps<T>>) {
+  const label = labels[index];
+
+  return (
+    <label
+      key={index}
+      className='log-page__dropdown-item'>
+      <div className='simple-center'>
+        <input
+          type='checkbox'
+          checked={isChecked(index)}
+          onChange={() => onToggle(index)}
+          className='simple-center__vertical-inner' />
+      </div>
+      <div className='simple-center'>
+        <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+          {LabelRenderer ?
+            <LabelRenderer label={label} index={index} /> :
+            String(label)}
+        </p>
+      </div>
+    </label>
+  );
+}
+
+export function DropdownStringRow({
+  items, onSelect, index, closeDropdown
+}: DropdownRowProps<DropdownStringRowProps>) {
+  const label = items[index];
+
+  return (
+    <label
+      key={index}
+      className='log-page__dropdown-item'
+      onClick={() => {
+        onSelect(index);
+        closeDropdown();
+      }}>
+      <div className='simple-center'>
+        <div
+          className='simple-center__vertical-inner log-page__dropdown-item-text'>
+          {label}
+        </div>
+      </div>
+    </label>
   );
 }

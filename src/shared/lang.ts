@@ -1,10 +1,6 @@
-import { RecursivePartial } from './interfaces';
+import { BaseLangContainer, LangCategory, LangContainer, LangTemplate } from 'flashpoint-launcher';
 
-/**
- * Template for the language types and containers.
- * Each property is a language category, and each of the strings is the name of a language string.
- */
-const langTemplate = {
+export const langTemplate = {
   config: [
     'configHeader',
     'configDesc',
@@ -127,6 +123,7 @@ const langTemplate = {
     'saveAndClose',
     'browse',
     'tagFilterGroupEditor',
+    'enabled',
   ] as const,
   home: [
     'gotdHeader',
@@ -472,6 +469,7 @@ const langTemplate = {
     'newCuration',
     'newCurationDesc',
     'duplicateCuration',
+    'createTemplateFromCuration',
     'newCurationFromTemplate',
     'loadMeta',
     'loadMetaDesc',
@@ -697,30 +695,6 @@ const langTemplate = {
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
 
-/** Language template (short-hand). */
-type LangTemplate = typeof langTemplate
-
-/** A language category (based on a language template category). */
-type LangCategory<T extends readonly string[]> = {
-  -readonly [K in T[number]]: string;
-}
-
-/** A dynamic and partial language category. */
-type DynamicLangCategory = {
-  [key: string]: string | undefined;
-}
-
-/** Base type of LangContainer (). */
-export type BaseLangContainer = {
-  -readonly [key in keyof LangTemplate]: LangCategory<LangTemplate[key]>;
-}
-
-/** Container of all language strings used by the launcher. */
-export type LangContainer = BaseLangContainer & {
-  libraries: DynamicLangCategory;
-  upgrades: DynamicLangCategory;
-}
-
 /**
  * Create a language category object from a language template category.
  *
@@ -751,22 +725,6 @@ export function createLangContainer(): LangContainer {
     libraries: {},
     upgrades: {},
   };
-}
-
-/** Contents of a language file. */
-export type LangFile = {
-  /** Kept for the watcher to keep track of ownership. */
-  filename: string;
-  /** 2 letter language code. */
-  code: string;
-  /** Contents of the language file. */
-  data: RecursivePartial<LangFileContent>;
-}
-
-/** Contents of a language file. */
-export type LangFileContent = LangContainer & {
-  /** Name of the language (this will be displayed in the drop-down). */
-  name: string;
 }
 
 /** Magic string used to reference "automatic language selection". */

@@ -1,10 +1,10 @@
 import * as flashpoint from 'flashpoint-launcher';
-import * as path from 'path';
-import * as fs from 'fs';
-import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
-import { AssetFile } from './types';
-import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { RuffleWebEmbedMiddleware } from './middleware/embed';
+import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import { AssetFile } from './types';
+import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
 
 export async function activate(context: flashpoint.ExtensionContext): Promise<void> {
   // const registerSub = (d: flashpoint.Disposable) => { flashpoint.registerDisposable(context.subscriptions, d); };
@@ -65,24 +65,6 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   const handleGameLaunch = (launchInfo: flashpoint.GameLaunchInfo, curation: boolean) => {
     const supportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled');
     const unsupportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled-all');
-
-    if (launchInfo.launchInfo.override === 'flash') {
-      return;
-    }
-
-    if (launchInfo.launchInfo.override === 'ruffle') {
-      flashpoint.log.info('Using Standalone Ruffle for overriden game...');
-        const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
-        defaultConfig.config.graphics = flashpoint.getExtConfigValue('com.ruffle.graphics-mode');
-        standaloneMiddleware.execute(launchInfo, {
-          middlewareId: '',
-          name: '',
-          enabled: true,
-          version: defaultConfig.version,
-          config: defaultConfig.config,
-        });
-        return;
-    }
 
     if (supportedEnabled || curation) {
       if (launchInfo.game.ruffleSupport.toLowerCase() === 'standalone') {
@@ -152,7 +134,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     const lastStandaloneUpdate = rawLastStandaloneUpdate ? Date.parse(rawLastStandaloneUpdate) : 0;
     if (standalonePublishedAt > lastStandaloneUpdate) {
       flashpoint.log.info(`Found Ruffle Standalone Update for ${standaloneAssetFile.publishedAt}, downloading...`);
-      downloadRuffleStandalone(ruffleStandaloneLatestDir, standaloneAssetFile, logVoid)
+      downloadRuffleStandalone(ruffleStandaloneLatestDir, standaloneAssetFile, logDev)
       .then(() => flashpoint.log.info('Ruffle Standalone Update Downloaded!'))
       .catch((err) => flashpoint.log.error(`Error updating Ruffle Standalone: ${err}`));
     } else {

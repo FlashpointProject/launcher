@@ -1,19 +1,18 @@
-import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
-import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
+import { LangContainer, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 import { TagAliasInputField } from './TagAliasInputField';
 import { TagInputField } from './TagInputField';
-import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected game (if any) */
@@ -50,7 +49,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
+  launchCommandRef: React.RefObject<HTMLInputElement | null> = React.createRef();
 
   constructor(props: RightTagsSidebarProps) {
     super(props);
@@ -208,7 +207,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   }
 
-  renderDeleteTagButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteTagButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): React.JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div
@@ -329,7 +328,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       .then(async (data) => {
         if (data) {
           // Tag alias exists
-          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.name}'!`);
+          alert(`Alias already exists on tag '${data.name}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
           this.props.onEditTag({ aliases: [...this.props.currentTag.aliases, text] });

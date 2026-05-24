@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
   CurateBoxInputEntryRow,
@@ -7,27 +6,8 @@ import {
   DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
-import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
-import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/types';
-import { GamePropSuggestions } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
-import { sizeToString } from '@shared/Util';
-import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
-import * as path from 'path';
-import * as React from 'react';
-import { Dispatch } from 'redux';
-import { BoxList } from './BoxList';
-import { CurateBoxAddApp } from './CurateBoxAddApp';
-import { CurateBoxRow } from './CurateBoxRow';
-import { CurateBoxWarnings } from './CurateBoxWarnings';
-import { InputElement, InputField } from './InputField';
-import { OpenIcon } from './OpenIcon';
-import { SimpleButton } from './SimpleButton';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import {
   AddAppType,
   addPlatform,
@@ -35,9 +15,24 @@ import {
   editCurationMeta,
   removePlatform,
   removeTag,
-  setPrimaryPlatform, toggleContentNodeView
+  setPrimaryPlatform
 } from '@renderer/store/curate/slice';
+import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
+import { BackIn, CurationImageEnum } from '@shared/back/types';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { mapRuffleSupportString } from '@shared/utils/misc';
+import { CurationState, LangContainer, LoadedCuration, Platform, PlatformAppPathSuggestions, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
+import * as React from 'react';
+import { Dispatch } from 'redux';
+import { BoxList } from './BoxList';
+import { CurateBoxAddApp } from './CurateBoxAddApp';
+import { CurateBoxContentTree } from './CurateBoxContentTree';
+import { CurateBoxRow } from './CurateBoxRow';
+import { CurateBoxWarnings } from './CurateBoxWarnings';
+import { InputField } from './InputField';
+import { OpenIcon } from './OpenIcon';
+import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
   curation: CurationState;
@@ -55,39 +50,35 @@ export type CurateBoxProps = {
 }
 
 export function CurateBox(props: CurateBoxProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const disabled = !!props.curation.locked;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const folder = props.curation.folder;
 
-  const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
-  const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
-
-  const sortedTags = React.useMemo(() => {
-    const tags = props.curation.game.tags;
-    if (tags) {
-      return [...tags].sort((a, b) => {
-        // Sort by category, then name secondarily
-        if (a.category !== b.category) {
-          const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.name === a.category);
-          const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.name === b.category);
-          if (!categoryA && !categoryB) {
-            return a.name.toLowerCase().localeCompare(b.name);
-          } else if (!categoryA) {
-            return -1;
-          } else if (!categoryB) {
-            return 1;
-          } else {
-            return categoryA.name.toLowerCase().localeCompare(categoryB.name.toLowerCase());
-          }
-        } else {
+  const splitStatus = props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [];
+  const splitPlayMode = props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [];
+  const tags = props.curation.game.tags;
+  let sortedTags: Tag[] = [];
+  if (tags) {
+    sortedTags = [...tags].sort((a, b) => {
+      // Sort by category, then name secondarily
+      if (a.category !== b.category) {
+        const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.name === a.category);
+        const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.name === b.category);
+        if (!categoryA && !categoryB) {
           return a.name.toLowerCase().localeCompare(b.name);
+        } else if (!categoryA) {
+          return -1;
+        } else if (!categoryB) {
+          return 1;
+        } else {
+          return categoryA.name.toLowerCase().localeCompare(categoryB.name.toLowerCase());
         }
-      });
-    } else {
-      return [];
-    }
-  }, [props.curation.game.tags]);
+      } else {
+        return a.name.toLowerCase().localeCompare(b.name);
+      }
+    });
+  }
 
   const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation);
@@ -96,18 +87,14 @@ export function CurateBox(props: CurateBoxProps) {
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
-  const thumbnailPath  = React.useMemo(() => {
-    return props.curation.thumbnail.exists ? `${getCurationURL(props.curation.folder)}/logo.png?v` + props.curation.thumbnail.version : undefined;
-  }, [props.curation.thumbnail]);
-  const screenshotPath  = React.useMemo(() => {
-    return props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png?v` + props.curation.screenshot.version : undefined;
-  }, [props.curation.screenshot]);
+  const thumbnailPath = props.curation.thumbnail.exists ? `${getCurationURL(props.curation.folder)}/logo.png?v` + props.curation.thumbnail.version : undefined;
+  const screenshotPath = props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png?v` + props.curation.screenshot.version : undefined;
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, dispatch);
   const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, dispatch);
 
-  const onAddStatus = React.useCallback((value: string) => {
+  const onAddStatus = (value: string) => {
     const newSplits = [ ...splitStatus ];
     newSplits.push(value);
     dispatch(editCurationMeta({
@@ -115,9 +102,9 @@ export function CurateBox(props: CurateBoxProps) {
       property: 'status',
       value: Array.from(new Set(newSplits.sort())).join('; ')
     }));
-  }, [props.curation.folder, splitStatus, dispatch]);
+  };
 
-  const onRemoveStatus = React.useCallback((index: number) => {
+  const onRemoveStatus = (index: number) => {
     const newSplits = [ ...splitStatus ];
     newSplits.splice(index, 1);
     const newStatus = newSplits.join('; ');
@@ -126,9 +113,9 @@ export function CurateBox(props: CurateBoxProps) {
       property: 'status',
       value: newStatus
     }));
-  }, [props.curation.folder, props.curation.game.status, splitStatus, dispatch]);
+  };
 
-  const onAddPlayMode = React.useCallback((value: string) => {
+  const onAddPlayMode = (value: string) => {
     const newSplits = [ ...splitPlayMode ];
     newSplits.push(value);
     dispatch(editCurationMeta({
@@ -136,9 +123,9 @@ export function CurateBox(props: CurateBoxProps) {
       property: 'playMode',
       value: Array.from(new Set(newSplits.sort())).join('; ')
     }));
-  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, dispatch]);
+  };
 
-  const onRemovePlayMode = React.useCallback((index: number) => {
+  const onRemovePlayMode = (index: number) => {
     const newSplits = [ ...splitPlayMode ];
     newSplits.splice(index, 1);
     const newPlayMode = newSplits.join('; ');
@@ -147,17 +134,17 @@ export function CurateBox(props: CurateBoxProps) {
       property: 'playMode',
       value: newPlayMode
     }));
-  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, dispatch]);
+  };
 
-  const onTagChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
+  const onTagChange = (event: React.ChangeEvent<InputElement>): void => {
     props.onTagTextChange(event.currentTarget.value);
-  }, [props.onTagTextChange]);
+  };
 
-  const onPlatformChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
+  const onPlatformChange = (event: React.ChangeEvent<InputElement>): void => {
     props.onPlatformTextChange(event.currentTarget.value);
-  }, [props.onPlatformTextChange]);
+  };
 
-  const onTagKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
+  const onTagKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     if (event.defaultPrevented) { return; }
 
     if (event.key === 'Enter') {
@@ -168,9 +155,9 @@ export function CurateBox(props: CurateBoxProps) {
         }
       }
     }
-  }, []);
+  };
 
-  const onPlatformKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
+  const onPlatformKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     if (event.defaultPrevented) { return; }
 
     if (event.key === 'Enter') {
@@ -181,9 +168,9 @@ export function CurateBox(props: CurateBoxProps) {
         }
       }
     }
-  }, []);
+  };
 
-  const onAddTag = React.useCallback((tag: Tag) => {
+  const onAddTag = (tag: Tag) => {
     const tags = props.curation.game.tags || [];
     if (!tags.find(t => t.id === tag.id)) {
       dispatch(addTag({
@@ -192,9 +179,9 @@ export function CurateBox(props: CurateBoxProps) {
       }));
     }
     props.onTagTextChange('');
-  }, [props.curation.folder, props.curation.game.tags]);
+  };
 
-  const onAddPlatform = React.useCallback((platform: Platform) => {
+  const onAddPlatform = (platform: Platform) => {
     const platforms = props.curation.game.platforms || [];
     if (!platforms.find(p => p.id === platform.id)) {
       dispatch(addPlatform({
@@ -204,107 +191,24 @@ export function CurateBox(props: CurateBoxProps) {
       }));
     }
     props.onPlatformTextChange('');
-  }, [props.curation.folder, props.curation.game.platforms]);
+  };
 
-  const onRemoveTag = React.useCallback((tagId: number) => {
+  const onRemoveTag = (tagId: number) => {
     dispatch(removeTag({
       folder,
       tagId
     }));
-  }, [props.curation.folder, props.curation.game.tags]);
+  };
 
-  const onRemovePlatform = React.useCallback((platformId) => {
+  const onRemovePlatform = (platformId: number) => {
     dispatch(removePlatform({
       folder,
       platformId,
       platformAppPaths: props.platformAppPaths
     }));
-  }, [props.curation.folder, props.curation.game.platforms]);
-
-  const onToggleContentNodeView = React.useCallback((tree: string[]) => {
-    dispatch(toggleContentNodeView({
-      folder,
-      tree
-    }));
-  }, [props.curation.folder, props.curation.contents]);
-
-  const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => () => {
-    const contextButtons: MenuItemConstructorOptions[] = [{
-      label: strings.curate.contextCopyName,
-      click: () => clipboard.writeText(node.name)
-    }, {
-      label: strings.curate.contextCopyPath,
-      click: () => clipboard.writeText(tree.join(path.sep))
-    }, {
-      label: strings.curate.contextCopyAsURL,
-      click: () => clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
-    }, {
-      type: 'separator'
-    }];
-    if (node.nodeType === 'file') {
-      contextButtons.push({
-        label: strings.curate.contextShowInExplorer,
-        click: () => remote.shell.showItemInFolder(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
-      });
-    } else if (node.nodeType === 'directory') {
-      contextButtons.push({
-        label: strings.curate.contextOpenFolderInExplorer,
-        click: () => remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
-      });
-    }
-    const menu = remote.Menu.buildFromTemplate(contextButtons);
-    menu.popup({ window: remote.getCurrentWindow() });
-    return menu;
   };
 
-  function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = [], launchPath?: string): JSX.Element | JSX.Element[] {
-    const filePath = tree.join('/');
-    const isLaunchPath = filePath === launchPath;
-    const depthDivs = [];
-    for (let i = 0; i < depth; i++) {
-      depthDivs.push(<div className='curate-box-content__depth' key={`${i}`} style={{ width: '1rem' }}/>);
-    }
-    switch (node.nodeType) {
-      case 'directory': {
-        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name]), launchPath))
-        .reduce<JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
-        return [
-          (
-            <div
-              key={`${tree.join('_')}_${key}`}
-              onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
-              className='curate-box-content__entry'>
-              { depth > 0 && (
-                depthDivs
-              )}
-              <div className='curate-box-content__entry-icon curate-box-content__entry-icon--collapse'
-                onClick={() => onToggleContentNodeView(tree)} >
-                <OpenIcon className={isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''} icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
-              </div>
-              <div>{node.name}</div>
-            </div>
-          ),
-          ...children
-        ];
-      }
-      case 'file':
-        return (
-          <div
-            key={`${tree.join('_')}_${key}`}
-            onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
-            className='curate-box-content__entry'>
-            { depth > 0 && (
-              depthDivs
-            )}
-            <OpenIcon className={`curate-box-content__entry-icon ${isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''}`} icon='file'/>
-            <div>{node.name} ({sizeToString(node.size || 0)})</div>
-          </div>
-        );
-      default: return <></>;
-    }
-  }
-
-  const renderContentTree = React.useMemo(() => {
+  const renderContentTree = () => {
     // Extract first string from launch command via regex
     let launchPath: string | undefined = undefined;
     if (props.curation.game.launchCommand) {
@@ -327,25 +231,18 @@ export function CurateBox(props: CurateBoxProps) {
         launchPath = lc;
       }
     }
-    const render = props.curation.contents ?
-      props.curation.contents.root.count <= 4000 ? (
-        props.curation.contents.root.children.map((node, index) => {
-          return renderContentNode(0, node, index, [node.name], launchPath);
-        })
-      ) : (
-        <p>{`Too large to render (4000 files max) - ${props.curation.contents.root.count} files in content folder.`}</p>
-      )
+    return props.curation.contents ?
+      <CurateBoxContentTree
+        contentTree={props.curation.contents}
+        launchPath={launchPath}
+        folder={folder}
+      />
       : (
         <p>{strings.misc.loading}</p>
       );
-    return (
-      <div className='curate-box-content simple-scroll'>
-        {render}
-      </div>
-    );
-  }, [props.curation.contents, props.curation.game.launchCommand]);
+  };
 
-  const renderTagIcon = React.useCallback((tag: Tag) => {
+  const renderTagIcon = (tag: Tag) => {
     const category = props.tagCategories.find(c => c.name === tag.category);
     return (
       <OpenIcon
@@ -353,33 +250,33 @@ export function CurateBox(props: CurateBoxProps) {
         color={category ? category.color : '#FFFFFF'}
         icon='tag'/>
     );
-  }, []);
+  };
 
-  const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion) => {
+  const renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
     const iconUrl = getPlatformIconURL(platformSugg.name, props.logoVersion);
     return (
       <div
         className='curate-tag__icon'
         style={{ backgroundImage: `url(${iconUrl})` }} />
     );
-  }, []);
+  };
 
-  const renderPlatformIcon = React.useCallback((platform: Platform) => {
+  const renderPlatformIcon = (platform: Platform) => {
     const iconUrl = getPlatformIconURL(platform.name, props.logoVersion);
     return (
       <div
         className='curate-tag__icon'
         style={{ backgroundImage: `url(${iconUrl})` }} />
     );
-  }, []);
+  };
 
-  const onChangePrimaryPlatform = React.useCallback((newPrimary: string) => {
+  const onChangePrimaryPlatform = (newPrimary: string) => {
     dispatch(setPrimaryPlatform({
       folder,
       value: newPrimary,
       platformAppPaths: props.platformAppPaths
     }));
-  }, [props.curation.folder]);
+  };
 
   const addAppBoxes = (
     <table className="curate-box-table">
@@ -677,7 +574,7 @@ export function CurateBox(props: CurateBoxProps) {
               {strings.curate.contentFiles + ': '}
             </div>
             <pre className='curate-box-files__body simple-scroll'>
-              {renderContentTree}
+              {renderContentTree()}
             </pre>
           </div>
           <hr />
@@ -708,7 +605,7 @@ export function CurateBox(props: CurateBoxProps) {
 }
 
 function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): (data: ArrayBuffer) => void {
-  return React.useCallback(async (data: ArrayBuffer) => {
+  return async (data: ArrayBuffer) => {
     if (curation) {
       const suffix = type === CurationImageEnum.THUMBNAIL ? 'logo.png' : 'ss.png';
       const res = await axios.post(`${getCurationURL(curation.folder)}/${suffix}`, data);
@@ -716,7 +613,7 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
       }
     }
-  }, [curation && curation.folder]);
+  };
 }
 
 /**
@@ -726,15 +623,15 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
  * @param curation Curation to delete it from.
  */
 function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): () => Promise<void> {
-  return React.useCallback(async () => {
+  return async () => {
     if (curation) {
       return window.Shared.back.request(BackIn.CURATE_EDIT_REMOVE_IMAGE, curation.folder, type);
     }
-  }, [curation && curation.folder]);
+  };
 }
 
 function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: CurationState, strings: LangContainer['dialog']) {
-  return React.useCallback(async (event: React.DragEvent) => {
+  return async (event: React.DragEvent) => {
     const files = event.dataTransfer.files;
 
     if (curation && !curation.locked && files.length > 0) {
@@ -744,16 +641,16 @@ function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: Curatio
         alert(strings.mustBePngImage);
       }
     }
-  }, [curation && curation.folder, strings]);
+  };
 }
 
 function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dispatch) {
-  return React.useCallback(() => {
+  return () => {
     dispatch(createAddApp({
       folder,
       addAppType: type
     }));
-  }, [dispatch, folder]);
+  };
 }
 
 function createAppPathDropdownItems(platformAppPaths: PlatformAppPathSuggestions, currentPlatform?: string): DropdownItem[] {

@@ -1,4 +1,3 @@
-import { LangContainer } from '@shared/lang';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
@@ -6,6 +5,7 @@ import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { ImagePreview } from './ImagePreview';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
+import { LangContainer } from 'flashpoint-launcher';
 
 type GameImageSplitProps = {
   /** Localized name of image (for button). */
@@ -42,10 +42,11 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  inputRef: HTMLInputElement | null;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 
   constructor(props: GameImageSplitProps) {
     super(props);
+    this.inputRef = React.createRef();
     this.state = {
       hover: false,
       showPreview: false
@@ -80,13 +81,13 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <h1>{formatString(strings.misc.noBlankFound, text)}</h1>
             <input
               hidden={true}
-              ref={(ref) => this.inputRef = ref}
+              ref={this.inputRef}
               accept='image/png'
               onChange={this.onInputFileChange}
               type='file'/>
             <SimpleButton
               value={formatString(strings.misc.addBlank, text)}
-              onClick={() => this.inputRef && this.inputRef.click()}
+              onClick={() => this.inputRef.current && this.inputRef.current.click()}
               disabled={disabled} />
           </div>
         ) : (
@@ -162,7 +163,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   };
 }
 
-function renderDeleteImageButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): JSX.Element {
+function renderDeleteImageButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): React.JSX.Element {
   const [ strings, text, disabled ] = extra;
   return (
     <div

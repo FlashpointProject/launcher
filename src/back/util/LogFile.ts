@@ -1,6 +1,7 @@
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { LogLevel } from '@shared/Log/interface';
 import { EventQueue } from './EventQueue';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import { ILogEntry } from 'flashpoint-launcher';
 
 /**
  * Saves Logged messages to a file

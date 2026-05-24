@@ -1,13 +1,15 @@
 import { ExtConfigFile } from '@back/ExtConfigFile';
+import { getContentEnvironment } from '@back/GameLauncher';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
 import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCurationContent } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
 import { downloadGameData } from '@back/download';
+import { installExtension as installExtensionUtil, uninstallExtension as uninstallExtensionUtil, unzipFile as unzipFileUtil } from '@back/extensions/util';
+import { ensureGameDataDownloaded, getApplicationPath } from '@back/flashpoint/WebgameContentRunner';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
-import { pathTo7zBack } from '@back/util/SevenZip';
 import { awaitDialog } from '@back/util/dialog';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import {
@@ -19,29 +21,36 @@ import {
   runService,
   setStatus
 } from '@back/util/misc';
+import { uuid } from '@back/util/uuid';
+import { ExtSearchable } from '@fparchive/flashpoint-archive';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { BackOut, FpfssUser } from '@shared/back/types';
+import { LogLevel } from '@shared/Log/interface';
+import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
-import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
-import { ProcessState, Task } from '@shared/interfaces';
+import { langTemplate } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
+import { isGame } from '@shared/utils/misc';
+import { FastifyPluginCallback } from 'fastify';
 import * as flashpoint from 'flashpoint-launcher';
-import { Game } from 'flashpoint-launcher';
-import * as fs from 'fs';
+import { Game, IExtensionManifest, Task } from 'flashpoint-launcher';
 import * as fsExtra from 'fs-extra';
-import { extractFull } from 'node-7z';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as stream from 'stream';
 import { fpDatabase, loadCurationArchive } from '..';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
-import * as uuid from 'uuid';
-import * as stream from 'stream';
+
+enum ExtSearchableType {
+  String = 0,
+  Boolean = 1,
+  Number = 2
+}
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -54,7 +63,7 @@ import * as stream from 'stream';
  * @param extPath Folder Path to the Extension
  * @returns API Implementation specific to the caller
  */
-export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
+export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: flashpoint.ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;
@@ -62,9 +71,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     data: flashpoint.DeepPartial<flashpoint.AppPreferencesData>,
     onError?: (error: string) => void
   ) => {
+    state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES, data);
     overwritePreferenceData(state.preferences, data, onError);
     await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences, state);
-    state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
     return state.preferences;
   };
 
@@ -84,17 +93,53 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const unzipFile = (filePath: string, outDir: string, opts?: flashpoint.ZipExtractOptions): Promise<void> => {
-    return new Promise<void>((resolve, reject) => {
-      const { onProgress, onData } = opts || {};
-      const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath), $progress: onProgress !== undefined });
-      readable.on('end', () => {
-        resolve();
-      });
-      if (onProgress) { readable.on('progress', onProgress); }
-      if (onData) { readable.on('data', onData); }
-      readable.on('error', (err) => {
-        reject(err);
-      });
+    return unzipFileUtil(state, filePath, outDir, opts);
+  };
+
+  const registerFastifyPlugin = (plugin: FastifyPluginCallback): void => {
+    state.fileServer.register(plugin);
+  };
+
+  const installExtension = (filePath: string) => {
+    return installExtensionUtil(state, filePath);
+  };
+
+  const uninstallExtension = (extId: string) => {
+    return uninstallExtensionUtil(state, extId);
+  };
+
+  const registerContentRunner = (cr: flashpoint.ContentRunner): flashpoint.Disposable => {
+    console.log(`Registered Content Runner ${cr.id}`);
+    state.registry.contentRunners.set(cr.id, cr);
+    return {
+      toDispose: [],
+      isDisposed: false,
+      /** Callback to use when disposed */
+      onDispose: () => {
+        state.registry.contentRunners.delete(cr.id);
+      }
+    };
+  };
+
+  const registerDataProvider = (provider: flashpoint.GameDataProvider): flashpoint.Disposable => {
+    console.log(`Registered Data Provider ${provider.id}`);
+    state.registry.dataSources.set(provider.id, provider);
+    return {
+      toDispose: [],
+      isDisposed: false,
+      /** Callback to use when disposed */
+      onDispose: () => {
+        state.registry.dataSources.delete(provider.id);
+      }
+    };
+  };
+
+  const registerDataExtension = (extension: flashpoint.DataExtensionInfo): void => {
+    // Silly enum won't convert
+    fpDatabase.registerExtension({
+      id: extension.id,
+      searchables: extension.searchables as unknown as ExtSearchable[],
+      indexes: extension.indexes,
     });
   };
 
@@ -104,12 +149,22 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const setExtConfigValue = async (key: string, value: any): Promise<void> => {
     state.extConfig[key] = value;
+    state.socketServer.broadcast(BackOut.SET_EXT_CONFIG_VALUE, key, value);
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-    state.socketServer.broadcast(BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
   };
 
   const focusWindow = () => {
     state.socketServer.broadcast(BackOut.FOCUS_WINDOW);
+  };
+
+  // Sources namespace
+  const extSources: typeof flashpoint.sources = {
+    registerDataProvider: registerDataProvider,
+  };
+
+  // Data extensions Namespace
+  const extDataExtensions: typeof flashpoint.dataExtensions = {
+    registerDataExtension: registerDataExtension,
   };
 
   // Log Namespace
@@ -164,7 +219,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
           state.socketServer.broadcast(BackOut.SHORTCUT_UNREGISTER, shortcuts);
         }
       };
-    }
+    },
+    openDynamicPage: (name, props) => {
+      state.socketServer.broadcast(BackOut.OPEN_DYNAMIC_PAGE, name, props);
+    },
   };
 
   const extGames: typeof flashpoint.games = {
@@ -256,6 +314,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     get onWillUninstallGameData() {
       return apiEmitters.games.onWillUninstallGameData.extEvent(extManifest.displayName || extManifest.name);
+    },
+    get onInterceptGetGame() {
+      return apiEmitters.games.onInterceptGetGame.extEvent(extManifest.displayName || extManifest.name);
     }
   };
 
@@ -270,7 +331,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
+      await downloadGameData(gameDataId, state, state.downloadController.signal(), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })
@@ -411,7 +472,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
           status: `Loading ${filePath}`
         });
       }
-      const curState = await loadCurationArchive(filePath, null)
+      const curState = await loadCurationArchive(filePath, false, undefined)
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()) as string);
@@ -435,9 +496,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getCurations: () => {
       return [...state.loadedCurations];
     },
-    async getCurationTemplates(): Promise<CurationTemplate[]> {
-      const contribs = await state.extensionsService.getContributions('curationTemplates');
-      return contribs.reduce<CurationTemplate[]>((prev, cur) => prev.concat(cur.value), []);
+    async getCurationTemplates(): Promise<string[]> {
+      return state.curationTemplates;
     },
     getCuration: (folder: string) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
@@ -529,11 +589,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
+      const contentTree = await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath));
       const curation: flashpoint.CurationState = {
         ...data,
+        contentRequested: false,
         alreadyImported: false,
         warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+        contents: contentTree,
       };
       await saveCuration(curPath, curation);
       state.loadedCurations.push(curation);
@@ -617,12 +679,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extFpfss: typeof flashpoint.fpfss = {
-    getAccessToken: async (): Promise<string> => {
+    getAccessToken: async (sourceId: string): Promise<string> => {
+      const source = state.preferences.gameMetadataSources.find(s => s.id === sourceId);
+      if (!source) {
+        throw 'No source found for ' + sourceId;
+      }
       if (!state.socketServer.lastClient) {
         throw new Error('No connected client to handle FPFSS action.');
       }
       try {
-        const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, extId);
+        const { user } = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, source, extId);
         if (user && user.accessToken) {
           return user.accessToken;
         } else {
@@ -631,7 +697,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       } catch (error) {
         const client = state.socketServer.lastClient;
         const openDialog = state.socketServer.showMessageBoxBack(state, client);
-        await openDialog({
+        openDialog({
           largeMessage: true,
           message: (error instanceof Error) ? error.message : String(error),
           buttons: [state.languageContainer.misc.ok]
@@ -648,18 +714,32 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     dataVersion: state.customVersion,
     extensionPath: extPath,
     config: state.config,
+    database: fpDatabase,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
     unloadExtension: unloadExtension,
     reloadExtension: reloadExtension,
     getExtensionFileURL: getExtensionFileURL,
-    unzipFile: unzipFile,
+    unzipFile,
+    registerFastifyPlugin,
+    installExtension,
+    uninstallExtension,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
     onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.extEvent(extManifest.displayName || extManifest.name),
     focusWindow: focusWindow,
+    langTemplate: langTemplate,
+    isGame,
+    getApplicationPath: (filePath, platform) => {
+      return getApplicationPath(filePath, state.execMappings, state.preferences.nativePlatforms.some(p => p === platform));
+    },
+    getContentEnvironment,
+    ensureGameDataDownloaded: (game) => ensureGameDataDownloaded(state, game),
+    registerContentRunner,
 
     // Namespaces
+    sources: extSources,
+    dataExtensions: extDataExtensions,
     log: extLog,
     commands: extCommands,
     curations: extCurations,
@@ -681,10 +761,15 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     ManagedChildProcess: ManagedChildProcess,
 
     // Enums
-    ProcessState: ProcessState,
+    ProcessState: {
+      STOPPED: 0,
+      RUNNING: 1,
+      KILLING: 2
+    },
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,
     ScreenshotPreviewMode: ScreenshotPreviewMode,
+    ExtSearchableType: ExtSearchableType,
 
     // Disposable funcs
     dispose: dispose,

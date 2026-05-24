@@ -1,5 +1,6 @@
+import { ILogEntry } from 'flashpoint-launcher';
 import { padStart } from '../Util';
-import { ILogEntry, LogLevel } from './interface';
+import { LogLevel } from './interface';
 
 export const timeChars = 11; // "[HH:MM:SS] "
 const sourceChars = 19; // "Background Services" (sometimes used with +2 to add the length of ": ")
@@ -13,7 +14,7 @@ const sourceChars = 19; // "Background Services" (sometimes used with +2 to add 
  */
 export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: string]: boolean } = {}, levelFilter: { [key in LogLevel]: boolean }): string {
   let str = '';
-  let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0, logLevel: -1 as any };
+  let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0, logLevel: -1 as any, lineCount: 1 };
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
 
@@ -21,7 +22,7 @@ export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: 
 
     if (!entry) { continue; } // Temp fix for array gaps
 
-    if (sourceFilter[entry.source] === false || levelFilter[entry.logLevel] === false) { continue; }
+    if (sourceFilter[entry.source] === false || levelFilter[entry.logLevel as LogLevel] === false) { continue; }
 
     // E.G log__level-WARN, log__level-DEBUG
     str += `<div class="${extraClass}"><span class="log__level-${LogLevel[entry.logLevel]}">${getLevelText(entry.logLevel)}</span> `;

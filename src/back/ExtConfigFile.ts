@@ -1,7 +1,7 @@
-import { AppExtConfigData } from '@shared/config/interfaces';
 import { overwriteExtConfigData } from '@shared/config/util';
 import { readJsonFile, stringifyJsonDataFile } from '@shared/Util';
-import * as fs from 'fs';
+import { AppExtConfigData } from 'flashpoint-launcher';
+import * as fs from 'node:fs';
 
 export namespace ExtConfigFile {
   export function readFile(filePath: string): Promise<AppExtConfigData> {

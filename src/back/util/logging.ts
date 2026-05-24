@@ -1,9 +1,10 @@
+import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { SocketServer } from '@back/SocketServer';
 import { BackOut } from '@shared/back/types';
 import { LogFunc } from '@shared/interfaces';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { LogLevel } from '@shared/Log/interface';
+import { ILogEntry } from 'flashpoint-launcher';
 import { LogFile } from './LogFile';
-import { ApiEmitter } from '@back/extensions/ApiEmitter';
 
 export function logFactory(logLevel: LogLevel, socketServer: SocketServer, addLog: (message: ILogEntry) => number, logFile: LogFile, verbose: boolean, apiEvent: ApiEmitter<ILogEntry>): LogFunc {
   return function (source: string, content: string): ILogEntry {
@@ -12,7 +13,8 @@ export function logFactory(logLevel: LogLevel, socketServer: SocketServer, addLo
       source: source,
       content: content,
       timestamp: Date.now(),
-      logLevel: logLevel
+      logLevel: logLevel,
+      lineCount: content.split('\n').length,
     };
     const index = addLog(formedLog);
     logFile.saveLog(formedLog);

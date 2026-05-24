@@ -1,8 +1,8 @@
 import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
-import { BackIn, SearchQuery } from '@shared/back/types';
-import { updatePreferencesData } from '@shared/preferences/util';
-import { debounce } from '@shared/utils/debounce';
+import { BackIn } from '@shared/back/types';
+import { deepCopy } from '@shared/Util';
 import { startAppListening } from '../listenerMiddleware';
+import { updatePreferences } from '../preferences/slice';
 import store from '../store';
 import {
   addData,
@@ -10,8 +10,8 @@ import {
   duplicateView,
   GENERAL_VIEW_ID,
   requestKeyset,
+  RequestState,
   resetDropdownData,
-  ResultsView,
   SearchCreateViewsAction,
   SearchFilterAction,
   SearchViewAction,
@@ -20,30 +20,30 @@ import {
   setAdvancedFilter,
   setDropdownData,
   setExpanded,
+  setExtOrder,
   setFilter,
   setOrderBy,
   setOrderReverse,
   setSearchId,
   setSearchText
 } from './slice';
-import { deepCopy } from '@shared/Util';
 
 export function addSearchMiddleware() {
   // Build filter immediately
   startAppListening({
-    matcher: isAnyOf(selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse),
+    matcher: isAnyOf(selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse, setExtOrder),
     effect: async(action: PayloadAction<SearchViewAction>, listenerApi) => {
       const state = listenerApi.getState();
       const view = state.search.views[action.payload.view];
 
-      if (view) {
+      if (view && view.data.metaState !== RequestState.WAITING) {
         // Immediately update search id
         const newSearchId = view.data.searchId + 1;
         store.dispatch(setSearchId({ view: view.id, searchId: newSearchId }));
 
         const advFilter = deepCopy(view.advancedFilter);
         // Get processed query
-        if (!window.Shared.preferences.data.useCustomViews) {
+        if (!view.isCustom) {
           advFilter.library = {
             [view.id]: 'whitelist'
           };
@@ -54,6 +54,7 @@ export function addSearchMiddleware() {
           text: view.text,
           advancedFilter: advFilter,
           orderBy: view.orderBy,
+          extOrder: view.extOrder,
           orderDirection: view.orderReverse,
           playlist: view.selectedPlaylist
         });
@@ -63,43 +64,43 @@ export function addSearchMiddleware() {
     }
   });
 
-    // Build filter immediately
-    startAppListening({
-      matcher: isAnyOf(resetDropdownData),
-      effect: async(action: PayloadAction<string>, listenerApi) => {
-        const state = listenerApi.getOriginalState();
-        if (state.search.dropdowns.key !== action.payload) {
-          // Key has changed, fire off the updates
-          const tfgs = window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme));
-          const startTime = Date.now();
-          const key = action.payload;
+  // Build filter immediately
+  startAppListening({
+    matcher: isAnyOf(resetDropdownData),
+    effect: async(action: PayloadAction<string>, listenerApi) => {
+      const state = listenerApi.getOriginalState();
+      if (state.search.dropdowns.key !== action.payload) {
+        // Key has changed, fire off the updates
+        const tfgs = state.preferences.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !state.preferences.browsePageShowExtreme));
+        const startTime = Date.now();
+        const key = action.payload;
 
-          window.Shared.back.request(BackIn.GET_TAGS, tfgs)
-            .then((data) => {
-              console.log(`Found ${data.length} tags in ${Date.now() - startTime}ms`);
-              store.dispatch(setDropdownData({ tags: data, key }));
-            });
+        window.Shared.back.request(BackIn.GET_TAGS, tfgs)
+        .then((data) => {
+          console.log(`Found ${data.length} tags in ${Date.now() - startTime}ms`);
+          store.dispatch(setDropdownData({ tags: data, key }));
+        });
 
-          window.Shared.back.request(BackIn.GET_DISTINCT_DEVELOPERS, tfgs)
-            .then((data) => {
-              console.log(`Found ${data.length} developers in ${Date.now() - startTime}ms`);
-              store.dispatch(setDropdownData({ developers: data, key }));
-            });
+        window.Shared.back.request(BackIn.GET_DISTINCT_DEVELOPERS, tfgs)
+        .then((data) => {
+          console.log(`Found ${data.length} developers in ${Date.now() - startTime}ms`);
+          store.dispatch(setDropdownData({ developers: data, key }));
+        });
 
-          window.Shared.back.request(BackIn.GET_DISTINCT_PUBLISHERS, tfgs)
-            .then((data) => {
-              console.log(`Found ${data.length} publishers in ${Date.now() - startTime}ms`);
-              store.dispatch(setDropdownData({ publishers: data, key }));
-            });
+        window.Shared.back.request(BackIn.GET_DISTINCT_PUBLISHERS, tfgs)
+        .then((data) => {
+          console.log(`Found ${data.length} publishers in ${Date.now() - startTime}ms`);
+          store.dispatch(setDropdownData({ publishers: data, key }));
+        });
 
-          window.Shared.back.request(BackIn.GET_DISTINCT_SERIES, tfgs)
-            .then((data) => {
-              console.log(`Found ${data.length} series in ${Date.now() - startTime}ms`);
-              store.dispatch(setDropdownData({ series: data, key }));
-            });
-        }
+        window.Shared.back.request(BackIn.GET_DISTINCT_SERIES, tfgs)
+        .then((data) => {
+          console.log(`Found ${data.length} series in ${Date.now() - startTime}ms`);
+          store.dispatch(setDropdownData({ series: data, key }));
+        });
       }
-    });
+    }
+  });
 
   // Restore games and playlists in restored views
   startAppListening({
@@ -107,8 +108,6 @@ export function addSearchMiddleware() {
     effect: async(action: PayloadAction<SearchCreateViewsAction>, listenerApi) => {
       const state = listenerApi.getState();
       if (action.payload.storedViews && action.payload.storedViews.length > 0) {
-        const playlists = await window.Shared.back.request(BackIn.GET_PLAYLISTS);
-
         for (const storedView of action.payload.storedViews) {
           const view = state.search.views[storedView.view];
           if (view && view.id !== GENERAL_VIEW_ID) {
@@ -124,16 +123,6 @@ export function addSearchMiddleware() {
                 }
               });
             }
-            if (storedView.selectedPlaylistId) {
-              // Attempt to restore playlist
-              const matchedPlaylist = playlists.find((p) => p.id === storedView.selectedPlaylistId);
-              if (matchedPlaylist) {
-                store.dispatch(selectPlaylist({
-                  view: storedView.view,
-                  playlist: matchedPlaylist
-                }));
-              }
-            }
           }
         }
       }
@@ -142,19 +131,20 @@ export function addSearchMiddleware() {
 
   // Save stored view
   startAppListening({
-    matcher: isAnyOf(setSearchText, selectGame, selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse, setExpanded, duplicateView),
+    matcher: isAnyOf(setSearchText, selectGame, selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse, setExtOrder, setExpanded, duplicateView),
     effect: async(action: PayloadAction<SearchViewAction>, listenerApi) => {
       const state = listenerApi.getState();
       const view = state.search.views[action.payload.view];
 
       if (view && view.id !== GENERAL_VIEW_ID) {
-        const newStoredViews = [...window.Shared.preferences.data.storedViews];
+        const newStoredViews = deepCopy(state.preferences.storedViews);
         const existingStoredView = newStoredViews.find(s => s.view === action.payload.view);
-        if (existingStoredView) {
+        if (existingStoredView !== undefined) {
           existingStoredView.text = view.text;
           existingStoredView.advancedFilter = view.advancedFilter;
           existingStoredView.orderBy = view.orderBy;
           existingStoredView.orderReverse = view.orderReverse;
+          existingStoredView.extOrder = view.extOrder;
           existingStoredView.selectedPlaylistId = view.selectedPlaylist ? view.selectedPlaylist.id : undefined;
           existingStoredView.selectedGameId = view.selectedGame ? view.selectedGame.id : undefined;
           existingStoredView.expanded = view.expanded;
@@ -165,14 +155,15 @@ export function addSearchMiddleware() {
             advancedFilter: view.advancedFilter,
             orderBy: view.orderBy,
             orderReverse: view.orderReverse,
+            extOrder: view.extOrder,
             selectedPlaylistId: view.selectedPlaylist ? view.selectedPlaylist.id : undefined,
             selectedGameId: view.selectedGame ? view.selectedGame.id : undefined,
             expanded: view.expanded,
           });
         }
-        updatePreferencesData({
+        store.dispatch(updatePreferences({
           storedViews: newStoredViews
-        });
+        }));
       }
     }
   });
@@ -196,7 +187,7 @@ export function addSearchMiddleware() {
               games: data.games,
             }
           }));
-      
+
           // Request keyset
           store.dispatch(requestKeyset({
             view: view.id,

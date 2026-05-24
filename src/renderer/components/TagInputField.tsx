@@ -1,9 +1,10 @@
 import { memoizeOne } from '@shared/memoize';
+import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { InputFieldProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
-import { InputField, InputFieldProps } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -25,9 +26,9 @@ export type TagInputFieldProps = InputFieldProps & {
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
   inputRef?: RefFunc<InputElement>;
   /** Custom icon render func */
-  renderIcon?: (tag: Tag) => JSX.Element;
+  renderIcon?: (tag: Tag) => React.JSX.Element;
   /** Custom icon render func (suggestion) */
-  renderIconSugg?: (suggestion: TagSuggestion) => JSX.Element;
+  renderIconSugg?: (suggestion: TagSuggestion) => React.JSX.Element;
   /** Tag suggestions based on currently entered tag */
   suggestions: TagSuggestion[];
   /** Tag Category info */
@@ -51,9 +52,9 @@ function withModifiableTags<T extends TagInputFieldProps>(Component: React.Compo
 
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 class TagInputFieldRaw extends React.Component<TagInputFieldProps, TagInputFieldState> {
-  rootRef: React.RefObject<HTMLDivElement> = React.createRef();
-  contentRef: React.RefObject<HTMLDivElement> = React.createRef();
-  inputRef: React.RefObject<InputElement> = React.createRef();
+  rootRef: React.RefObject<HTMLDivElement | null> = React.createRef();
+  contentRef: React.RefObject<HTMLDivElement | null> = React.createRef();
+  inputRef: React.RefObject<InputElement | null> = React.createRef();
 
   constructor(props: TagInputFieldProps) {
     super(props);
@@ -116,13 +117,13 @@ class TagInputFieldRaw extends React.Component<TagInputFieldProps, TagInputField
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion[]) => {
+  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => React.JSX.Element[]>((items: TagSuggestion[]) => {
     return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index, this.props.renderIconSugg));
   }, ([ itemsA, expandedA ], [ itemsB, expandedB ]) => {
     return expandedA === expandedB ? checkIfArraysAreEqual(itemsA, itemsB) : false;
   });
 
-  renderSuggestionItem = (suggestion: TagSuggestion, index: number, renderIconSugg?: (suggestion: TagSuggestion) => JSX.Element) => {
+  renderSuggestionItem = (suggestion: TagSuggestion, index: number, renderIconSugg?: (suggestion: TagSuggestion) => React.JSX.Element) => {
     const aliasRender = suggestion.matchedFrom !== suggestion.name ? (
       <div className='tag-inner'>
         <p>{suggestion.matchedFrom} <b className='tag_alias-joiner'>{'->'}</b> {suggestion.name}</p>
@@ -160,7 +161,7 @@ class TagInputFieldRaw extends React.Component<TagInputFieldProps, TagInputField
   };
 
   /** Renders the list of items in the drop-down menu. */
-  renderItems = memoizeOne<(items: Tag[], primaryPlatform?: string) => JSX.Element[]>((items: Tag[], primaryPlatform?: string) => {
+  renderItems = memoizeOne<(items: Tag[], primaryPlatform?: string) => React.JSX.Element[]>((items: Tag[], primaryPlatform?: string) => {
     const className = this.props.editable ? 'tag-editable' : 'tag-static';
     return items
     .sort((t1, t2) => `${t1.category}-${t1.name}`.localeCompare(`${t2.category}-${t2.name}`))

@@ -1,26 +1,26 @@
-import { createSearchFilter, getTaggedSearch } from '@back/util/search';
+import { createSearchFilter } from '@back/util/search';
 import {
   GameSearchOffset,
   GameSearchSortable,
   newSubfilter,
-  PartialTagCategory
+  PartialTagCategory,
+  RemoteGamesRes
 } from '@fparchive/flashpoint-archive';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
-import { deepCopy, downloadFile, padEnd } from '@shared/Util';
+import { deepCopy, downloadFile, mapFpfssGameToLocal, padEnd, sizeToString } from '@shared/Util';
 import {
   BackIn,
   BackInit,
   BackOut,
   ComponentState,
   CurationImageEnum,
-  DownloadDetails,
-  GameOfTheDay,
   GetRendererLoadedDataResponse
 } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import {
   CURATIONS_FOLDER_EXPORTED,
+  CURATIONS_FOLDER_TEMPLATES,
   CURATIONS_FOLDER_WORKING,
   LOGOS,
   SCREENSHOTS,
@@ -30,9 +30,8 @@ import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
-import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
+import { GamePropSuggestions, ProcessAction } from '@shared/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import { chunkArray, getGameDataFilename, newGame } from '@shared/utils/misc';
@@ -41,31 +40,33 @@ import { throttle } from '@shared/utils/throttle';
 import { execSync } from 'child_process';
 import {
   ConfigSchema,
+  ContentRunner,
   CurationState,
-  DownloadTask,
   Game,
   GameData,
   GameLaunchInfo,
   GameMetadataSource,
   GameMiddlewareInfo,
+  GameOfTheDay,
   LaunchInfo,
   LoadedCuration,
+  ProcessState,
   Tag,
   TagCategory
 } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
-import * as https from 'https';
 import { snakeCase, transform } from 'lodash';
 import { add, Progress } from 'node-7z';
+import * as path from 'node:path';
 import * as os from 'os';
-import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
+import { getAllApplicationPaths, getAllDevelopers, getAllLibraries, getAllPlayModes, getAllPublishers, getAllSeries, getAllStatuses, getTags, markGameSave } from './DatabaseCache';
 import { ExtConfigFile } from './ExtConfigFile';
-import { escapeArgsForShell, GameLauncher } from './GameLauncher';
+import { checkAndInstallPlatform, doGameDataParams, escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { DEFAULT_PLAYLIST_DATA, overwritePlaylistData, PlaylistFile } from './PlaylistFile';
@@ -79,11 +80,11 @@ import {
   refreshCurationContent
 } from './curate/util';
 import { saveCuration } from './curate/write';
-import { downloadGameData } from './download';
+import { axios } from './dns';
 import { parseAppVar } from './extensions/util';
+import { downloadGameDataRes, ensureGameDataDownloaded } from './flashpoint/WebgameContentRunner';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { databaseReady, fpDatabase, loadCurationArchive } from './index';
-import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
+import { fpDatabase, loadCurationArchive } from './index';
 import {
   addPlaylistGame,
   deletePlaylist,
@@ -97,10 +98,11 @@ import {
 } from './playlist';
 import { genContentTree } from './rust';
 import { getMetaUpdateInfo, syncGames, syncPlatforms, syncRedirects, syncTags } from './sync';
-import { BackState, MetadataRaw, TagsFile } from './types';
+import { BackState, TagsFile } from './types';
 import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
+import { dispose } from './util/lifecycle';
 import {
   compareSemVerVersions,
   copyError,
@@ -112,6 +114,7 @@ import {
   exit,
   getCwd,
   getTempFilename,
+  langFilesToInfo,
   openFlashpointManager,
   pathExists,
   processPlatformAppPaths,
@@ -121,8 +124,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { axios } from './dns';
-import { Downloader } from './Downloader';
 
 /**
  * Register all request callbacks to the socket server.
@@ -136,10 +137,17 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, async () => {
     state.ignoreQuit = true;
     await state.extensionsService.unloadAll();
-    await state.extensionsService.loadAll();
+    await state.extensionsService.loadAll(state.preferences.disabledExtensions);
     setTimeout(() => {
       state.ignoreQuit = false;
     }, 1000);
+  });
+
+  state.socketServer.register(BackIn.IS_FLASHPOINT_PATH_VALID, async (event, flashpointPath) => {
+    const fpsoftwarePath = path.join(flashpointPath, 'FPSoftware');
+    return fs.access(fpsoftwarePath, fs.constants.R_OK)
+    .then(() => true)
+    .catch(() => false);
   });
 
   state.socketServer.register(BackIn.TEST_RECONNECTIONS, async () => {
@@ -184,10 +192,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async () => {
     return {
-      devScripts: await state.extensionsService.getContributions('devScripts'),
-      contextButtons: await state.extensionsService.getContributions('contextButtons'),
-      curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
-      extConfigs: await state.extensionsService.getContributions('configuration'),
+      contextButtons: await state.extensionsService.getEnabledContributions('contextButtons', state.preferences.disabledExtensions),
+      extConfigs: await state.extensionsService.getEnabledContributions('configuration', state.preferences.disabledExtensions),
       extConfig: state.extConfig,
       extensions: (await state.extensionsService.getExtensions()).map(e => {
         return {
@@ -198,12 +204,50 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
+  state.socketServer.register(BackIn.DOWNLOADER_GET_STATE, async (event) => {
+    return {
+      state: state.downloader.status,
+      tasks: state.downloader.getTasks(),
+      workers: state.downloader.getWorkerStates(),
+      total: state.downloader.getTotal(),
+      done: state.downloader.getDone(),
+      failures: state.downloader.getFailures()
+    };
+  });
+
+  state.socketServer.register(BackIn.DOWNLOADER_SET_STATUS, async (event, status) => {
+    if (status === 'running') {
+      state.downloader.start();
+    } else {
+      state.downloader.stop();
+    }
+  });
+
+  state.socketServer.register(BackIn.DOWNLOADER_ADD_MISSING_CONTENT, async (event) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = openDialog({
+      largeMessage: true,
+      message: 'Finding missing content...',
+      buttons: []
+    });
+
+    const search = fpDatabase.parseUserSearchInput('').search;
+    search.limit = 9999999999;
+    search.filter.boolComp.installed = false;
+    search.slim = true;
+    const games = await fpDatabase.searchGames(search);
+    console.log('Found ' + games.length + ' games');
+    state.downloader.addTasks(games);
+
+    state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+  });
+
   state.socketServer.register(BackIn.CANCEL_DOWNLOAD, async () => {
     state.downloadController.abort();
   });
 
   state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async (event) => {
-    const libraries = await fpDatabase.findAllGameLibraries();
+    const libraries = await getAllLibraries(state);
 
     // Fetch update feed in background
     if (state.preferences.updateFeedUrl) {
@@ -221,10 +265,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Fetch GOTD file
     const gotdUrl = state.config.gotdUrl;
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
-    const gotdDownload = new Promise((resolve, reject) => {
+    const gotdDownload = new Promise<void>((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
-      console.log('downloading gotd');
-      axios.get(gotdUrl, { responseType: 'stream' })
+      axios.get(gotdUrl, { timeout: 5000, responseType: 'stream' })
       .then((res) => {
         res.data.pipe(thumbnailWriter);
         thumbnailWriter.on('close', resolve);
@@ -333,10 +376,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return {
       preferences: state.preferences,
       config: state.config,
+      fullFlashpointPath: path.resolve(state.config.flashpointPath),
       fileServerPort: state.fileServerPort,
       log: state.log,
       customVersion: state.customVersion,
-      languages: state.languages,
+      languages: langFilesToInfo(state.languages),
       language: state.languageContainer,
       themes: Array.from(state.registry.themes.values()),
       localeCode: state.localeCode,
@@ -345,8 +389,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
-    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
+    const dialogId = createNewDialog(state, {
       largeMessage: true,
       message: `Updating tags from ${source.name}...`,
       buttons: []
@@ -375,19 +418,70 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
+  state.socketServer.register(BackIn.UPDATE_GAME_FROM_SOURCE, async (event, gameId) => {
+    const game = await fpDatabase.findGame(gameId);
+    if (game) {
+      const source = state.preferences.gameMetadataSources.find(s => s.id === game.owner);
+      if (source) {
+        const url = source.baseUrl + '/api/game/' + game.id;
+        console.log(url);
+        const res = await axios.get(url);
+        console.log(JSON.stringify(res.data, undefined, 2));
+        const newGame = mapFpfssGameToLocal(res.data, source.id);
+        const tagRelations: Array<Array<string>> = [];
+        const platformRelations: Array<Array<string>> = [];
+        for (const tag of newGame.tags) {
+          const t = await fpDatabase.findTag(tag);
+          if (t) {
+            tagRelations.push([game.id, String(t.id)]);
+          }
+        }
+        for (const platform of newGame.platforms) {
+          const p = await fpDatabase.findTag(platform);
+          if (p) {
+            platformRelations.push([game.id, String(p.id)]);
+          }
+        }
+        const update: RemoteGamesRes = {
+          games: [{
+            ...newGame,
+            applicationPath: newGame.legacyApplicationPath,
+            launchCommand: newGame.legacyLaunchCommand,
+            platformName: newGame.primaryPlatform
+          }],
+          addApps: newGame.addApps ? newGame.addApps : [],
+          gameData: newGame.gameData ? newGame.gameData : [],
+          tagRelations,
+          platformRelations,
+        };
+        console.log(JSON.stringify(update, undefined, 2));
+        await fpDatabase.updateApplyGames(update, source.id);
+        broadcastGameUpdate(state, game.id);
+      }
+    }
+  });
+
   state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
+    if (state.updateInProgress) {
+      const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+      openDialog({
+        largeMessage: true,
+        message: 'Update already in progress.',
+        buttons: ['Ok']
+      });
+      return false;
+    }
     if (!state.isDev) {
       // Make sure we meet minimum verison requirements
       const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
-      const version = state.version;
       const versionUrl = `${source.baseUrl}/api/min-launcher`;
       const res = await axios.get(versionUrl)
       .catch((err) => { throw `Failed to find minimum launcher version requirement from metadata server.\n${err}`; });
-      if (compareSemVerVersions(version, res.data['min-version'] || '9999999999999') < 0) {
+      if (compareSemVerVersions('', res.data['min-version'] || '9999999999999') < 0) {
         if (!updatesReady) {
           // No software update ready but metadata server requires it
           const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-          await openDialog({
+          openDialog({
             largeMessage: true,
             message: state.languageContainer.app.noLauncherUpdateReady,
             buttons: [state.languageContainer.misc.ok]
@@ -396,7 +490,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
         // Too old to sync metadata, prompt a software update
         const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-        const dialogId = await openDialog({
+        const dialogId = openDialog({
           largeMessage: true,
           message: state.languageContainer.app.softwareUpdateRequired,
           buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
@@ -412,6 +506,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
     }
+
+    state.updateInProgress = true;
 
     let totalGames = 0;
     try {
@@ -431,31 +527,27 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       };
     }
 
+    const updateToast = (content: string) => {
+      state.socketServer.broadcast(BackOut.TOAST, 'sync', content, {
+        autoClose: false,
+        closeButton: false,
+      });
+    };
+
     // Fetch pre-update info to estimate progress bar size
-    const total = await getMetaUpdateInfo(source, true, totalGames === 0);
-    const chunks = Math.ceil(total / 2500);
-
-    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
-      largeMessage: true,
-      message: `Syncing metadata from ${source.name}...`,
-      buttons: [],
-      fields: [
-        {
-          type: 'progress',
-          name: 'progress',
-          message: `${total} Updates...`,
-          value: 0
-        }
-      ]
-    });
-
     try {
+      updateToast('Getting Update Info...');
+      const totalUpdateGames = await getMetaUpdateInfo(source, true, totalGames === 0);
+      const chunks = Math.ceil(totalUpdateGames / 2500);
+
       // Tags and platforms
       const newDate = new Date();
       let lastDate = new Date();
+      updateToast('Updating Platforms...');
       const lastDatePlats = await syncPlatforms(source);
+      updateToast('Updating Tags...');
       const lastDateTags = await syncTags(source);
+
       if (lastDatePlats > lastDateTags) {
         lastDate = lastDatePlats;
       } else {
@@ -473,11 +565,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       console.log('games');
       const dataPacksFolder = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
       let chunk = 0;
+      updateToast('Updating Games...');
       lastDate = await syncGames(source, dataPacksFolder, () => {
         chunk = chunk + 1;
-        const progress = chunk / chunks;
-        state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, 'progress', progress * 100);
+        updateToast(`Updating Games... (Batch ${chunk} of ${chunks})`);
       });
+      updateToast('Updating Game Redirects...');
       await syncRedirects(source);
       if (sourceIdx !== -1) {
         state.preferences.gameMetadataSources[sourceIdx].games.latestUpdateTime = lastDate.toISOString();
@@ -485,25 +578,41 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state.prefsQueue.push(() => {
           PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
         });
-        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES, {
+          gameMetadataSources: state.preferences.gameMetadataSources
+        });
       }
 
+      updateToast('Updating Search Suggestions...');
       // Send out new suggestions and library lists
       state.suggestions = {
         tags: [],
-        playMode: await fpDatabase.findAllGamePlayModes(),
+        playMode: await getAllPlayModes(state),
         platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
-        status: await fpDatabase.findAllGameStatuses(),
-        applicationPath: await fpDatabase.findAllGameApplicationPaths(),
-        library: await fpDatabase.findAllGameLibraries(),
+        status: await getAllStatuses(state),
+        applicationPath: await getAllApplicationPaths(state),
+        library: await getAllLibraries(state),
       };
       state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
       const total = await fpDatabase.countGames();
       const cats = await fpDatabase.findAllTagCategories();
-      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total);
+      markGameSave(state.config.flashpointPath);
+      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total, state.preferences.gameMetadataSources[sourceIdx]);
+      state.socketServer.broadcast(BackOut.TOAST, 'sync', 'Update Complete', {
+        type: 'success',
+        autoClose: false,
+        closeButton: true,
+      });
       return true;
+    } catch (err: any) {
+      state.socketServer.broadcast(BackOut.TOAST, 'sync', `Update Failure - ${err.message}`, {
+        type: 'error',
+        autoClose: false,
+        closeButton: true,
+      });
+      return false;
     } finally {
-      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+      state.updateInProgress = false;
     }
   });
 
@@ -531,11 +640,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
     const suggestions: GamePropSuggestions = {
       tags: [],
-      playMode: await fpDatabase.findAllGamePlayModes(),
+      playMode: await getAllPlayModes(state),
       platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
-      status: await fpDatabase.findAllGameStatuses(),
-      applicationPath: await fpDatabase.findAllGameApplicationPaths(),
-      library: await fpDatabase.findAllGameLibraries(),
+      status: await getAllStatuses(state),
+      applicationPath: await getAllApplicationPaths(state),
+      library: await getAllLibraries(state),
     };
     state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
     return {
@@ -582,13 +691,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         gameData = await fpDatabase.findGameDataById(parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
-          try {
-            await downloadGameDataRes(state, gameData);
-          } catch (error: any) {
-            state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-            log.info('Game Launcher', `Add App Launch Aborted: ${error}`);
-            return;
-          }
+          await downloadGameDataRes(state, gameData);
         }
       }
       await state.apiEmitters.games.onWillLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during add app launch api event');
@@ -622,146 +725,53 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id, override) => {
+  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id, provider, override) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+
+    // Find game from database
     const game = await fpDatabase.findGame(id);
-    console.log('override: ' + override);
+    if (!game) {
+      throw new Error('No game found with the id: ' + id);
+    }
 
-    if (game) {
-      // Make sure Server is set to configured server - Curations may have changed it
-      const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.preferences.server) : undefined;
-      if (configServer) {
-        const server = state.services.get('server');
-        if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
-          // Server is different, change now
-          if (server) { await removeService(state, 'server'); }
-          runService(state, 'server', 'Server', state.config.flashpointPath, { env: {
-            ...process.env,
-            'PATH': state.pathVar ?? process.env.PATH,
-          } }, configServer);
-          await promiseSleep(1500);
-        }
+    // Find available content runner
+    let contentRunner: ContentRunner | undefined;
+    for (const runner of state.registry.contentRunners.values()) {
+      if (await runner.canHandleGame(game, false)) {
+        contentRunner = runner;
+        break;
+      }
+    }
+
+    // We've got a runner, use it
+    if (contentRunner) {
+      // Make sure the active game data exists (where possible) instead of relying on runners doing it
+      await ensureGameDataDownloaded(state, game);
+      await checkAndInstallPlatform(game.detailedPlatforms!, state, openDialog);
+
+      // Prepare the launch information
+      const gameLaunchInfo = await contentRunner.prepareGame(game, false);
+      await state.apiEmitters.games.onWillLaunchGame.fire(gameLaunchInfo);
+
+      // Set the requested server up
+      const server = gameLaunchInfo.server || state.preferences.server;
+      await changeServer(state, server);
+
+      // Handle server and extract data params
+      const gameData = game.gameData?.find(gd => gd.id === game.activeDataId);
+      if (gameData) {
+        await doGameDataParams(state, gameData, changeServer);
       }
 
-      // If it has GameData, make sure it's present
-      if (game.activeDataId && game.gameData) {
-        log.debug('Launcher', 'Found active game data');
-        let gameData = game.gameData.find(gd => gd.id === game.activeDataId);
-        if (gameData && !gameData.presentOnDisk) {
-          // Game data is not downloaded, check if an old one was being used before
-          const orderedGameData = [...game.gameData].sort((a, b) => a.dateAdded.localeCompare(b.dateAdded)).reverse();
-          for (const oldGd of orderedGameData) {
-            if (oldGd.presentOnDisk) {
-              // Found existing game data, verify with the user that we should upgrade it
-              const lcDifferent = oldGd.launchCommand !== gameData.launchCommand;
-              if (lcDifferent) {
-                const strings = state.languageContainer;
-                const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
-                  largeMessage: true,
-                  message: `${strings.dialog.gameDataUpdateReadyLcDifferent}`,
-                  buttons: [strings.misc.yes, strings.misc.no],
-                  cancelId: 1,
-                });
-                const result = (await awaitDialog(state, dialogId)).buttonIdx;
-                if (result === 1) {
-                  log.info('Game Launcher', 'User chose to keep using old game data');
-                  // Mark this as the new active game data
-                  game.activeDataId = oldGd.id;
-                  game.activeDataOnDisk = oldGd.presentOnDisk;
-                  await fpDatabase.saveGame(game);
-                  gameData = oldGd;
-                } else {
-                  log.info('Game Launcher', 'Upgrading from old game data (lc changed)...');
-                }
-              } else {
-                const strings = state.languageContainer;
-                const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
-                  largeMessage: true,
-                  message: `${strings.dialog.gameDataUpdateReady}`,
-                  buttons: [strings.misc.yes, strings.misc.no],
-                  cancelId: 1,
-                });
-                const result = (await awaitDialog(state, dialogId)).buttonIdx;
-                if (result === 1) {
-                  log.info('Game Launcher', 'User chose to keep using old game data');
-                  // Mark this as the new active game data
-                  game.activeDataId = oldGd.id;
-                  game.activeDataOnDisk = oldGd.presentOnDisk;
-                  await fpDatabase.saveGame(game);
-                  gameData = oldGd;
-                } else {
-                  log.info('Game Launcher', 'Upgrading from old game data (lc same)...');
-                }
-              }
-              break;
-            }
-          }
-          if (!gameData.presentOnDisk) {
-            // Make sure we didn't choose to swap game data during the user dialog above
-            log.debug('Game Launcher', 'Downloading Game Data for ' + getGameDataFilename(gameData) || 'UNKNOWN');
-            // Download GameData
-            try {
-              await downloadGameDataRes(state, gameData);
-              gameData = (await fpDatabase.findGameDataById(gameData.id)) as GameData;
-            } catch (error: any) {
-              state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-              log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-              return;
-            }
-          }
-        }
-
-        // Make sure it has a path set, check the default location if it does not then save it back
-        if (gameData && !gameData.path) {
-          const realPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
-          if (fs.existsSync(realPath)) {
-            gameData.path = realPath;
-            gameData.presentOnDisk = true;
-            game.activeDataOnDisk = true;
-            await fpDatabase.saveGameData(gameData);
-            await fpDatabase.saveGame(game);
-          }
-        }
-      }
-      // Game config
-      // const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
-      // const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
-      // if (game.activeGameConfigId && activeConfig === undefined) {
-      //   throw 'Could not load game config despite one being selected?';
-      // }
-      const activeConfig = null;
-      // Launch game
-      await GameLauncher.launchGame({
-        game,
-        fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.preferences.htdocsFolderPath,
-        dataPacksFolderPath: state.preferences.dataPacksFolderPath,
-        sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => game.platforms.includes(p)),
-        execMappings: state.execMappings,
-        lang: state.languageContainer,
-        isDev: state.isDev,
-        exePath: state.exePath,
-        appPathOverrides: state.preferences.appPathOverrides,
-        providers: await getProviders(state),
-        proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(state, event.client),
-        openExternal: state.socketServer.openExternal(event.client),
-        runGame: runGameFactory(state),
-        runAddApp: runAddAppFactory(state),
-        envPATH: state.pathVar,
-        changeServer: changeServerFactory(state),
-        activeConfig: activeConfig ? activeConfig : null,
-        state,
-        autoClearWininetCache: state.preferences.autoClearWininetCache,
-        override,
-      },
-      state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
-      await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, event.client, 'Error from post game launch api event');
+      // Let the runner execute the game with the launch info
+      await contentRunner.executeGame(gameLaunchInfo);
+      await state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
   });
 
   state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
     await fpDatabase.saveGames(data);
+    markGameSave(state.config.flashpointPath);
   });
 
   state.socketServer.register(BackIn.SAVE_GAME, async (event, game) => {
@@ -781,7 +791,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       //   info.game.activeGameConfigOwner = undefined;
       // }
       const savedGame = await fpDatabase.saveGame(game);
-      state.queries = {}; // Clear entire cache
+      markGameSave(state.config.flashpointPath);
+      broadcastGameUpdate(state, game.id);
       return savedGame;
     } catch (err) {
       console.error(err);
@@ -804,8 +815,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
     // path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
     // path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
-
-    state.queries = {}; // Clear entire cache
 
     return null;
   });
@@ -851,8 +860,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           }
         } catch (e) { console.error(e); }
       }
-
-      state.queries = {}; // Clear entire cache
     }
 
     return result;
@@ -865,92 +872,68 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, async (event, playlistId) => {
     const playlist = state.playlists.find(p => p.id === playlistId);
     if (playlist) {
-      // Create a downloader for it
-      const downloader = new Downloader(
-        state.config.flashpointPath,
-        state.preferences.dataPacksFolderPath,
-        state.preferences.imageFolderPath,
-        state.preferences.onDemandBaseUrl,
-        state.preferences.gameDataSources,
-        state,
-        4
-      );
-      log.info('Downloads', 'Adding playlist to downloader with ' + playlist.games.length + ' games');
-      const taskId = uuid();
-      await state.socketServer.request(event.client, BackOut.CREATE_TASK, {
-        id: taskId,
-        name: `Downloading Playlist ${playlist.title}`,
-        progress: 0,
-        status: 'Creating Downloader...',
-        finished: false,
-      });
+      // Find a size estimate before initiating download
+      let totalSize = 0;
+      for (const pg of playlist.games) {
+        const gameData = await fpDatabase.findGameData(pg.gameId);
+        for (const gd of gameData) {
+          if (!gd.presentOnDisk) {
+            totalSize += gd.size;
+          }
+        }
+      }
 
-      downloader.stop();
-      let total = 0;
+      if (totalSize > 0) {
+        // Estimated size larger than 0B, ask the user before downloading
+        const humanReadableSize = sizeToString(totalSize);
+
+        const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+          message: `Downloading this playlist requires approximately ${humanReadableSize} of additional space. Continue?`,
+          buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
+          cancelId: 1,
+          largeMessage: true,
+        });
+        const result = (await awaitDialog(state, dialogId)).buttonIdx;
+
+        if (result === 1) {
+          log.debug('Downloads', 'User aborted playlist download at size prompt');
+          return false;
+        }
+      }
+
+      if (state.downloader.status === 'stopped')
+      {
+        state.downloader.start();
+      }
+
+      log.info('Downloads', 'Adding playlist to downloader with ' + playlist.games.length + ' games');
+
+      const games: Game[] = [];
       for (const { gameId } of playlist.games) {
         try {
           const game = await fpDatabase.findGame(gameId);
-          if (game) {
+          if (game && game.activeDataId !== undefined) {
             log.info('Downloads', 'Adding game ' + game.id);
-            if (downloader.addTask(game)) {
-              total += 1;
-            }
+            games.push(game);
           }
         } catch (e) {
           console.error('bad game get');
           console.error(e);
         }
       }
+      state.downloader.addTasks(games);
 
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-        id: taskId,
-        status: `Completed: ${0} / ${total}`,
-      });
-      let completed = 0;
-      let errors: string[] = [];
-      const watcherCb = (task: DownloadTask) => {
-        if (task.status !== 'waiting' && task.status !== 'in_progress') {
-          completed += 1;
-          if (task.status === 'failure') {
-            log.error('Downloader', `Game download failed (${task.game.title}): ${task.errors.join('\n')}`);
-            errors = errors.concat(task.errors);
-          }
-        }
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-          id: taskId,
-          status: `Completed: ${completed} / ${total}`,
-          progress: completed / total,
-        });
-        if (completed === total) {
-          // Finished, unregister itself
-          if (errors.length > 0) {
-            state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-              id: taskId,
-              finished: true,
-              status: `Completed with ${errors.length} errors.`,
-              error: errors.join('\n'),
-            });
-          } else {
-            state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-              id: taskId,
-              finished: true,
-              status: 'Done',
-            });
-          }
-
-          downloader.off('taskChange', watcherCb);
-          downloader.clear(); // Downloader should discard itself after this loop anyway? Not sure honestly
-        }
-      };
-      downloader.on('taskChange', watcherCb);
-      downloader.start();
+      return true;
     } else {
+      state.downloader.stop();
       log.error('Downloads', 'Could not find playlist with id ' + playlistId);
+      return false;
     }
   });
 
-  state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, filePath, library) => {
-    return importPlaylist(state, filePath, library, event);
+  state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, jsonString, library) => {
+    const playlist = PlaylistFile.readJson(JSON.parse(jsonString));
+    return importPlaylist(state, playlist, library, event);
   });
 
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
@@ -999,8 +982,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return await fpDatabase.findGame(id);
-    // TODO: Reimplement game configs
+    return getGame(state, id);
   });
 
   state.socketServer.register(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, async (event, mIds) => {
@@ -1089,7 +1071,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         existingData.applicationPath = d.applicationPath;
         existingData.launchCommand = d.launchCommand;
         existingData.parameters = d.parameters;
-        return fpDatabase.saveGameData(existingData);
+        await fpDatabase.saveGameData(existingData);
+        broadcastGameUpdate(state, d.gameId);
       }
     }));
   });
@@ -1102,31 +1085,24 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         await onWillUninstallGameData.fire(gameData);
         const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
         await fs.promises.unlink(gameDataPath);
-        gameData.path = undefined;
         gameData.presentOnDisk = false;
         onDidUninstallGameData.fire(gameData);
       }
+      await fpDatabase.deleteGameData(gameDataId);
       const game = await fpDatabase.findGame(gameData.gameId);
       if (game) {
         game.activeDataId = undefined;
         game.activeDataOnDisk = false;
         await fpDatabase.saveGame(game);
+        broadcastGameUpdate(state, game.id);
       }
-      await fpDatabase.deleteGameData(gameDataId);
     }
   });
-
-  // state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
-  //   return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
-  // });
 
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
     const gameData = await fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
-      await downloadGameDataRes(state, gameData)
-      .catch((err) => {
-        throw 'Failed to download';
-      });
+      await downloadGameDataRes(state, gameData);
     } else {
       log.error('Launcher', `Game Data not found (ID=${gameDataId})`);
       throw new Error(`Game Data not found (ID=${gameDataId})`);
@@ -1135,7 +1111,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
     const gameData = await fpDatabase.findGameDataById(id);
+    console.log('finding game data');
     if (gameData && gameData.presentOnDisk) {
+      console.log('found game data');
       const gameDataFilename = getGameDataFilename(gameData);
       await onWillUninstallGameData.fire(gameData);
       // Delete Game Data
@@ -1147,7 +1125,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           throw error;
         }
       });
-      gameData.path = undefined;
+      console.log('deleted file on disk');
       gameData.presentOnDisk = false;
       await fpDatabase.saveGameData(gameData);
       onDidUninstallGameData.fire(gameData);
@@ -1155,10 +1133,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const game = await fpDatabase.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
         game.activeDataOnDisk = false;
-        return fpDatabase.saveGame(game);
+        await fpDatabase.saveGame(game);
+        broadcastGameUpdate(state, game.id);
+        console.log('updated game');
+      } else {
+        console.log('not active game data');
       }
     }
-    return null;
   });
 
   state.socketServer.register(BackIn.GET_SOURCES, async () => {
@@ -1275,27 +1256,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   // });
 
   state.socketServer.register(BackIn.GET_DISTINCT_DEVELOPERS, async (event, tagFilters) => {
-    const search = getTaggedSearch(tagFilters);
-    return databaseReady()
-    .then((db) => {
-      return db.findAllGameDevelopers(search);
-    });
+    return getAllDevelopers(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.GET_DISTINCT_PUBLISHERS, async (event, tagFilters) => {
-    const search = getTaggedSearch(tagFilters);
-    return databaseReady()
-    .then((db) => {
-      return db.findAllGamePublishers(search);
-    });
+    return getAllPublishers(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.GET_DISTINCT_SERIES, async (event, tagFilters) => {
-    const search = getTaggedSearch(tagFilters);
-    return databaseReady()
-    .then((db) => {
-      return db.findAllGameSeries(search);
-    });
+    return getAllSeries(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, data) => {
@@ -1323,17 +1292,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_TAGS, async (event, tagFilters) => {
-    const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
-    return databaseReady()
-    .then(async (db) => {
-      const tags = (await db.findAllTags()).filter(t => !t.aliases.some(a => flatFilters.includes(a)));
-      return tags;
-    });
+    return getTags(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.MERGE_TAGS, async (event, data) => {
     const newTag = await fpDatabase.mergeTags(data.toMerge, data.mergeInto);
-    state.socketServer.send(event.client, BackOut.MERGE_TAGS, newTag);
     return newTag;
   });
 
@@ -1406,28 +1369,44 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     catch (error: any) { log.error('Launcher', error); }
   });
 
-  state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
-    const dif = difObjects(defaultPreferencesData, state.preferences, data);
-    if (dif) {
-      if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
-          (typeof dif.fallbackLanguage !== 'undefined' && dif.fallbackLanguage !== state.preferences.fallbackLanguage)) {
-        state.languageContainer = createContainer(
-          state.languages,
-          (typeof dif.currentLanguage !== 'undefined') ? dif.currentLanguage : state.preferences.currentLanguage,
-          state.localeCode,
-          (typeof dif.fallbackLanguage !== 'undefined') ? dif.fallbackLanguage : state.preferences.fallbackLanguage
-        );
-        state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
-      }
-
-      overwritePreferenceData(state.preferences, dif, console.error);
+  state.socketServer.register(BackIn.SET_EXTENSION_ENABLED, async (event, extId, enable) => {
+    const isEnabled = !state.preferences.disabledExtensions.includes(extId);
+    if (enable !== isEnabled && enable) {
+      // Enable ext
+      state.preferences.disabledExtensions = state.preferences.disabledExtensions.filter(c => c !== extId);
+      await state.extensionsService.loadExtension(extId);
+      state.prefsQueue.push(() => {
+        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+      });
+    } else if (enable !== isEnabled && !enable) {
+      // Disable ext
+      state.preferences.disabledExtensions.push(extId);
+      await state.extensionsService.unloadExtension(extId);
       state.prefsQueue.push(() => {
         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
       });
     }
-    if (refresh) {
-      state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+    state.socketServer.broadcast(BackOut.UPDATE_EXTENSION_STATE, extId, enable);
+  });
+
+  state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data) => {
+    state.socketServer.broadcastExcept(event.client, BackOut.UPDATE_PREFERENCES, data);
+
+    if ((data.currentLanguage  !== undefined && data.currentLanguage  !== state.preferences.currentLanguage) ||
+        (data.fallbackLanguage !== undefined && data.fallbackLanguage !== state.preferences.fallbackLanguage)) {
+      state.languageContainer = createContainer(
+        state.languages,
+        data.currentLanguage !== undefined ? data.currentLanguage : state.preferences.currentLanguage,
+        state.localeCode,
+        data.fallbackLanguage !== undefined ? data.fallbackLanguage : state.preferences.fallbackLanguage
+      );
+      state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
     }
+
+    state.preferences = data;
+    state.prefsQueue.push(() => {
+      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+    });
   });
 
   state.socketServer.register(BackIn.SERVICE_ACTION, async (event, action, id) => {
@@ -1493,7 +1472,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    return getPlaylistGame(state, playlistId, gameId);
+    return getPlaylistGame(state, playlistId, gameId)
+    .catch((err) => null);
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
@@ -1737,7 +1717,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       for (const game of chunk) {
         await fpDatabase.deleteGame(game.id);
       }
-      state.queries = {}; // Reset search queries
     }
 
     // Remove tags from database
@@ -1749,7 +1728,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_IMPORT, async (event, data) => {
-    const { taskId, saveCuration, date, curations } = data;
+    const { taskId, date, curations } = data;
+    const saveCuration = state.preferences.saveImportedCurations;
     let error: any | undefined;
     let processed = 0;
     const taskProgress = new TaskProgress(curations.length);
@@ -1802,7 +1782,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder) as string;
           state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
         });
-        state.queries = {};
       } catch (e) {
         if (util.types.isNativeError(e)) {
           error = copyError(e);
@@ -1950,7 +1929,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       );
     } else {
       const loggerService = state.services.get('logger_window');
-      if (loggerService && loggerService.getState() !== ProcessState.RUNNING) {
+      if (loggerService && loggerService.getState() !== 1) {
         loggerService.restart();
       }
     }
@@ -2026,7 +2005,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
     message = message + '\n';
     for (const service of diagnostics.services) {
-      message = message + `${ProcessState[service.state]}:\t${service.name}\n`;
+      message = message + `${service.state}:\t${service.name}\n`;
     }
     if (diagnostics.generics.length > 0) {
       message = message + '\n';
@@ -2084,6 +2063,62 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
+  state.socketServer.register(BackIn.DOWNLOAD_SEARCH_RESULTS, async (event, query) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = openDialog({
+      largeMessage: true,
+      message: 'Calculating download size of search results...',
+      buttons: []
+    });
+
+    const search = fpDatabase.parseUserSearchInput('').search;
+    search.limit = 9999999999;
+    search.filter = query.filter;
+    search.slim = true;
+    search.loadRelations.gameData = true;
+    const games = await fpDatabase.searchGames(search);
+    console.log('Found ' + games.length + ' games');
+
+    let totalSize = 0;
+    for (const game of games) {
+      if (game.gameData) {
+        for (const gd of game.gameData) {
+          if (!gd.presentOnDisk) {
+            totalSize += gd.size;
+          }
+        }
+      }
+    }
+
+    state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    console.log('size ' + totalSize);
+
+    if (totalSize > 0) {
+      // Estimated size larger than 0B, ask the user before downloading
+      const humanReadableSize = sizeToString(totalSize);
+
+      const dialogId = state.socketServer.showMessageBoxBack(state, event.client)({
+        message: `Downloading these search results requires approximately ${humanReadableSize} of additional space. Continue?`,
+        buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
+        cancelId: 1,
+        largeMessage: true,
+      });
+      const result = (await awaitDialog(state, dialogId)).buttonIdx;
+
+      if (result === 1) {
+        log.debug('Downloads', 'User aborted search results download at size prompt');
+        return;
+      }
+    } else {
+      return;
+    }
+
+    state.downloader.addTasks(games);
+    if (state.downloader.status !== 'running') {
+      state.downloader.start();
+    }
+  });
+
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
     const game = await fpDatabase.findGame(id);
     if (game) {
@@ -2112,7 +2147,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
       const output: MetaEditFile = {
         metas: [meta],
-        launcherVersion: state.version,
+        launcherVersion: '',
       };
 
       const folderPath = path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath);
@@ -2152,8 +2187,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return result;
   });
 
-  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, taskId) => {
+  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, isTemplate, taskId) => {
     let processed = 0;
+    if (isTemplate) {
+      filePaths = filePaths.map(f => path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMPLATES, f));
+    }
     const taskProgress = new TaskProgress(filePaths.length);
     if (taskId) {
       taskProgress.on('progress', (text, done) => {
@@ -2175,7 +2213,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     for (const filePath of filePaths) {
       processed = processed + 1;
       taskProgress.setStage(processed, `Loading ${filePath}`);
-      await loadCurationArchive(filePath, null, throttle((progress: Progress) => {
+      await loadCurationArchive(filePath, !!isTemplate, undefined, throttle((progress: Progress) => {
         taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
       }, 200))
       .catch((error) => {
@@ -2191,8 +2229,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings);
   });
 
+  state.socketServer.register(BackIn.CURATE_GET_TEMPLATES, () => {
+    return state.curationTemplates;
+  });
+
   state.socketServer.register(BackIn.CURATE_GET_LIST, async () => {
-    return state.loadedCurations;
+    if (state.curationsReady) {
+      return state.loadedCurations;
+    } else {
+      return new Promise<CurationState[]>((resolve) => {
+        const disposable = state.apiEmitters.curations.onCurationsReady.event(() => {
+          resolve(state.loadedCurations);
+          dispose(disposable);
+        });
+      });
+    }
   });
 
   state.socketServer.register(BackIn.CURATE_DUPLICATE, async (event, folders) => {
@@ -2207,13 +2258,29 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (idx > -1) {
         state.loadedCurations[idx] = {
           ...curation,
-          contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents
+          contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents,
         };
         state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]);
         // Save curation
         saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
         .then(() => state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]));
       }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_REQUEST_CONTENT, async (event, key) => {
+    const curation = state.loadedCurations.find((c) => c.folder === key);
+    if (curation?.contentRequested === false) {
+      curation.contentRequested = true;
+
+      return genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
+      .then((contentTree) => {
+        const curationIdx = state.loadedCurations.findIndex((c) => c.folder === key);
+        if (curationIdx >= 0) {
+          state.loadedCurations[curationIdx].contents = contentTree;
+          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, key, contentTree);
+        }
+      });
     }
   });
 
@@ -2318,7 +2385,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await saveCuration(curPath, curation);
       await new Promise<void>((resolve) => {
         // Cast required until types fixed
-        return (add as any)(filePath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.exePath) })
+        return (add as any)(filePath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.isElectron, state.exePath) })
         .on('end', () => { resolve(); })
         .on('error', (error: any) => {
           log.error('Curate', error.message);
@@ -2342,7 +2409,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     await fs.ensureDir(curationsPath);
     const curations = await fs.promises.readdir(curationsPath, { withFileTypes: true });
     for (const curation of curations) {
-      console.log(curation.name);
       if (curation.isDirectory()) {
         const exists = state.loadedCurations.find(c => c.folder === curation.name);
         if (!exists) {
@@ -2388,16 +2454,56 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (data.game.primaryPlatform && data.game.primaryPlatform in state.platformAppPaths) {
         data.game.applicationPath = state.platformAppPaths[data.game.primaryPlatform][0].appPath;
       }
+      const contentTree = await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath));
       const curation: CurationState = {
         ...data,
+        contentRequested: false,
         alreadyImported: false,
         warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+        contents: contentTree,
       };
       await saveCuration(curPath, curation);
       state.loadedCurations.push(curation);
       state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
     }
+  });
+
+  state.socketServer.register(BackIn.CURATE_CREATE_TEMPLATE_FROM_CURATION, async (event, folder, name) => {
+    const curation = state.loadedCurations.find(c => c.folder === folder);
+    if (curation) {
+      let filename = `${sanitizeFilename(name)}.7z`;
+      const templateFolder = path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMPLATES);
+      let fullPath = path.join(templateFolder, filename);
+
+      await fs.ensureDir(templateFolder);
+      // Don't overwrite existing templates
+      if (fs.existsSync(fullPath)) {
+        filename = `${sanitizeFilename(name)}-${Date.now()}.7z`;
+        fullPath = path.join(templateFolder, filename);
+      }
+
+      // Make sure curation is up to date on disk
+      const curPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
+      await saveCuration(curPath, curation);
+      state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, true);
+      await new Promise<void>((resolve) => {
+        // Cast required until types fixed
+        return (add as any)(fullPath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.isElectron, state.exePath) })
+        .on('end', () => { resolve(); })
+        .on('error', (error: any) => {
+          log.error('Curate', error.message);
+          resolve();
+        });
+      })
+      .finally(() => {
+        state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
+      });
+
+      state.curationTemplates.push(filename);
+    } else {
+      throw new Error(`No curation found with folder '${folder}'`);
+    }
+    state.socketServer.broadcast(BackOut.CURATE_TEMPLATES_CHANGE, state.curationTemplates);
   });
 
   state.socketServer.register(BackIn.FPFSS_OPEN_CURATION, async (event, fpfssInfo, url, accessToken, taskId) => {
@@ -2434,7 +2540,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
 
     taskProgress.setStage(2, `Loading ${tempFile}`);
-    await loadCurationArchive(tempFile, fpfssInfo, throttle((progress: Progress) => {
+    await loadCurationArchive(tempFile, false, fpfssInfo, throttle((progress: Progress) => {
       taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
     }, 200))
     .catch((error) => {
@@ -2447,7 +2553,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CLEAR_PLAYTIME_TRACKING, async (event) => {
     const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
+    const dialogId = openDialog({
       message: 'Clearing Playtime Data...',
       largeMessage: true,
       buttons: []
@@ -2463,39 +2569,25 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
 
-  state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
+  state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, ...args: any[]) => {
     // Find command
     const c = state.registry.commands.get(command);
     let res = undefined;
-    let success = false;
     if (c) {
       // Run Command
-      try {
-        res = await Promise.resolve(c.callback(...args));
-        success = true;
-      } catch (error) {
-        log.error('Launcher', `Error running Command (${command})\n${error}`);
-      }
+      res = await Promise.resolve(c.callback(...args));
     } else {
       log.error('Launcher', `Command requested but "${command}" not registered!`);
+      throw `Command requested but "${command}" not registered!`;
     }
     // Return response
-    const result = {
-      success: success,
-      res: res,
-    };
-    state.socketServer.send(event.client, BackOut.RUN_COMMAND, result);
-    return result;
+    return res;
   });
 
   state.socketServer.register(BackIn.SET_EXT_CONFIG_VALUE, async (event, key, value) => {
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-    state.socketServer.send(event.client, BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
-  });
-
-  state.socketServer.register(BackIn.NEW_DIALOG_RESPONSE, (event, dialogId, code) => {
-    state.newDialogEvents.emit(code, dialogId);
+    state.socketServer.broadcastExcept(event.client, BackOut.SET_EXT_CONFIG_VALUE, key, value);
   });
 
   state.socketServer.register(BackIn.DIALOG_RESPONSE, (event, dialog, buttonIdx) => {
@@ -2522,79 +2614,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.IMPORT_METADATA, async (event, data) => {
-    console.log('importing platforms');
-    // Import platforms
-    await importPlatforms(data.platforms);
-    console.log('importing tag cats');
-    // Import tag cats
-    await importTagCategories(data.categories);
-    console.log('importing tags');
-    // Import tags
-    await importTags(data.tags);
-    console.log('importing games');
-    // Import games
-    await importGames(data.games);
-    // Check for extras
-    if (data.gameDataSources) {
-      // Add any extra sources
-      for (const source of data.gameDataSources) {
-        const existingSourceIdx = state.preferences.gameDataSources.findIndex(s => s.name === source.name);
-        if (existingSourceIdx > -1) {
-          state.preferences.gameDataSources[existingSourceIdx] = source;
-        } else {
-          state.preferences.gameDataSources.push(source);
-        }
-      }
-    }
-    if (data.tagFilters) {
-      // Add any extra filters
-      for (const tfg of data.tagFilters) {
-        const existingTfgIdx = state.preferences.tagFilters.findIndex(tfg => tfg.name === tfg.name);
-        if (existingTfgIdx > -1) {
-          state.preferences.tagFilters[existingTfgIdx] = tfg;
-        } else {
-          state.preferences.tagFilters.push(tfg);
-        }
-      }
-    }
-    // Save prefs
-    state.prefsQueue.push(() => {
-      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state)
-      .catch((err) => {
-        console.error(`Save prefs err: ${err}`);
-      });
-    });
-  });
-
-  state.socketServer.register(BackIn.SYNC_METADATA_SERVER, async (event, serverInfo) => {
-    // OUTDATED CODE
-    switch (serverInfo.type) {
-      case 'raw': {
-        // Download file
-        const data: MetadataRaw = unsafeParseJsonBuffer(await downloadJsonDataToBuffer(serverInfo.host));
-        // Import platforms
-        await importPlatforms(data.platforms);
-        // Import tags
-        await importTags(data.tags);
-        // Import games
-        await importGames(data.games);
-        break;
-      }
-      case 'python': {
-        break;
-      }
-      default:
-        throw 'Unsupported type';
-    }
-  });
-
   state.socketServer.register(BackIn.CLEAR_WININET_CACHE, async (event) => {
     clearWininetCache();
   });
 
   state.socketServer.register(BackIn.OPTIMIZE_DATABASE, async (event) => {
-    const dialogId = await createNewDialog(state, {
+    const dialogId = createNewDialog(state, {
       largeMessage: true,
       message: 'Optimizing Database...',
       buttons: []
@@ -2605,69 +2630,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     await fpDatabase.optimizeDatabase();
     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
-}
-
-/**
- * Recursively iterate over all properties of the template object and compare the values of the same
- * properties in object A and B. All properties that are not equal will be added to the returned object.
- * Missing properties, or those with the value undefined, in B will be ignored.
- * If all property values are equal undefined is returned.
- *
- * __Note:__ Arrays work differently in order to preserve the types and indices.
- * If the length of the arrays are not equal, or if not all items in the array are strictly equal (to the items of the other array),
- * then the whole array will be added to the return object.
- *
- * @param template Template object. Iteration will be done over this object.
- * @param a Compared to B.
- * @param b Compared to A. Values in the returned object is copied from this.
- */
-function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | undefined {
-  let dif: DeepPartial<T> | undefined;
-
-  for (const key in template) {
-    const tVal = template[key];
-    const aVal = a[key];
-    const bVal = b[key];
-
-    if (aVal !== bVal && bVal !== undefined) {
-      // Array
-      if (Array.isArray(tVal) && Array.isArray(aVal) && Array.isArray(bVal)) {
-        let notEqual = false;
-
-        if (aVal.length === bVal.length) {
-          for (let i = 0; i < aVal.length; i++) {
-            if (aVal[i] !== bVal[i]) {
-              notEqual = true;
-              break;
-            }
-          }
-        } else {
-          notEqual = true;
-        }
-
-        if (notEqual) {
-          if (!dif) { dif = {}; }
-          dif[key] = [ ...bVal ] as any;
-        }
-      }
-      // Object
-      else if (typeof tVal === 'object' && typeof aVal === 'object' && typeof bVal === 'object') {
-        const subDif = difObjects(tVal, aVal, bVal as any);
-        if (subDif) {
-          if (!dif) { dif = {}; }
-          dif[key] = subDif as any;
-        }
-      }
-      // Other
-      else {
-        if (!dif) { dif = {}; }
-        // Works, but type checker complains
-        dif[key] = bVal as any;
-      }
-    }
-  }
-
-  return dif;
 }
 
 function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, name: string): ManagedChildProcess {
@@ -2686,7 +2648,7 @@ function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, na
     },
     {
       path: dirname,
-      filename: createCommand(launchInfo.gamePath, launchInfo.useWine, !!launchInfo.noshell),
+      filename: createRawCommand(launchInfo.gamePath, launchInfo.useWine, !!launchInfo.noshell),
       // Don't escape args if we're not using a shell.
       arguments: launchInfo.noshell
         ? typeof launchInfo.gameArgs == 'string'
@@ -2699,7 +2661,7 @@ function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, na
 
   // Remove game service when it exits
   proc.on('change', () => {
-    if (proc.getState() === ProcessState.STOPPED) {
+    if (proc.getState() === 0) {
       removeService(state, proc.id);
     }
   });
@@ -2707,7 +2669,7 @@ function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, na
   return proc;
 }
 
-function runAddAppFactory(state: BackState) {
+export function runAddAppFactory(state: BackState) {
   return (launchInfo: LaunchInfo): ManagedChildProcess => {
     const id = uuid();
     return runGameService(state, launchInfo, `add-app.${id}`, `Add App ${id}`);
@@ -2719,14 +2681,14 @@ function runAddAppFactory(state: BackState) {
  *
  * @param state Current back state
  */
-function runGameFactory(state: BackState) {
+export function runGameFactory(state: BackState) {
   return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
     // Run game as a service and register it
     const id = `game.${gameLaunchInfo.game.id}`;
     const proc = runGameService(state, gameLaunchInfo.launchInfo, id, gameLaunchInfo.game.title);
 
     proc.on('change', () => {
-      if (proc.getState() === ProcessState.STOPPED) {
+      if (proc.getState() === 0) {
         // Update game playtime counter when process exits
         if (state.preferences.enablePlaytimeTracking) {
           const secondsPlayed = (Date.now() - proc.getStartTime()) / 1000;
@@ -2753,7 +2715,7 @@ function runGameFactory(state: BackState) {
   };
 }
 
-function createCommand(filename: string, useWine: boolean, noshell: boolean): string {
+export function createRawCommand(filename: string, useWine: boolean, noshell: boolean): string {
   // This whole escaping thing is horribly broken. We probably want to switch
   // to an array representing the argv instead and not have a shell
   // in between.
@@ -2799,8 +2761,8 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
  *
  * @param state Current back state
  */
-async function getProviders(state: BackState): Promise<AppProvider[]> {
-  return state.extensionsService.getContributions('applications')
+export async function getProviders(state: BackState): Promise<AppProvider[]> {
+  return state.extensionsService.getEnabledContributions('applications', state.preferences.disabledExtensions)
   .then(contributions => {
     return contributions.map(c => {
       const apps = c.value;
@@ -2832,36 +2794,40 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
   );
 }
 
-function changeServerFactory(state: BackState): (server?: string) => Promise<void> {
-  return async (server?: string) => {
-    if (state.serviceInfo) {
-      if (!server) {
-        // No server name given, assume the default server
-        server = state.preferences.server;
-      }
-      // Cast to fix type error after if check above
-      const serverInfo = state.serviceInfo.server.find(s => s.name === server || s.aliases.includes(server as string));
-      if (serverInfo) {
-        // Found server info, safely stop the server if it's not the correct one, then run the correct one
-        const runningServer = state.services.get('server');
-        if (!runningServer || !('name' in runningServer.info) || runningServer.info.name !== serverInfo.name) {
-          if (runningServer) {
-            // Wrong server running, stop it
-            await removeService(state, 'server');
-          }
-          // Start the correct server
-          log.debug('Launcher', `Changing server to: ${serverInfo.name}`);
-          state.services.delete('server');
-          runService(state, 'server', 'Server', state.config.flashpointPath, { env: {
-            ...process.env,
-            'PATH': state.pathVar ?? process.env.PATH,
-          } }, serverInfo);
-          await promiseSleep(1500);
-        }
-      } else {
-        throw new Error(`Server '${server}' not found`);
-      }
+export async function changeServer(state: BackState, server?: string): Promise<void> {
+  if (state.serviceInfo) {
+    if (!server) {
+      // No server name given, assume the default server
+      server = state.preferences.server;
     }
+    // Cast to fix type error after if check above
+    const serverInfo = state.serviceInfo.server.find(s => s.name === server || s.aliases.includes(server as string));
+    if (serverInfo) {
+      // Found server info, safely stop the server if it's not the correct one, then run the correct one
+      const runningServer = state.services.get('server');
+      if (!runningServer || !('name' in runningServer.info) || runningServer.info.name !== serverInfo.name) {
+        if (runningServer) {
+          // Wrong server running, stop it
+          await removeService(state, 'server');
+        }
+        // Start the correct server
+        log.debug('Launcher', `Changing server to: ${serverInfo.name}`);
+        state.services.delete('server');
+        runService(state, 'server', 'Server', state.config.flashpointPath, { env: {
+          ...process.env,
+          'PATH': state.pathVar ?? process.env.PATH,
+        } }, serverInfo);
+        await promiseSleep(1500);
+      }
+    } else {
+      throw new Error(`Server '${server}' not found`);
+    }
+  }
+}
+
+export function changeServerFactory(state: BackState): (server?: string) => Promise<void> {
+  return async (server?: string) => {
+    return changeServer(state, server);
   };
 }
 
@@ -2875,44 +2841,36 @@ export async function exitApp(state: BackState, beforeProcessExit?: () => void |
   return exit(state, beforeProcessExit);
 }
 
-async function downloadGameDataRes(state: BackState, gameData: GameData) {
-  const onDetails = (details: DownloadDetails) => {
-    state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
-  };
-  const onProgress = (percent: number) => {
-    // Sent to PLACEHOLDER download dialog on client
-    state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
-  };
-  state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-  try {
-    await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails);
-  } finally {
-    // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-    setTimeout(() => {
-      state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-    }, 250);
+export async function broadcastGameUpdate(state: BackState, id: string) {
+  const game = await getGame(state, id);
+  if (game) {
+    state.socketServer.broadcast(BackOut.UPDATE_GAME, game);
+  } else {
+    log.error('Launcher', 'Game broadcast requested but no game found for ' + id);
   }
 }
 
-const unsafeParseJsonBuffer = <T>(buffer: Buffer): T => {
-  const data = buffer.toString();
-  return JSON.parse(data) as T;
-};
-
-// Download the JSON file from a URL and save it to a buffer
-const downloadJsonDataToBuffer = async (url: string): Promise<Buffer> => {
-  return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      const data: Buffer[] = [];
-      response.on('data', (chunk) => {
-        data.push(chunk);
-      });
-      response.on('end', () => {
-        const buffer = Buffer.concat(data);
-        resolve(buffer);
-      });
-    }).on('error', (error) => {
-      reject(error);
-    });
-  });
-};
+async function getGame(state: BackState, id: string) {
+  const game = await fpDatabase.findGame(id);
+  if (game) {
+    if (game.gameData) {
+      for (const gameData of game.gameData) {
+        const gameDataFilename = getGameDataFilename(gameData);
+        try {
+          await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
+          if (!gameData.presentOnDisk) {
+            gameData.presentOnDisk = true;
+            fpDatabase.saveGameData(gameData);
+          }
+        } catch (err) {
+          if (gameData.presentOnDisk) {
+            gameData.presentOnDisk = false;
+            fpDatabase.saveGameData(gameData);
+          }
+        }
+      }
+    }
+    await state.apiEmitters.games.onInterceptGetGame.fire(game);
+  }
+  return game;
+}

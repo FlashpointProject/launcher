@@ -6,19 +6,17 @@ import { exitApp } from '@back/responses';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import { BackOut, ComponentState } from '@shared/back/types';
-import { PlatformAppPath, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
-import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
-import { LangContainer, LangFile, autoCode, getDefaultLocalization } from '@shared/lang';
+import { INamedBackProcessInfo } from '@shared/interfaces';
+import { autoCode, getDefaultLocalization } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
-import { AdditionalApp, Game, Tag } from 'flashpoint-launcher';
+import { AdditionalApp, Game, IBackProcessInfo, IService, LangContainer, LangFile, LangInfo, PlatformAppPath, PlatformAppPathSuggestions, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
+import * as path from 'node:path';
 import * as os from 'os';
-import * as path from 'path';
-import * as kill from 'tree-kill';
 import { promisify } from 'util';
 import { uuid } from './uuid';
 
@@ -114,8 +112,17 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
  */
 export async function exit(state: BackState, beforeProcessExit?: () => void | Promise<void>): Promise<void> {
   if (!state.isExit) {
+    state.socketServer.broadcast(BackOut.QUIT);
     state.isExit = true;
     console.log('Exiting...');
+
+    // Kill file server and downloader
+    await state.fileServer.close();
+    console.log(' - File Server Stopped');
+
+    state.onDemandImageDownloader.stop();
+    console.log(' - On Demand Downloader Stopped');
+
     // Unload all extensions before quitting
     await state.extensionsService.unloadAll();
     console.log(' - Extensions Unloaded');
@@ -153,13 +160,6 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
     console.log(' - Watchers Aborted');
 
     await Promise.all([
-      // Close file server
-      new Promise<void>(resolve => state.fileServer.close(error => {
-        if (error) { console.warn('An error occurred while closing the file server.', error); }
-        resolve();
-      })).then(() => {
-        console.log(' - File Server Closed');
-      }),
       // Wait for preferences writes to complete
       state.prefsQueue.push(() => {}, true),
       // Abort saving on demand images
@@ -189,15 +189,6 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       state.socketServer.close()
       .catch(e => { console.error(e); });
 
-      await new Promise<void>((resolve, reject) => {
-        kill(process.pid, (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-      });
       // Kill the parent process.
       process.kill(process.pid);
       process.exit(0);
@@ -304,13 +295,13 @@ export async function removeService(state: BackState, processId: string): Promis
 }
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
-  if (service.getState() !== ProcessState.STOPPED) {
+  if (service.getState() !== 0) {
     return new Promise((resolve) => {
       service.on('change', onChange);
       service.kill();
 
       function onChange() {
-        if (service.getState() === ProcessState.STOPPED) {
+        if (service.getState() === 0) {
           service.off('change', onChange);
           resolve();
         }
@@ -522,4 +513,13 @@ export function processPlatformAppPaths(suggs: PlatformAppPathSuggestions): Plat
   }
 
   return newSuggs;
+}
+
+export function langFilesToInfo(langFiles: LangFile[]): LangInfo[] {
+  return langFiles.map((lang) => {
+    return {
+      code: lang.code,
+      name: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
+    };
+  });
 }

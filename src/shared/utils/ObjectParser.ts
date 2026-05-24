@@ -243,7 +243,7 @@ export class ObjectParser<T> extends ObjectParserProp<T> {
  * @param label Label to put at the end of the stack.
  */
 // symbol cannot be used for addition, Symbol can?
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
 function createStack(stack: string[], label: string | number | Symbol): string[] {
   const newStack = stack.slice();
   newStack.push(label + '');

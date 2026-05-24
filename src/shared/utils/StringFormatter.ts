@@ -6,7 +6,7 @@ const opts: VariableStringOptions = {
   closeChar: '}',
 };
 
-type Arg = string | JSX.Element;
+type Arg = string | React.JSX.Element;
 
 /**
  * Format a string by replacing all instanced of "{N}" (where N is an integer) with the argument with the same index

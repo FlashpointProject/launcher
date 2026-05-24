@@ -1,4 +1,4 @@
-import { LangContainer } from '../lang';
+import { LangContainer } from 'flashpoint-launcher';
 
 /**
  * Returns the localized string for an upgrade (Or the same string, if none is found)

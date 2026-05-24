@@ -1,15 +1,7 @@
+import { ConfigBoxSelectInputProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { ConfigBox, ConfigBoxProps } from './ConfigBox';
+import { ConfigBox } from './ConfigBox';
 import { DropdownInputField } from './DropdownInputField';
-
-export type ConfigBoxSelectInputProps = ConfigBoxProps & {
-  text: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  onItemSelect: (value: string, index: number) => void;
-  editable: boolean;
-  items: string[];
-};
 
 export function ConfigBoxSelectInput(props: ConfigBoxSelectInputProps) {
   const [inputRef, setInputRef] = React.useState<HTMLInputElement | HTMLTextAreaElement | null>(null);

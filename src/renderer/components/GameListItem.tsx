@@ -1,16 +1,14 @@
+import { num } from '@shared/utils/Coerce';
+import { Game } from 'flashpoint-launcher';
+import { DisplaySettings, GameListComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
-import { getPlatformIconURL } from '../Util';
+import { DynamicComponent } from './DynamicComponent';
 import { GameDragEventData } from './pages/BrowsePage';
-import { num } from '@shared/utils/Coerce';
 
 export type GameListItemProps = ListRowProps & {
-  id: string;
-  title: string;
-  platform: string;
-  tags: string[];
-  developer: string;
-  publisher: string;
+  displaySettings: DisplaySettings;
+  game?: Game;
   extreme: boolean;
   /** Don't render if extreme games is disabled, match header */
   showExtremeIcon: boolean;
@@ -29,85 +27,77 @@ export type GameListItemProps = ListRowProps & {
   /** Game drag event */
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
+  totalWeight: number;
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tags, developer, publisher, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
+  const { extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
     onDragOver } = props;
-  // Get the platform icon path
-  const platformIcon = React.useMemo(() => (
-    getPlatformIconURL(platform, props.logoVersion)
-  ), [platform]);
+  const game = props.game!;
   // Pick class names
-  const className = React.useMemo(() => {
-    let className = 'game-list-item';
-    if (index % 2 === 0) { className += ' game-list-item--even';     }
-    if (isSelected)      { className += ' game-list-item--selected'; }
-    if (isDragged)       { className += ' game-list-item--dragged';  }
-    return className;
-  }, [index, isSelected, isDragged]);
-  // Memoize render
-  return React.useMemo(() => {
-    // Set element attributes
-    const attributes: any = {};
-    attributes[GameListItem.idAttribute] = id;
-    attributes[GameListItem.indexAttribute] = index;
-    // Render
-    return (
-      <li
-        style={style}
-        className={className}
-        draggable={isDraggable}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        { ...attributes }>
-        { showExtremeIcon &&
+  let className = 'game-list-item';
+  if (index % 2 === 0) { className += ' game-list-item--even';     }
+  if (isSelected)      { className += ' game-list-item--selected'; }
+  if (isDragged)       { className += ' game-list-item--dragged';  }
+  // Set element attributes
+  const attributes: any = {};
+  attributes[GameListItem.sourceAttribute] = props.game?.owner;
+  attributes[GameListItem.idAttribute] = props.game?.id;
+  attributes[GameListItem.indexAttribute] = index;
+  attributes[GameListItem.logoPathAttribute] = props.game?.logoPath;
+  attributes[GameListItem.screenshotPathAttribute] = props.game?.screenshotPath;
+
+  const gameListComponentProps: GameListComponentProps = {
+    isDragged,
+    game,
+    logoVersion: props.logoVersion,
+  };
+
+  // Render
+  return (
+    <li
+      style={style}
+      className={className}
+      draggable={isDraggable}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      { ...attributes }>
+      { game !== undefined && props.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
+        return <DynamicComponent key={col.rowComponent} props={gameListComponentProps} name={col.rowComponent} />;
+      })}
+      { showExtremeIcon &&
           (extreme ? (
             <div
+              key='extreme-icon'
               className='game-list-item__icon'
               style={{ backgroundImage: `url("${extremeIconPath}")` }} />
-            ) : (tagGroupIconBase64 ? (
-              <div
-                className='game-list-item__icon'
-                style={{ backgroundImage: `url("${tagGroupIconBase64}")` }} />
+          ) : (tagGroupIconBase64 ? (
+            <div
+              key='tag-group-icon'
+              className='game-list-item__icon'
+              style={{ backgroundImage: `url("${tagGroupIconBase64}")` }} />
           ) : (
-            <div className='game-list-item__icon' />
+            <div key='tag-group-icon-empty' className='game-list-item__icon' />
           )))
-        }
-        <div
-          className='game-list-item__icon'
-          style={{ backgroundImage: `url("${platformIcon}")` }} />
-        <div className='game-list-item__right'>
-          <div
-            className='game-list-item__field game-list-item__field--title'
-            title={title}>
-            {title}
-          </div>
-          <div
-            className='game-list-item__field game-list-item__field--developer'
-            title={developer}>
-            {developer}
-          </div>
-          <div
-            className='game-list-item__field game-list-item__field--publisher'
-            title={publisher}>
-            {publisher}
-          </div>
-          <div
-            className='game-list-item__field game-list-item__field--tagsStr'
-            title={tags.join('; ')}>
-            {tags.join('; ')}
-          </div>
-        </div>
-      </li>
-    );
-  }, [style, className, isDraggable, id, tags, title, platformIcon, onDrop, onDragOver]);
+      }
+      <div className='game-list-item__right'>
+        { game !== undefined && props.displaySettings.gameList.columns.filter(col => col.type === 'normal').map((col, idx) => {
+          return <div style={{ width: `${(col.weight / props.totalWeight) * 100}%` }}>
+            <DynamicComponent key={idx} props={gameListComponentProps} name={col.rowComponent} />
+          </div>;
+        })}
+      </div>
+    </li>
+  );
 }
 
 export namespace GameListItem {
   /** ID of the attribute used to store the game's id. */
+  export const sourceAttribute = 'data-source-id';
   export const idAttribute = 'data-game-id';
   export const indexAttribute = 'data-game-index';
+  export const logoPathAttribute = 'data-game-logo-path';
+  export const screenshotPathAttribute = 'data-game-screenshot-path';
 
   /**
    * Get the data of the game displayed in a GameListItem element (or throw an error if it fails).
@@ -115,12 +105,18 @@ export namespace GameListItem {
    * @param element GameListItem element.
    */
   export function getDragEventData(element: Element): GameDragEventData {
-    const gameId = element.getAttribute(GameListItem.idAttribute);
+    const sourceId = element.getAttribute(GameListItem.sourceAttribute) || '';
+    const gameId = element.getAttribute(GameListItem.idAttribute) || '';
     const index = num(element.getAttribute(GameListItem.indexAttribute));
+    const logoPath = element.getAttribute(GameListItem.logoPathAttribute) || '';
+    const screenshotPath = element.getAttribute(GameListItem.screenshotPathAttribute) || '';
     if (typeof gameId !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
     return {
+      sourceId,
       gameId,
-      index
+      index,
+      logoPath,
+      screenshotPath
     };
   }
 

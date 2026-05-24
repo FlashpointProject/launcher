@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import { ExecMapping } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';

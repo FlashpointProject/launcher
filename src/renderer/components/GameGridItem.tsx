@@ -1,31 +1,24 @@
+import { getGameImageURL } from '@renderer/Util';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { num } from '@shared/utils/Coerce';
+import { Content } from 'flashpoint-launcher';
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
-import { getPlatformIconURL } from '../Util';
 import { GameDragEventData } from './pages/BrowsePage';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
-export type GameGridItemProps = Partial<GridCellProps> & {
-  id: string;
-  title: string;
-  platforms: string[];
+export type GameGridItemProps<T extends Content> = Partial<GridCellProps> & {
+  game?: T | Content;
+  upperIcons: string[];
+  lowerIcons: string[];
   extreme: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
-  /** Path to the game's thumbnail. */
-  thumbnail: string;
-  /** Path to the game's screenshot */
-  screenshot: string;
   /** If the cell can be dragged (defaults to false). */
   isDraggable?: boolean;
   /** If the cell is selected. */
   isSelected: boolean;
   /** If the cell is being dragged. */
   isDragged: boolean;
-  /** Path to the extreme icon */
-  extremeIconPath: string;
-  /** Icon for games in tag categories */
-  tagGroupIconBase64: string;
   /** On Drop event */
   onDrop?: (event: React.DragEvent) => void;
   /** Screenshot Preview Mode */
@@ -37,99 +30,96 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 };
 
 // Displays a single game. Meant to be rendered inside a grid.
-export function GameGridItem(props: GameGridItemProps) {
+export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [showScreenshot, setShowScreenshot] = React.useState(false);
+  const { screenshotPreviewDelay } = props;
 
   React.useEffect(() => {
     let timeoutId: any; // It's a timeout
     if (isHovered) {
       timeoutId = setTimeout(() => {
         setShowScreenshot(true);
-      }, props.screenshotPreviewDelay); // Delay in milliseconds
+      }, screenshotPreviewDelay); // Delay in milliseconds
     } else {
       setShowScreenshot(false);
     }
     return () => clearTimeout(timeoutId); // Cleanup timeout on component unmount or if hover state changes
-  }, [isHovered]);
+  }, [isHovered, screenshotPreviewDelay]);
 
-  const { rowIndex, id, title, platforms, thumbnail, screenshot, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, style, onDrop } = props;
+  const { game, rowIndex, lowerIcons, upperIcons, extreme, isDraggable, isSelected, isDragged, style, onDrop } = props;
   // Get the platform icon path
   let willShowScreenshot = false;
   if (props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS) {
-    if (!props.hideExtremeScreenshots || !props.extreme) {
+    if (!props.hideExtremeScreenshots || !extreme) {
       willShowScreenshot = true;
     }
   } else if (props.screenshotPreviewMode === ScreenshotPreviewMode.ON && showScreenshot) {
-    if (!props.hideExtremeScreenshots || !props.extreme) {
+    if (!props.hideExtremeScreenshots || !extreme) {
       willShowScreenshot = true;
     }
   }
-  const platformIcons = React.useMemo(() =>
-    platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion))
-  , [platforms, props.logoVersion]);
   // Pick class names
-  const className = React.useMemo(() => {
-    let className = 'game-grid-item';
-    if (isSelected) { className += ' game-grid-item--selected'; }
-    if (isDragged)  { className += ' game-grid-item--dragged';  }
-    return className;
-  }, [isSelected, isDragged]);
+  let className = 'game-grid-item';
+  if (isSelected) { className += ' game-grid-item--selected'; }
+  if (isDragged)  { className += ' game-grid-item--dragged';  }
+
+  const attributes: any = {};
+  attributes[GameGridItem.sourceAttribute] = game?.owner;
+  attributes[GameGridItem.idAttribute] = game?.id;
+  attributes[GameGridItem.indexAttribute] = rowIndex;
+  attributes[GameGridItem.logoPathAttribute] = props.game?.logoPath;
+  attributes[GameGridItem.screenshotPathAttribute] = props.game?.screenshotPath;
+
+  const thumbnail = game ? getGameImageURL(game.logoPath) : undefined;
+  const screenshot = game ? getGameImageURL(game.screenshotPath) : undefined;
+
   // Memoize render
-  return React.useMemo(() => {
-    // Set element attributes
-    const attributes: any = {};
-    attributes[GameGridItem.idAttribute] = id;
-    attributes[GameGridItem.indexAttribute] = rowIndex;
-    // Render
-    return (
-      <li
-        style={style}
-        className={className}
-        draggable={isDraggable}
-        onDrop={onDrop}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        { ...attributes }>
-        <div className='game-grid-item__thumb'>
-          <div
-            className='game-grid-item__thumb__image'
-            style={{ backgroundImage: `url('${ willShowScreenshot ? screenshot : thumbnail }')` }}>
-            {(extreme) ? (
-              <div className='game-grid-item__thumb__icons--upper'>
-                <div
-                  className='game-grid-item__thumb__icons__icon'
-                  style={{ backgroundImage: `url('${extremeIconPath}')` }} />
-              </div>
-            ) : (tagGroupIconBase64 ? (
-              <div className='game-grid-item__thumb__icons--upper'>
-                <div
-                  className='game-grid-item__thumb__icons__icon'
-                  style={{ backgroundImage: `url("${tagGroupIconBase64}")` }} />
-              </div>
-            ) : undefined )}
-            <div className='game-grid-item__thumb__icons'>
-              {platformIcons.map(p => (
-                <div
-                  key={p}
-                  className='game-grid-item__thumb__icons__icon'
-                  style={{ backgroundImage: `url('${p}')` }} />
-              ))}
-            </div>
+  return (
+    <li
+      style={style}
+      className={className}
+      draggable={isDraggable}
+      onDrop={onDrop}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      { ...attributes }>
+      <div className='game-grid-item__thumb'>
+        <div
+          className='game-grid-item__thumb__image'
+          style={{ backgroundImage: `url('${ willShowScreenshot ? screenshot : thumbnail }')` }}>
+          <div className='game-grid-item__thumb__icons--upper'>
+            {upperIcons.map(p => (
+              <div
+                key={p}
+                className='game-grid-item__thumb__icons__icon'
+                style={{ backgroundImage: `url('${p}')` }} />
+            ))}
+          </div>
+          <div className='game-grid-item__thumb__icons'>
+            {lowerIcons.map(p => (
+              <div
+                key={p}
+                className='game-grid-item__thumb__icons__icon'
+                style={{ backgroundImage: `url('${p}')` }} />
+            ))}
           </div>
         </div>
-        <div className='game-grid-item__title' title={title}>
-          <p className='game-grid-item__title__text'>{title}</p>
-        </div>
-      </li>
-    );
-  }, [style, className, isDraggable, id, title, platformIcons, thumbnail, screenshot, showScreenshot]);
+      </div>
+      <div className='game-grid-item__title' title={game?.title}>
+        <p className='game-grid-item__title__text'>{game?.title}</p>
+      </div>
+    </li>
+  );
 }
 
 export namespace GameGridItem {
   /** ID of the attribute used to store the game's id. */
+  export const sourceAttribute = 'data-source-id';
   export const idAttribute = 'data-game-id';
   export const indexAttribute = 'data-game-index';
+  export const logoPathAttribute = 'data-game-logo-path';
+  export const screenshotPathAttribute = 'data-game-screenshot-path';
 
   /**
    * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).
@@ -137,12 +127,18 @@ export namespace GameGridItem {
    * @param element GameGridItem element.
    */
   export function getDragEventData(element: Element): GameDragEventData {
-    const gameId = element.getAttribute(GameGridItem.idAttribute);
+    const sourceId = element.getAttribute(GameGridItem.sourceAttribute) || '';
+    const gameId = element.getAttribute(GameGridItem.idAttribute) || '';
     const index = num(element.getAttribute(GameGridItem.indexAttribute));
+    const logoPath = element.getAttribute(GameGridItem.logoPathAttribute) || '';
+    const screenshotPath = element.getAttribute(GameGridItem.screenshotPathAttribute) || '';
     if (typeof gameId !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
     return {
+      sourceId,
       gameId,
-      index
+      index,
+      logoPath,
+      screenshotPath,
     };
   }
 

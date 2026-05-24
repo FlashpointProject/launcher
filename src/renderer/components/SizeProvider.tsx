@@ -1,29 +1,24 @@
-import * as React from 'react';
+import { SizeProviderProps } from 'flashpoint-launcher-renderer';
 import { useEffect, useRef } from 'react';
-
-export type SizeProviderProps = {
-  /** Children of the wrapping <div> element. */
-  children?: React.ReactNode;
-  /** Value to set the "--width" CSS variable to. */
-  width: string | number;
-  /** Value to set the "--height" CSS variable to. */
-  height: string | number;
-};
 
 // Sets and updates the "--width" and "--height" CSS variables to match the prop values.
 export function SizeProvider(props: SizeProviderProps) {
   const ref = useRef(null);
   // Update "--width"
   useEffect(() => {
-    updateStyle(ref.current, '--width', props.width);
-  }, [ref.current, props.width]);
+    if (props.width) {
+      updateStyle(ref.current, '--width', props.width);
+    }
+  }, [props.width]);
   // Update "--height"
   useEffect(() => {
-    updateStyle(ref.current, '--height', props.height);
-  }, [ref.current, props.height]);
+    if (props.height) {
+      updateStyle(ref.current, '--height', props.height);
+    }
+  }, [props.height]);
   // Render
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ display: 'contents' }}>
       {props.children}
     </div>
   );

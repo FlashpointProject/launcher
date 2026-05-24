@@ -1,6 +1,6 @@
 import { BackIn } from '@shared/back/types';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { promisify } from 'util';
 import { fixSlashes } from '../Util';
 import { IndexedContent } from './OLD_types';

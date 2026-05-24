@@ -1,31 +1,26 @@
-import { withPreferences, WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
+import { isGame } from '@shared/utils/misc';
+import { Content, GameLaunchOverride, TagFilter, ViewContentSet } from 'flashpoint-launcher';
+import { BrowsePageDisplayProps, DisplaySettings } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized-reactv17';
-import { UpdateView, ViewGameSet } from '../interfaces';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
+import { UpdateView } from '../interfaces';
 import { findElementAncestor, gameDragDataType, getExtremeIconURL } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
-import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
-
-/** A function that receives an HTML element. */
-type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
 
-export type OwnProps = {
+export type GameListProps<T extends Content> = BrowsePageDisplayProps<T> & {
+  displaySettings: DisplaySettings;
   sourceTable: string;
-  /** All games that will be shown in the list. */
-  games?: ViewGameSet;
   /** Total number of games in the results view there are. */
   resultsTotal?: number;
   /** Are we in a playlist view? */
   insideOrderedPlaylist: boolean;
-  /** Currently selected game (if any). */
-  selectedGameId?: string;
   /** Currently dragged game index (if any). */
   draggedGameIndex: number | null;
   /** Height of each row in the list (in pixels). */
@@ -37,22 +32,22 @@ export type OwnProps = {
   /** Tag Filter icons */
   tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
-  noRowsRenderer?: () => JSX.Element;
+  noRowsRenderer?: () => React.JSX.Element;
   /** Called when the user attempts to select a game. */
-  onGameSelect: (gameId?: string, row?: number) => void;
+  onContentSelect: (gameId?: string, row?: number) => void;
+  /** Called when the user attempts to deselect a game. */
+  onContentDeselect: (gameId?: string, row?: number) => void;
   /** Called when the user attempts to launch a game. */
-  onGameLaunch: (gameId: string, override: GameLaunchOverride) => void;
+  onContentLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** Called when the user attempts to open a context menu (at a game). */
-  onContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
+  onContextMenu: (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when the user starts to drag a game. */
   onGameDragStart: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent) => void;
   /** Moves a game at the specified index above the other game at the destination index, inside the playlist */
-  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
+  onMovePlaylistEntry: (sourceGameId: string, destGameId: string) => void;
   updateView: UpdateView;
-  /** Function for getting a reference to grid element. Called whenever the reference could change. */
-  listRef?: RefFunc<HTMLDivElement>;
   /** Updates to clear platform icon cache */
   logoVersion: number;
   /** View id */
@@ -69,21 +64,21 @@ type RowsRenderedInfo = {
   stopIndex: number;
 }
 
-export type GameListProps = OwnProps & WithPreferencesProps;
-
 /** A list of rows, where each rows displays a game. */
-class _GameList extends React.Component<GameListProps> {
-  private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
-  /** Currently displayed games. */
-  currentGames: ViewGameSet | undefined = undefined;
+export class GameList<T extends Content> extends React.Component<GameListProps<T>> {
+  private _wrapper: React.RefObject<HTMLDivElement | null> = React.createRef();
   // Used for the "view update hack"
-  list: React.RefObject<List> = React.createRef();
+  list: React.RefObject<List | null> = React.createRef();
+
+  /** Currently displayed ccontent. */
+  currentContent: ViewContentSet<T> | undefined;
+  currentContentCount = 0;
 
   componentDidMount(): void {
     this.updateCssVars();
   }
 
-  componentDidUpdate(): void {
+  componentDidUpdate(prevProps: GameListProps<T>): void {
     this.updateCssVars();
 
     // @HACK: Update the view in cases where the "onSectionRendered" callback is not called _EVEN THOUGH_ the cells have been re-rendered
@@ -111,7 +106,7 @@ class _GameList extends React.Component<GameListProps> {
       if (destData) {
         console.log(`dest: ${destData.index}`);
         // Move the dropped game above the target game in the playlist
-        this.props.onMovePlaylistGame(dragData.gameId, destData.gameId);
+        this.props.onMovePlaylistEntry(dragData.gameId, destData.gameId);
       }
     }
   };
@@ -126,31 +121,32 @@ class _GameList extends React.Component<GameListProps> {
   };
 
   render() {
-    const games = this.props.games || [];
-    console.log('render ' + this.props.scrollRow + ' ' + this.props.selectedGameId);
+    const content = this.props.content;
     // @HACK: Check if the games array changed
     // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
-    const gamesChanged = games !== this.currentGames;
-    if (gamesChanged) { this.currentGames = games; }
+    if (content !== this.currentContent) {
+      this.currentContent = content;
+      this.currentContentCount = (this.currentContentCount + 1) % 100;
+    }
 
     // Render
     return (
       <div
         className='game-list-wrapper'
         ref={this._wrapper}>
-        <GameListHeader
-          showExtremeIcon={this.props.showExtremeIcon}
-          preferencesData={this.props.preferencesData}  />
+        <GameListHeader showExtremeIcon={this.props.showExtremeIcon} />
         <GameItemContainer
           className='game-browser__center-inner'
-          onGameSelect={this.onGameSelect}
-          onGameLaunch={this.onGameLaunch}
+          onContentSelect={this.onContentSelect}
+          onContentDeselect={this.onContentDeselect}
+          onContentLaunch={this.onContentLaunch}
           onGameContextMenu={this.onGameContextMenu}
           onGameDragStart={this.onGameDragStart}
           onGameDragEnd={this.onGameDragEnd}
           onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
           onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
-          findGameDragEventData={this.findGameDragEventData}
+          selectedGameId={this.props.selectedContentId}
+          type='list'
           onKeyPress={this.onKeyPress}>
           <AutoSizer>
             {({ width, height }) => {
@@ -168,7 +164,6 @@ class _GameList extends React.Component<GameListProps> {
                       ref={this.list}
                       width={width}
                       height={height}
-                      entries={this.props.games}
                       rowHeight={this.props.rowHeight}
                       rowCount={this.props.resultsTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}
@@ -178,11 +173,11 @@ class _GameList extends React.Component<GameListProps> {
                       scrollToIndex={this.props.scrollRow}
                       onRowsRendered={this.onRowsRendered}
                       onSectionRendered={onSectionRendered}
-                      pass_gameId={this.props.selectedGameId}
-                      pass_viewId={this.props.viewId}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
-                      pass_gamesChanged={gamesChanged} />
+                      pass_gameId={this.props.selectedContentId}
+                      pass_currentGamesCount={this.currentContentCount}
+                      pass_viewId={this.props.viewId} />
                   )}
                 </ArrowKeyStepper>
               );
@@ -194,33 +189,35 @@ class _GameList extends React.Component<GameListProps> {
   }
 
   // Renders a single row in the game list.
-  rowRenderer = (cellProps: ListRowProps): React.ReactNode => {
+  rowRenderer = (props: ListRowProps): React.ReactNode => {
+    const games = this.props.content;
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { games, selectedGameId, showExtremeIcon } = this.props;
-    if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    const game = games[cellProps.index];
-    const platform = game?.primaryPlatform;
+    const { selectedContentId, showExtremeIcon } = this.props;
+    const index = props.index;
+    const game = games[index] as T | undefined;
+    if (game !== undefined && !isGame(game)) {
+      return <div key={props.key} style={props.style}>Unsupported Content Render</div>;
+    }
     const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
+    const totalWeight = this.props.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
+    const extreme = isGame(game) ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false;
 
-    return game ? (
+    return (
       <GameListItem
-        { ...cellProps }
-        key={cellProps.key}
-        id={game.id}
-        title={game.title}
-        platform={platform ? platform.trim() : ''}
-        tags={game.tags}
-        developer={game.developer}
-        publisher={game.publisher}
-        extreme={game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1}
+        { ...props }
+        displaySettings={this.props.displaySettings}
+        game={game}
+        key={props.key}
+        extreme={extreme}
         extremeIconPath={extremeIconPath}
         showExtremeIcon={showExtremeIcon}
         tagGroupIconBase64={tagGroupIcon || ''}
         logoVersion={this.props.logoVersion}
         isDraggable={true}
-        isSelected={game.id === selectedGameId}
+        isSelected={game?.id === selectedContentId}
+        totalWeight={totalWeight}
         isDragged={false} /> // Bugged render update
-    ) : <div key={cellProps.key} style={cellProps.style} />;
+    );
   };
 
   onRowsRendered = (info: RowsRenderedInfo) => {
@@ -230,8 +227,8 @@ class _GameList extends React.Component<GameListProps> {
   // When a key is pressed (while the list, or one of its children, is selected).
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
-      if (this.props.selectedGameId) {
-        this.props.onGameLaunch(this.props.selectedGameId, null);
+      if (this.props.selectedContentId) {
+        this.props.onContentLaunch(this.props.selectedContentId, null);
       }
     }
   };
@@ -242,9 +239,14 @@ class _GameList extends React.Component<GameListProps> {
    * @param event React event
    * @param gameId ID of pressed Game
    */
-  onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
-    const row = findGameIndex(this.props.games, gameId);
-    this.props.onGameSelect(gameId, row);
+  onContentSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
+    const row = findContentIndex(this.props.content, gameId);
+    this.props.onContentSelect(gameId, row);
+  };
+
+  onContentDeselect = (event: React.MouseEvent, gameId: string | undefined): void => {
+    const row = findContentIndex(this.props.content, gameId);
+    this.props.onContentDeselect(gameId, row);
   };
 
   /**
@@ -253,8 +255,8 @@ class _GameList extends React.Component<GameListProps> {
    * @param event React event
    * @param gameId ID of Game to launch
    */
-  onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
-    this.props.onGameLaunch(gameId, null);
+  onContentLaunch = (event: React.MouseEvent, gameId: string): void => {
+    this.props.onContentLaunch(gameId, null);
   };
 
   /**
@@ -263,8 +265,8 @@ class _GameList extends React.Component<GameListProps> {
    * @param event React event
    * @param gameId ID of Game to open context meny for
    */
-  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string, logoPath: string, screenshotPath: string): void => {
-    this.props.onContextMenu(gameId, logoPath, screenshotPath);
+  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, sourceId: string, gameId: string, logoPath: string, screenshotPath: string): void => {
+    this.props.onContextMenu(event, sourceId, gameId, logoPath, screenshotPath);
   };
 
   /**
@@ -323,14 +325,12 @@ class _GameList extends React.Component<GameListProps> {
   });
 }
 
-function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {
-  if (gameId !== undefined && games) {
-    for (const index in games) {
-      const game = games[index];
-      if (game && game.id === gameId) { return (index as any) | 0; }
+function findContentIndex<T extends Content>(contentSet: ViewContentSet<T> | undefined, contentId: string | undefined): number {
+  if (contentId !== undefined && contentSet) {
+    for (const index in contentSet) {
+      const content = contentSet[index];
+      if (content && content.id === contentId) { return (index as any) | 0; }
     }
   }
   return -1;
 }
-
-export const GameList = withPreferences(_GameList);

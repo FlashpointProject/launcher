@@ -119,7 +119,8 @@
     "extApplications": "Application(s)",
     "saveAndRestart": "Save and Restart",
     "saveAndClose": "Save and Close",
-    "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "tagFilterGroupEditor": "Tag Filter Group Editor",
+    "enabled": "Enabled"
   },
   "home": {
     "gotdHeader": "Game of the Day",
@@ -464,6 +465,7 @@
     "newCuration": "New Curation",
     "newCurationDesc": "Creates a new curation with a unique folder",
     "duplicateCuration": "Duplicate",
+    "createTemplateFromCuration": "Create Template from Curation",
     "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Load Meta",
     "loadMetaDesc": "Load one or more Curation meta files",

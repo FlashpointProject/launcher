@@ -11,6 +11,6 @@ export const startAppListening =
     listenerMiddleware.startListening as AppStartListening;
 
 export const addAppListener = addListener as TypedAddListener<
-RootState,
-AppDispatch
+  RootState,
+  AppDispatch
 >;

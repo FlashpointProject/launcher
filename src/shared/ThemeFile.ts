@@ -1,31 +1,9 @@
-export interface ITheme {
-  /** Unique ID */
-  id: string;
-  /** Path to the theme folder */
-  themePath: string;
-  /** Path of the theme's entry file (the css file that should be applied). */
-  entryPath: string;
-  /** Meta data of the theme. */
-  meta: ThemeMeta;
-  /** List of files this theme has */
-  files: string[];
-  /** Suggested logo set */
-  logoSet?: string;
-}
+import { ITheme, ThemeMeta } from 'flashpoint-launcher';
 
 export type Theme = ITheme & {
   /** Path of this theme on disk */
   basePath: string;
 }
-
-/** Meta data of a theme file (the data defined in the first comment of the theme file). */
-export type ThemeMeta = Partial<{
-  name: string;
-  version: string;
-  description: string;
-  author: string;
-  launcherVersion: string;
-}>;
 
 /** Filename of the entry file inside a theme folder. */
 export const themeEntryFilename = 'theme.css';
@@ -37,13 +15,21 @@ export const themeEntryFilename = 'theme.css';
  */
 export function parseThemeMetaData(content: string): ThemeMeta | undefined {
   const comment = getContentOfFirstComment(content);
+  let meta: ThemeMeta | undefined = undefined;
   if (comment !== undefined) {
     const block = getContentOfThemeBlock(comment);
     if (block !== undefined) {
-      return getMetaDataFromThemeBlock(block);
+      meta = getMetaDataFromThemeBlock(block);
+    } else {
+      return undefined;
+    }
+
+    const componentsBlock = getContentOfComponentsBlock(content);
+    if (componentsBlock !== undefined) {
+      meta.componentOverrides = getOverridesFromComponentsBlock(componentsBlock);
     }
   }
-  return undefined;
+  return meta;
 }
 
 /**
@@ -87,6 +73,18 @@ function getContentOfThemeBlock(content: string): string | undefined {
 }
 
 /**
+ * Get the content in a components block from a string of text.
+ * (Everything between "==Components==" and "==/Components==")
+ *
+ * @param content Content to search through.
+ * @returns Content of the Components block (or undefined if no block was found).
+ */
+function getContentOfComponentsBlock(content: string): string | undefined {
+  const match = content.match(/==Components==([\s\S]*)==\/Components==/);
+  return match ? match[1] : undefined;
+}
+
+/**
  * Get the meta data from a string of theme block content.
  *
  * @param content Theme block content.
@@ -108,6 +106,27 @@ function getMetaDataFromThemeBlock(content: string): ThemeMeta {
   }
   return metaData;
 }
+
+/**
+ * Get the overrides from a string of components block content.
+ *
+ * @param content Theme block content.
+ * @returns Record of all overridden components
+ */
+function getOverridesFromComponentsBlock(content: string): Record<string, string> {
+  const rawMetaData = getRawMetaDataFromThemeBlock(content);
+  // Convert raw meta data to a programmer friendly format
+  const overrides: Record<string, string> = {};
+  for (const key in rawMetaData) {
+    const val = rawMetaData[key];
+    if (val) {
+      overrides[key] = val;
+    }
+  }
+  return overrides;
+}
+
+
 
 /**
  * Get the "raw" tag-value pairs from a theme's meta data block.

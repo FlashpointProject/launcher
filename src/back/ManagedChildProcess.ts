@@ -1,31 +1,15 @@
-import { ILogPreEntry } from '@shared/Log/interface';
-import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
+import { INamedBackProcessInfo } from '@shared/interfaces';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import { IBackProcessInfo, ManagedChildProcessEvents, ProcessState } from 'flashpoint-launcher';
 import * as readline from 'readline';
-import * as kill from 'tree-kill';
+import _treeKill from 'tree-kill';
+import { TypedEmitter } from 'typed-emitter';
 import { onServiceChange } from './util/events';
 import { Disposable } from './util/lifecycle';
 
 const { str } = Coerce;
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export interface ManagedChildProcess {
-  /**
-   * Fires when any background service prints to std{out,err}. Every line is
-   * prefixed with the name of the process and the output is guaranteed to end
-   * with a new line.
-   */
-  on(event: 'output', handler: (output: ILogPreEntry) => void): this;
-  emit(event: 'output', output: ILogPreEntry): boolean;
-  /** Fires whenever the status of a process changes. */
-  on(event: 'change', listener: (newState: ProcessState) => void): this;
-  emit(event: 'change', newState: ProcessState): boolean;
-  /** Fires whenever the process exits */
-  on(event: 'exit', listener: (code: number | null, signal: string | null) => void): this;
-  emit(event: 'exit', code: number | null, signal: string | null): boolean;
-}
 
 export type ProcessOpts = {
   detached?: boolean;
@@ -39,8 +23,7 @@ export type ProcessOpts = {
 const MAX_RESTARTS = 5;
 
 /** Manages a single process. Wrapper around node's ChildProcess. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class ManagedChildProcess extends EventEmitter {
+export class ManagedChildProcess extends (EventEmitter as new () => TypedEmitter<ManagedChildProcessEvents>) {
   // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
 
   public id: string;
@@ -66,7 +49,7 @@ export class ManagedChildProcess extends EventEmitter {
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
-  private state: ProcessState = ProcessState.STOPPED;
+  private state: ProcessState = 0;
 
   constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
@@ -84,7 +67,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   /** Get the process ID (or -1 if the process is not running). */
   public getPid(): number {
-    return this.process ? this.process.pid : -1;
+    return this.process && (this.process.pid !== undefined) ? this.process.pid : -1;
   }
 
   /** Get the state of the process. */
@@ -110,7 +93,7 @@ export class ManagedChildProcess extends EventEmitter {
       }
       // Spawn process
       log.debug('Server', `Executable: ${this.info.filename} - Arguments: ${this.info.arguments.join(' ')}`);
-      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell, env: this.env});
+      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell, env: this.env });
       // Set start timestamp
       this.startTime = Date.now();
       // Log
@@ -125,15 +108,15 @@ export class ManagedChildProcess extends EventEmitter {
         stderr.on('line', this.logContentAny);
       }
       // Update state
-      this.setState(ProcessState.RUNNING);
+      this.setState(1);
       // Register child process listeners
       this.process.on('exit', (code, signal) => {
         if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
         else      { this.logContent(`${this.name} exited with signal ${signal}`); }
-        const wasRunning = (this.state === ProcessState.RUNNING);
+        const wasRunning = (this.state === 1);
         this.process = undefined;
         this.emit('exit', code, signal);
-        this.setState(ProcessState.STOPPED);
+        this.setState(0);
         if (this.autoRestart && wasRunning && code) {
           if (this.autoRestartCount < MAX_RESTARTS) {
             this.autoRestartCount++;
@@ -145,7 +128,7 @@ export class ManagedChildProcess extends EventEmitter {
       })
       .on('error', error => {
         this.logContent(`${this.name} failed to start - ${error.message}`);
-        this.setState(ProcessState.STOPPED);
+        this.setState(0);
         this.process = undefined;
       });
     }
@@ -153,16 +136,16 @@ export class ManagedChildProcess extends EventEmitter {
 
   /** Politely ask the child process to exit (if it is running). */
   public async kill(): Promise<void> {
-    if (this.process) {
-      this.setState(ProcessState.KILLING);
+    if (this.process && (this.process.pid !== undefined)) {
+      this.setState(2);
       await this.treeKill(this.process.pid);
     }
   }
 
   /** Restart the managed child process (by killing the current, and spawning a new). */
   public async restart(): Promise<void> {
-    if (this.process && !this._isRestarting) {
-      this.setState(ProcessState.KILLING);
+    if (this.process && this.process.pid !== undefined && !this._isRestarting) {
+      this.setState(2);
       this._isRestarting = true;
       this.logContent(`Restarting ${this.name} process`);
       // Replace all listeners with a single listener waiting for the process to exit
@@ -183,7 +166,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   private treeKill = async (PID: number): Promise<void> => {
     await new Promise<void>((resolve, reject) => {
-      kill(PID, (error) => {
+      _treeKill(PID, (error) => {
         if (error) {
           reject(error);
         } else {

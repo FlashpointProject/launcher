@@ -1,10 +1,11 @@
 import { BackOut } from '@shared/back/types';
-import { parseThemeMetaData, Theme, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
+import { parseThemeMetaData, Theme, themeEntryFilename } from '@shared/ThemeFile';
+import { ThemeMeta } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { Registry } from './extensions/types';
 import { SocketServer } from './SocketServer';
-import { ThemeState } from './types';
+import { BackState, ThemeState } from './types';
 import { FolderWatcher } from './util/FolderWatcher';
 
 /**
@@ -53,9 +54,10 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
   watcher.on('ready', () => {
     // Add event listeners
     watcher.on('add', onFileAdd);
-    watcher.on('change', (filename: string, offsetPath: string) => {
+    watcher.on('change', (filename, offsetPath) => {
       themeState.queue.push(() => {
         const relativePath = path.join(offsetPath, filename);
+        console.log(`CHANGE (File Path: "${filename}", Theme: "${theme.themePath}")`);
         if (!theme.files.includes(relativePath)) {
           log.warn('Launcher', 'A file has been changed in a theme but the file is not registered '+
           `(File Path: "${filename}", Theme: "${theme.themePath}")`);
@@ -64,7 +66,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
         }
       });
     });
-    watcher.on('remove', (filename: string, offsetPath: string) => {
+    watcher.on('remove', (filename, stats, offsetPath) => {
       themeState.queue.push(() => {
         const relativePath = path.join(offsetPath, filename);
         if (!theme.files.includes(relativePath)) {
@@ -109,7 +111,48 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
   });
   watcher.on('error', (err) => log.error('Launcher', err.message));
 
-  log.debug('Launcher', `[${owner || 'SYSTEM'}] Registered Theme "${theme.id}"`);
   registry.themes.set(theme.id, theme);
   watcher.watch(themePath, { recursionDepth: -1 });
+}
+
+/**
+ * Starts a watcher for system theme files (core.css and fancy.css) during development
+ * Watches the build/window/styles/ folder and broadcasts changes to connected clients
+ *
+ * @param stylesPath Path to the styles folder (build/window/styles/)
+ * @param socketServer Socket Server to broadcast changes on
+ */
+export async function newSystemThemeWatcher(stylesPath: string, state: BackState): Promise<void> {
+  // Check styles path exists
+  await fs.promises.stat(stylesPath)
+  .catch((error) => {
+    let errStr = '';
+    if (error.code === 'ENOENT') {
+      errStr += `Failed to watch styles folder. Path does not exist (Path: "${stylesPath}")\n`;
+    }
+    errStr += (typeof error.toString === 'function') ? error.toString() : (error + '');
+    throw new Error(errStr);
+  });
+
+  // Set up watcher (no recursion needed for flat styles folder)
+  const watcher = new FolderWatcher();
+
+  watcher.on('ready', () => {
+    // Watch for changes to CSS files
+    watcher.on('change', (filename: string) => {
+      if (filename.endsWith('.css')) {
+        state.socketServer.broadcast(BackOut.SYSTEM_THEME_CHANGE);
+      }
+    });
+
+    watcher.on('add', (filename: string) => {
+      if (filename.endsWith('.css')) {
+        state.socketServer.broadcast(BackOut.SYSTEM_THEME_CHANGE);
+      }
+    });
+  });
+
+  watcher.on('error', (err) => log.error('Launcher', `System theme watcher error: ${err.message}`));
+
+  watcher.watch(stylesPath, { recursionDepth: 0, changeDebounce: 100 });
 }

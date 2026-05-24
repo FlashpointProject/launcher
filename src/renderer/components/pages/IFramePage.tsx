@@ -5,7 +5,7 @@ export type IFramePageProps = {
 export function IFramePage(props: IFramePageProps) {
   return (
     <div className='iframe-page'>
-      <iframe className='iframe-page-inner' src={props.url}></iframe>
+      <iframe className={'iframe-page-inner'} src={props.url}></iframe>
     </div>
   );
 }

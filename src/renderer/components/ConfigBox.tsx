@@ -1,15 +1,7 @@
+import { ConfigBoxProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 
-export type ConfigBoxProps = {
-  title: string;
-  description: string;
-  swapChildren?: boolean;
-  // eslint-disable-next-line react/no-unused-prop-types
-  contentClassName?: string;
-  bottomChildren?: JSX.Element | JSX.Element[];
-}
-
-export function ConfigBoxInner(props: React.PropsWithChildren<ConfigBoxProps>) {
+export function ConfigBoxInner(props: ConfigBoxProps) {
   return (
     <div className='setting__inner__row'>
       <div>
@@ -28,7 +20,7 @@ export function ConfigBoxInner(props: React.PropsWithChildren<ConfigBoxProps>) {
   );
 }
 
-export function ConfigBox(props: React.PropsWithChildren<ConfigBoxProps>) {
+export function ConfigBox(props: ConfigBoxProps) {
   return (
     <div className='setting__row'>
       <div className={`setting__row__top ${props.swapChildren ? 'setting__row__top--swapchildren' : ''}`}>
@@ -42,6 +34,14 @@ export function ConfigBox(props: React.PropsWithChildren<ConfigBoxProps>) {
         { !props.swapChildren && <p className='setting__row__description'>{props.description}</p> }
         { props.swapChildren ? props.children : props.bottomChildren }
       </div>
+    </div>
+  );
+}
+
+export function ConfigSection(props: React.PropsWithChildren) {
+  return (
+    <div className='setting__body'>
+      {props.children}
     </div>
   );
 }

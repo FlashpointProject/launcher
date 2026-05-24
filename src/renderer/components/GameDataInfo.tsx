@@ -1,8 +1,7 @@
-import { LangContext } from '@renderer/util/lang';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { BackIn } from '@shared/back/types';
 import { sizeToString } from '@shared/Util';
 import { GameData } from 'flashpoint-launcher';
-import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -24,7 +23,7 @@ export type GameDataInfoProps = {
 
 export function GameDataInfo(props: GameDataInfoProps) {
   const { data } = props;
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
 
   const renderUninstallButton = ({ confirm }: ConfirmElementArgs) => {
     return (
@@ -100,9 +99,6 @@ export function GameDataInfo(props: GameDataInfoProps) {
               onChange={(event) => {
                 props.onUpdateLaunchCommand(event.target.value);
               }} />
-          </CurateBoxRow>
-          <CurateBoxRow title='Path'>
-            {data.path || <i>Not Downloaded</i>}
           </CurateBoxRow>
           <CurateBoxRow title='Size'>
             {`${sizeToString(data.size)} (${data.size} bytes)`}

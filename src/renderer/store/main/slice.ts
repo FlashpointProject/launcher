@@ -1,224 +1,178 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CreditsData } from '@renderer/credits/types';
-import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackIn, BackInit, ComponentStatus, GameOfTheDay } from '@shared/back/types';
-import { AppExtConfigData } from '@shared/config/interfaces';
-import { PlatformAppPathSuggestions } from '@shared/curate/types';
-import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService, WindowIPC } from '@shared/interfaces';
-import { createLangContainer, LangContainer, LangFile } from '@shared/lang';
-import { ITheme } from '@shared/ThemeFile';
-import * as axiosImport from 'axios';
-import { ipcRenderer } from 'electron';
-import { UpdateInfo } from 'electron-updater';
-import { DialogField, DialogState, DownloaderState, DownloaderStatus, DownloadTask, DownloadWorkerState, Game, GameData, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { BackIn, BackInit } from '@shared/back/types';
+import { getDefaultConfigData } from '@shared/config/util';
+import { createLangContainer } from '@shared/lang';
+import { deepCopy, recursiveReplace } from '@shared/Util';
+import { uuid } from '@shared/utils/uuid';
+import { CreditsData, DialogFieldProps, DialogState, Game, GameMetadataSource, IExtensionDescription, IService, Playlist } from 'flashpoint-launcher';
+import { CustomRoute, DisplaySettings, DisplaySettingsGameSidebarAction, DynamicPageProps, ExtConfigValueAction, ExtOrderable, MainState, UnrecoverableError } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
-export type MetaUpdateState = {
-  ready: boolean;
+type DisplaySettingsCallback = (prev: DisplaySettings) => DisplaySettings;
+type ExtOrderablesCallback = (prev: ExtOrderable[]) => ExtOrderable[];
+
+export type MetaUpdateAction = {
+  id: string;
   total: number;
 }
 
 export type RemovePlaylistGameAction = {
+  viewId: string;
   playlistId: string;
   gameId: string;
 }
 
 export type UpdateDialogFieldActionData = {
   id: string;
-  field: Partial<DialogField>;
+  field: Partial<DialogFieldProps>;
 }
-
-export type UpdateDownloaderTaskAction = DownloadTask;
-
-export type UpdateDownloaderStateAction = DownloaderStatus;
-
-export type UpdateDownloadWorkerAction = DownloadWorkerState;
 
 export type ResolveDialogActionData = {
   id: string;
   button: number;
 }
 
-export type MainState = {
-  gotdList: GameOfTheDay[] | undefined;
-  libraries: string[];
-  serverNames: string[];
-  mad4fpEnabled: boolean;
-  platformAppPaths: PlatformAppPathSuggestions;
-  playlists: Playlist[];
-  playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
-  suggestions: GamePropSuggestions;
-  appPaths: Record<string, string>;
-  loaded: { [key in BackInit]: boolean; };
-  loadedAll: boolean;
-  extensions: IExtensionDescription[];
-  themeList: ITheme[];
-  logoSets: ILogoSet[];
-  logoVersion: number; // Increase to force cache clear
-  gamesTotal: number;
-  localeCode: string;
-  /** Text to display on the dev console */
-  devConsole: string;
-
-  /** Random games for the Home page box */
-  randomGames: ViewGame[];
-  /** Whether we're currently requesting random games */
-  requestingRandomGames: boolean;
-  /** If the random games should be shifted when the request is complete. */
-  shiftRandomGames: boolean;
-
-  /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
-  upgrades: UpgradeStage[];
-  /** If the Random games have loaded - Masked as 'Games' */
-  gamesDoneLoading: boolean;
-  /** If upgrades files have loaded */
-  upgradesDoneLoading: boolean;
-  /** Stop rendering to force component unmounts */
-  stopRender: boolean;
-  /** Credits data (if any). */
-  creditsData?: CreditsData;
-  creditsDoneLoading: boolean;
-  /** If the "New Game" button was clicked (silly way of passing the event from the footer to the browse page). */
-  wasNewGameClicked: boolean;
-  /** Current language container. */
-  lang: LangContainer;
-  /** Current list of available language files. */
-  langList: LangFile[];
-  /** Info of the update, if one was found */
-  updateInfo: UpdateInfo | undefined;
-  /** If the "Meta Edit Popup" is open. */
-  metaEditExporterOpen: boolean;
-  /** ID of the game used in the "Meta Edit Popup". */
-  metaEditExporterGameId: string;
-  /** Scripts for the Developer Page */
-  devScripts: ExtensionContribution<'devScripts'>[];
-  /** Context buttons added by extensions */
-  contextButtons: ExtensionContribution<'contextButtons'>[];
-  /** Curation Templates added by extensions */
-  curationTemplates: ExtensionContribution<'curationTemplates'>[];
-  /** Extension config options */
-  extConfigs: ExtensionContribution<'configuration'>[];
-  /** Current extension config data */
-  extConfig: AppExtConfigData;
-  /** Services */
-  services: IService[];
-  downloaderState: DownloaderState;
-  /** PLACEHOLDER - Download percent of Game */
-  downloadPercent: number;
-  downloadSize: number;
-  downloadOpen: boolean;
-  cancelToken?: axiosImport.CancelToken;
-  downloadVerifying: boolean;
-  taskBarOpen: boolean;
-  selectedGameId?: string;
-  selectedPlaylistId?: string;
-  currentGame?: Game;
-  currentGameData?: GameData;
-  currentPlaylist?: Playlist;
-  currentPlaylistEntry?: PlaylistGame;
-  isEditingGame: boolean;
-  updateFeedMarkdown: string;
-  metadataUpdate: MetaUpdateState;
-  /** Games which are in the middle of a busy operation */
-  busyGames: string[];
-  /** State of the Socket connection */
-  socketOpen: boolean;
-  /** Main Proc output (when requested) */
-  mainOutput?: string;
-  /** List of components from FPM */
-  componentStatuses: ComponentStatus[];
-  /** In the process of quitting, suspend all action */
-  quitting: boolean;
-  /** Open Dialog States */
-  openDialogs: DialogState[];
-  /** Last resolved dialog (mostly to handle side effects) */
-  lastResolvedDialog?: DialogState;
-}
-
-const initialState: MainState = {
-  gotdList: [],
-  libraries: [],
-  serverNames: [],
-  mad4fpEnabled: false,
-  playlists: [],
-  playlistIconCache: {},
-  suggestions: {
-    platforms: [],
-    playMode: [],
-    status: [],
-    applicationPath: [],
-    tags: [],
-    library: []
+const DEFAULT_DISPLAYS: DisplaySettings = {
+  gameSidebar: {
+    middle: [
+      'game_alternateTitles',
+      'game_tags',
+      'game_series',
+      'game_publisher',
+      'game_source',
+      'game_platforms',
+      'game_playMode',
+      'game_status',
+      'game_version',
+      'game_language',
+      'game_ruffleSupport',
+    ],
+    bottom: [
+      'game_dates',
+      'game_playlistNotes',
+      'game_notes',
+      'game_originalDescription',
+      'game_addApps',
+      'game_legacyData'
+    ],
   },
-  appPaths: {},
-  loaded: {
-    [BackInit.DATABASE_READY]: false,
-    [BackInit.SERVICES]: false,
-    [BackInit.DATABASE]: false,
-    [BackInit.PLAYLISTS]: false,
-    [BackInit.CURATE]: false,
-    [BackInit.EXEC_MAPPINGS]: false,
-    [BackInit.EXTENSIONS]: false
+  gameList: {
+    icons: [],
+    columns: [
+      {
+        headerComponent: 'gameCol_header_platform',
+        rowComponent: 'gameCol_row_platform',
+        type: 'icon'
+      },
+      {
+        headerComponent: 'gameCol_header_title',
+        rowComponent: 'gameCol_row_title',
+        type: 'normal',
+        weight: 1.3
+      },
+      {
+        headerComponent: 'gameCol_header_developer',
+        rowComponent: 'gameCol_row_developer',
+        type: 'normal',
+        weight: 1
+      },
+      {
+        headerComponent: 'gameCol_header_publisher',
+        rowComponent: 'gameCol_row_publisher',
+        type: 'normal',
+        weight: 1
+      }
+    ]
   },
-  loadedAll: false,
-  themeList: [],
-  logoSets: [],
-  logoVersion: 0,
-  gamesTotal: -1,
-  randomGames: [],
-  requestingRandomGames: false,
-  shiftRandomGames: false,
-  localeCode: 'en-us',
-  devConsole: '',
-  upgrades: [],
-  gamesDoneLoading: false,
-  upgradesDoneLoading: false,
-  stopRender: false,
-  creditsData: undefined,
-  creditsDoneLoading: false,
-  lang: createLangContainer(),
-  langList: [],
-  wasNewGameClicked: false,
-  updateInfo: undefined,
-  metaEditExporterOpen: false,
-  metaEditExporterGameId: '',
-  extensions: [],
-  extConfig: {},
-  extConfigs: [],
-  devScripts: [],
-  contextButtons: [],
-  curationTemplates: [],
-  services: [],
-  downloaderState: {
-    state: 'running',
-    workers: [],
-    tasks: {}
-  },
-  downloadOpen: false,
-  downloadPercent: 0,
-  downloadSize: 0,
-  downloadVerifying: false,
-  socketOpen: true,
-  taskBarOpen: false,
-  isEditingGame: false,
-  updateFeedMarkdown: '',
-  metadataUpdate: {
-    ready: false,
-    total: 0
-  },
-  busyGames: [],
-  platformAppPaths: {},
-  componentStatuses: [],
-  quitting: false,
-  openDialogs: [],
+  homePage: [
+    'homePage_updateFeed',
+    'homePage_gotd',
+    'homePage_quickStart',
+    'homePage_notes',
+    'homePage_randomGames',
+    'homePage_extras'
+  ],
+  searchComponents: [],
+  browseDisplays: {},
+  customRoutes: [],
 };
+
+export function initialMainState(): MainState {
+  return {
+    config: getDefaultConfigData('win32'),
+    gotdList: [],
+    libraries: [],
+    serverNames: [],
+    mad4fpEnabled: false,
+    playlists: [],
+    playlistIconCache: {},
+    suggestions: {
+      platforms: [],
+      playMode: [],
+      status: [],
+      applicationPath: [],
+      tags: [],
+      library: []
+    },
+    appPaths: {},
+    loaded: {
+      [BackInit.DATABASE_READY]: false,
+      [BackInit.SERVICES]: false,
+      [BackInit.DATABASE]: false,
+      [BackInit.PLAYLISTS]: false,
+      [BackInit.EXEC_MAPPINGS]: false,
+      [BackInit.EXTENSIONS]: false
+    },
+    loadedAll: false,
+    themeList: [],
+    themeVersion: uuid(),
+    systemThemeVersion: null,
+    logoSets: [],
+    logoVersion: 0,
+    gamesTotal: -1,
+    randomGames: [],
+    requestingRandomGames: false,
+    shiftRandomGames: false,
+    localeCode: 'en-us',
+    devConsole: '',
+    upgrades: [],
+    gamesDoneLoading: false,
+    upgradesDoneLoading: false,
+    stopRender: false,
+    creditsData: undefined,
+    creditsDoneLoading: false,
+    lang: createLangContainer(),
+    langList: [],
+    wasNewGameClicked: false,
+    metaEditExporterOpen: false,
+    metaEditExporterGameId: '',
+    extensions: [],
+    extConfig: {},
+    extConfigs: [],
+    contextButtons: [],
+    services: [],
+    downloadOpen: false,
+    downloadPercent: 0,
+    downloadSize: 0,
+    downloadVerifying: false,
+    socketOpen: true,
+    isEditingGame: false,
+    updateFeedMarkdown: '',
+    metadataUpdate: {},
+    busyGames: [],
+    platformAppPaths: {},
+    componentStatuses: [],
+    quitting: false,
+    openDialogs: [],
+    displaySettings: deepCopy(DEFAULT_DISPLAYS),
+    extOrderables: [],
+  };
+}
 
 export const requestKeyset = createAsyncThunk(
   'search/requestKeyset',
   async (payload: ResolveDialogActionData, { getState, dispatch }) => {
-    
     const state = getState() as { main: MainState };
     const dialogIdx = state.main.openDialogs.findIndex(d => d.id === payload.id);
     if (dialogIdx > -1) {
@@ -231,7 +185,7 @@ export const requestKeyset = createAsyncThunk(
 
 const mainSlice = createSlice({
   name: 'main',
-  initialState,
+  initialState: initialMainState(),
   reducers: {
     setMainState(state: MainState, { payload }: PayloadAction<Partial<MainState>>) {
       Object.assign(state, payload);
@@ -243,9 +197,16 @@ const mainSlice = createSlice({
 
       const values = Object.values(state.loaded);
       if (values.length === values.reduce((prev, cur) => prev + (cur ? 1 : 0), 0)) {
+        if (window.electronAPI !== undefined) {
+          const finishTime = Date.now();
+          window.Shared.back.request(BackIn.GET_START_TIME)
+          .then((startTime) => {
+            console.log(`Finished loading in ${finishTime - startTime}ms`);
+          });
+        }
         state.loadedAll = true;
         // Ready to accept protocol, if available
-        ipcRenderer.send(WindowIPC.PROTOCOL);
+        window.electronAPI?.protocolReady();
       }
     },
     setCredits(state: MainState, { payload }: PayloadAction<CreditsData>) {
@@ -338,29 +299,128 @@ const mainSlice = createSlice({
           dialog.fields[fieldIdx] = {
             ...dialog.fields[fieldIdx],
             ...payload.field
-          } as DialogField; // Stupid type fix
+          } as DialogFieldProps; // Stupid type fix
         }
       }
     },
-    updateDownloaderTask(state: MainState, { payload }: PayloadAction<UpdateDownloaderTaskAction>) {
-      state.downloaderState.tasks[payload.game.id] = payload;
+    openDynamicPage(state: MainState, { payload }: PayloadAction<DynamicPageProps>) {
+      state.dynamicPage = payload;
     },
-    updateDownloaderStatus(state: MainState, { payload }: PayloadAction<UpdateDownloaderStateAction>) {
-      state.downloaderState.state = payload;
-    },
-    updateDownloaderWorker(state: MainState, { payload }: PayloadAction<UpdateDownloadWorkerAction>) {
-      const workerIdx = state.downloaderState.workers.findIndex(w => w.id === payload.id);
-      if (workerIdx > -1) {
-        state.downloaderState.workers[workerIdx] = payload;
+    changeService(state: MainState, { payload }: PayloadAction<IService>) {
+      const service = state.services.find(s => s.id === payload.id);
+      // Replace or insert new service
+      if (service) {
+        recursiveReplace(service, payload);
       } else {
-        state.downloaderState.workers.push(payload);
+        state.services.push(recursiveReplace({
+          id: 'invalid',
+          name: 'Invalid',
+          state: 0,
+          pid: -1,
+          startTime: 0,
+          info: {
+            path: '',
+            filename: '',
+            arguments: [],
+            kill: false,
+          },
+        }, payload));
       }
     },
-    setUpdateInfo(state: MainState, { payload }: PayloadAction<number>) {
-      state.metadataUpdate = {
-        ready: true,
-        total: payload,
+    removeService(state: MainState, { payload }: PayloadAction<string>) {
+      const serviceIdx = state.services.findIndex(s => s.id === payload);
+      if (serviceIdx > -1) {
+        state.services.splice(serviceIdx, 1);
+      }
+    },
+    addCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
+      const existingIdx = state.displaySettings.customRoutes.findIndex(r => r.path === payload.path);
+      if (existingIdx === -1) {
+        state.displaySettings.customRoutes.push(payload);
+      }
+    },
+    removeCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
+      const existingIdx = state.displaySettings.customRoutes.findIndex(r => r.path === payload.path);
+      if (existingIdx >= 0) {
+        state.displaySettings.customRoutes.splice(existingIdx);
+      }
+    },
+    addGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
+      const section = state.displaySettings.gameSidebar[payload.section];
+      const existingIdx = section.findIndex(r => r === payload.name);
+      if (existingIdx === -1) {
+        section.push(payload.name);
+      }
+    },
+    removeGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
+      const section = state.displaySettings.gameSidebar[payload.section];
+      const existingIdx = section.findIndex(r => r === payload.name);
+      if (existingIdx !== -1) {
+        section.splice(existingIdx, 1);
+      }
+    },
+    setDisplaySettingsFromCallback(state: MainState, { payload }: PayloadAction<DisplaySettingsCallback>) {
+      try {
+        state.displaySettings = payload(state.displaySettings);
+      } catch (err) {
+        log.error('Launcher', `Error setting display settings from extension callback: ${err}`);
+        alert(`Error setting display settings from extension callback: ${err}`);
+      }
+    },
+    setExtOrderablesFromCallback(state: MainState, { payload }: PayloadAction<ExtOrderablesCallback>) {
+      try {
+        state.extOrderables = payload(state.extOrderables);
+      } catch (err) {
+        log.error('Launcher', `Error setting extension orderables from extension callback: ${err}`);
+        alert(`Error setting extension orderables from extension callback: ${err}`);
+      }
+    },
+    setUpdateInfo(state: MainState, { payload }: PayloadAction<MetaUpdateAction>) {
+      state.metadataUpdate[payload.id] = {
+        total: payload.total,
       };
+    },
+    updatePlaylist(state: MainState, { payload }: PayloadAction<Playlist>) {
+      const playlistIdx = state.playlists.findIndex(p => p.id === payload.id);
+      if (playlistIdx > -1) {
+        state.playlists[playlistIdx] = payload;
+      }
+    },
+    updateMetadataSource(state: MainState, { payload }: PayloadAction<GameMetadataSource>) {
+      // TODO: Make metadata update info stored per source
+      if (payload.id in state.metadataUpdate) {
+        state.metadataUpdate[payload.id] = {
+          total: 0
+        };
+      }
+    },
+    removeExtension(state: MainState, { payload }: PayloadAction<string>) {
+      const existingIdx = state.extensions.findIndex(e => e.id === payload);
+      if (existingIdx !== -1) {
+        state.extensions.splice(existingIdx);
+      }
+    },
+    addNewExtension(state: MainState, { payload }: PayloadAction<IExtensionDescription>) {
+      const existingIdx = state.extensions.findIndex(e => e.id === payload.id);
+      if (existingIdx === -1) {
+        state.extensions.push(payload);
+      } else {
+        state.extensions[existingIdx] = payload;
+      }
+    },
+    setUnrecoverableError(state: MainState, { payload }: PayloadAction<UnrecoverableError>) {
+      console.error('Unrecoverable Error');
+      console.error(payload);
+      state.unrecoverableError = payload;
+    },
+    updateThemeCss(state: MainState) {
+      state.themeVersion = uuid();
+    },
+    updateSystemThemeCss(state: MainState) {
+      state.systemThemeVersion = uuid();
+    },
+    setExtConfigValue(state: MainState, { payload }: PayloadAction<ExtConfigValueAction>) {
+      state.extConfig[payload.key] = payload.value;
     }
   },
 });
@@ -381,9 +441,24 @@ export const { setMainState,
   updateDialog,
   updateDialogField,
   removePlaylistGame,
-  updateDownloaderTask,
-  updateDownloaderStatus,
-  updateDownloaderWorker,
-  setUpdateInfo } = mainSlice.actions;
+  openDynamicPage,
+  changeService,
+  removeService,
+  addCustomRoute,
+  removeCustomRoute,
+  addGameSidebarComponent,
+  removeGameSidebarComponent,
+  setDisplaySettingsFromCallback,
+  setExtOrderablesFromCallback,
+  setUpdateInfo,
+  updatePlaylist,
+  updateMetadataSource,
+  removeExtension,
+  addNewExtension,
+  setUnrecoverableError,
+  updateThemeCss,
+  updateSystemThemeCss,
+  setExtConfigValue,
+} = mainSlice.actions;
 export default mainSlice.reducer;
 
