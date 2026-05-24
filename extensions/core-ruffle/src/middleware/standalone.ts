@@ -189,7 +189,8 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
     };
 
     // Replace application path with ruffle standalone executable (<base>/<version>/<executable>)
-    const executable = os.platform() === 'win32' ? 'ruffle.exe' : 'ruffle';
+    const osPlatform = os.platform();
+    const executable = osPlatform === 'win32' ? 'ruffle.exe' : (osPlatform === 'darwin' ? 'Ruffle.app/Contents/MacOS/ruffle' : 'ruffle');
     const execPath = path.join(this.ruffleStandaloneRoot, middlewareConfig.version, executable);
 
     // If exec path is missing, we need to download the correct version
@@ -221,7 +222,7 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
       }
     }
     // Make standalone ruffle executable if not Windows
-    if (executable === 'ruffle') { fs.promises.chmod(execPath, 0o775); }
+    if (osPlatform !== 'win32') { fs.promises.chmod(execPath, 0o775); }
 
     // Add any configured ruffle params to the launch args
     const launchArgs = coerceToStringArray(gameLaunchInfo.launchInfo.gameArgs);
