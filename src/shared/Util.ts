@@ -386,6 +386,11 @@ export function createErrorProxy(title: string): any {
   });
 }
 
+const KB = 1024;
+const MB = KB * 1024;
+const GB = MB * 1024;
+const TB = GB * 1024;
+
 /**
  * Convert a size (in bytes) to a more human readable format.
  *
@@ -394,10 +399,11 @@ export function createErrorProxy(title: string): any {
  * @returns Size, but in a more human readable format.
  */
 export function sizeToString(size: number, precision = 3): string {
-  if (size < 1000)       { return `${size}B`; }
-  if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
-  if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
-  return `${(size / 1000000000).toPrecision(precision)}GB`;
+  if (size < KB) { return `${size}B`; }
+  if (size < MB) { return `${(size / KB).toPrecision(precision)}KB`; }
+  if (size < GB) { return `${(size / MB).toPrecision(precision)}MB`; }
+  if (size < TB) { return `${(size / GB).toPrecision(precision)}GB`; }
+  return `${(size / TB).toPrecision(precision)}TB`;
 }
 
 /**

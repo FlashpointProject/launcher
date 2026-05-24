@@ -18,7 +18,6 @@ export const GameDataProviderRaw: GameDataProvider = {
 
     const filename = getGameDataFilename(gameData);
     const fullUrl = new URL(filename, source.arguments).href;
-    console.log(fullUrl);
     const tempPath = path.join(dataPacksFolderPath, `${filename}.temp`);
     await downloadFile(axios, fullUrl, tempPath, abortSignal, onProgress, onDetails);
     // Check hash of download
@@ -28,12 +27,10 @@ export const GameDataProviderRaw: GameDataProvider = {
     await new Promise<void>((resolve, reject) => {
       stream.on('end', async () => {
         const sha256 = hash.digest('hex').toUpperCase();
-        console.log(`hash ${sha256}`);
         if (sha256.toLowerCase() !== gameData.sha256.toLowerCase()) {
           reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
         } else {
           try {
-            log.debug('Game Launcher', 'Validated game data, importing to games folder');
             await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256, gameData)
             .catch((err) => {
               console.log(`Error importing game data ${err}`);

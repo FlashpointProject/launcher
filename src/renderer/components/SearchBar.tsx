@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { forceSearch, setAdvancedFilter, setExpanded, setExtOrder, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { getPlatformIconURL } from '@renderer/Util';
+import { BackIn } from '@shared/back/types';
 import { getDefaultAdvancedFilter } from '@shared/search/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
@@ -28,6 +29,7 @@ export function SearchBar() {
   const dispatch = useAppDispatch();
   const strings = useLocalization();
   const viewName = useViewName();
+  const searchFilter = useAppSelector(state => state.search.views[viewName].searchFilter);
   const advancedFilter = useAppSelector(state => state.search.views[viewName].advancedFilter);
   const insidePlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist !== undefined);
   const extOrder = useAppSelector(state => state.search.views[viewName].extOrder);
@@ -537,11 +539,17 @@ export function SearchBar() {
               <DynamicComponent key={name} name={name} props={searchComponentProps}/>
             );
           }) }
+          <SimpleButton
+            value="Download All Results"
+            onClick={() => {
+              window.Shared.back.send(BackIn.DOWNLOAD_SEARCH_RESULTS, searchFilter);
+            }}/>
         </div>
       )}
     </div>
   );
 }
+
 
 type ThreeStateCheckboxProps = {
   value?: boolean;

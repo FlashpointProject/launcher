@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { setStatus } from '@renderer/store/downloads/slice';
-import { DownloaderStatus } from 'flashpoint-launcher';
+import { DownloaderStatus, DownloadWorkerState } from 'flashpoint-launcher';
 import { SimpleButton } from '../SimpleButton';
 
 export function DownloadsPage() {
@@ -33,25 +33,38 @@ export function DownloadsPage() {
             onClick={onAddMissingContent}/> */}
         </div>
       </div>
-      {downloaderState.workers.map((worker) => (
-        <div key={worker.id} className='downloads-worker'>
-          <div className='downloads-worker__header'>
-            <span className='downloads-worker__id'>{`Worker ${worker.id}`}</span>
-            <span className='downloads-worker__task'>{worker.taskText || 'Idle'}</span>
-          </div>
-
-          {/* Step progress bar */}
-          <div className='downloads-worker__bar-container'>
-            <div
-              className='downloads-worker__bar-fill'
-              style={{ width: `${Math.round(worker.stepProgress * 100)}%` }}
-            />
-          </div>
-          <div className='downloads-worker__percent'>
-            {`${Math.round(worker.stepProgress * 100)}%`}
-          </div>
-        </div>
-      ))}
+      <div className='downloads-page__workers'>
+        {downloaderState.workers.map((worker) => (
+          <DownloadWorkerRow key={worker.id} worker={worker}/>
+        ))}
+      </div>
     </div>
   );
 }
+
+type DownloadWorkerProps = {
+  worker: DownloadWorkerState
+}
+
+function DownloadWorkerRow({ worker }: DownloadWorkerProps) {
+  return (
+    <div className='downloads-worker'>
+      <div className='downloads-worker__header'>
+        <span className='downloads-worker__id'>{`Worker ${worker.id}`}</span>
+        <span className='downloads-worker__task'>{worker.taskText || 'Idle'}</span>
+      </div>
+
+      {/* Step progress bar */}
+      <div className='downloads-worker__bar-container'>
+        <div
+          className='downloads-worker__bar-fill'
+          style={{ width: `${Math.round(worker.stepProgress * 100)}%` }}
+        />
+      </div>
+      <div className='downloads-worker__percent'>
+        {`${Math.round(worker.stepProgress * 100)}%`}
+      </div>
+    </div>
+  );
+}
+

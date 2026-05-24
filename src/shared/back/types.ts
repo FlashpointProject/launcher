@@ -109,6 +109,7 @@ export enum BackIn {
 
   // Web?
   DOWNLOAD_PLAYLIST,
+  DOWNLOAD_SEARCH_RESULTS,
 
   // Tag funcs
   GET_OR_CREATE_TAG,
@@ -395,6 +396,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Web?
   [BackIn.DOWNLOAD_PLAYLIST]: (url: string) => Playlist;
+  [BackIn.DOWNLOAD_SEARCH_RESULTS]: (filter: SearchQuery) => void;
 
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;

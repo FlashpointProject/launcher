@@ -1625,3 +1625,54 @@ body {
   overflow: auto;
   white-space: pre-wrap;
 }
+
+
+/* ------ Downloads ------ */
+.downloads-worker {
+  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__primary-outline-color);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 6px;
+  padding: 10px 14px;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+
+.downloads-worker__header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.downloads-worker__task {
+  color: var(--layout__secondary-text-color);
+  font-size: 0.85em;
+  font-weight: normal;
+}
+
+.downloads-worker__steps {
+  font-size: 0.8em;
+  color: var(--layout__primary-text-color);
+  margin-bottom: 6px;
+}
+
+.downloads-worker__bar-container {
+  height: 8px;
+  background-color: var(--layout__slider-background);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.downloads-worker__bar-fill {
+  height: 100%;
+  background-color: var(--layout__confirm-color);
+  transition: width 0.2s ease;
+}
+
+.downloads-worker__percent {
+  font-size: 0.75em;
+  color: var(--layout__secondary-text-color);
+  text-align: right;
+  margin-top: 2px;
+}

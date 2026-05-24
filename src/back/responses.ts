@@ -209,6 +209,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state: state.downloader.status,
       tasks: state.downloader.getTasks(),
       workers: state.downloader.getWorkerStates(),
+      total: state.downloader.getTotal(),
+      done: state.downloader.getDone(),
+      failures: state.downloader.getFailures()
     };
   });
 
@@ -2057,6 +2060,62 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       return playlist;
     } else {
       throw new Error('Failed to download playlist');
+    }
+  });
+
+  state.socketServer.register(BackIn.DOWNLOAD_SEARCH_RESULTS, async (event, query) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = openDialog({
+      largeMessage: true,
+      message: 'Calculating download size of search results...',
+      buttons: []
+    });
+
+    const search = fpDatabase.parseUserSearchInput('').search;
+    search.limit = 9999999999;
+    search.filter = query.filter;
+    search.slim = true;
+    search.loadRelations.gameData = true;
+    const games = await fpDatabase.searchGames(search);
+    console.log('Found ' + games.length + ' games');
+
+    let totalSize = 0;
+    for (const game of games) {
+      if (game.gameData) {
+        for (const gd of game.gameData) {
+          if (!gd.presentOnDisk) {
+            totalSize += gd.size;
+          }
+        }
+      }
+    }
+
+    state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    console.log('size ' + totalSize);
+
+    if (totalSize > 0) {
+      // Estimated size larger than 0B, ask the user before downloading
+      const humanReadableSize = sizeToString(totalSize);
+
+      const dialogId = state.socketServer.showMessageBoxBack(state, event.client)({
+        message: `Downloading these search results requires approximately ${humanReadableSize} of additional space. Continue?`,
+        buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
+        cancelId: 1,
+        largeMessage: true,
+      });
+      const result = (await awaitDialog(state, dialogId)).buttonIdx;
+
+      if (result === 1) {
+        log.debug('Downloads', 'User aborted search results download at size prompt');
+        return;
+      }
+    } else {
+      return;
+    }
+
+    state.downloader.addTasks(games);
+    if (state.downloader.status !== 'running') {
+      state.downloader.start();
     }
   });
 

@@ -106,7 +106,15 @@ export class Downloader extends WrappedEventEmitter {
   }
 
   public getTotal(): number {
-    return Object.values(this.tasks).length;
+    return this.total;
+  }
+
+  public getDone(): number {
+    return this.done;
+  }
+
+  public getFailures(): number {
+    return this.failures;
   }
 
   public getTasks(): Record<string, DownloadTask> {
@@ -177,7 +185,6 @@ export class Downloader extends WrappedEventEmitter {
 
   private assignTaskToIdleWorker(task: DownloadTask): void {
     if (this.status === 'running' && this.idleWorkers.length > 0) {
-      log.debug('Downloads', 'Starting task');
       const worker = this.idleWorkers.shift(); // Get the first idle worker
       if (worker) {
         task.errors = [];
@@ -195,11 +202,9 @@ export class Downloader extends WrappedEventEmitter {
       if (this.status === 'running') {
         this.tasks[gameId].status = status;
         this.tasks[gameId].errors = errors;
-        log.info('Downloader', `Task: ${gameId} - Status: ${status}`);
         this.emit('taskChange', this.tasks[gameId]);
       } else {
         this.tasks[gameId].status = 'waiting';
-        log.info('Downloader', `Task: ${gameId} - Status: waiting`);
         this.emit('taskChange', this.tasks[gameId]);
       }
     }
