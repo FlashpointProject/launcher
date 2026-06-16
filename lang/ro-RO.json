@@ -413,9 +413,9 @@
     "archived": "Arhivat",
     "playOnline": "Jucați online",
     "tagFilterIcon": "Tag Filter Icon",
-    "runWithFlashPlayer": "Run with Flash Player",
-    "runWithRuffle": "Run with Ruffle",
-    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
+    "runWithFlashPlayer": "Executați cu Flash Player",
+    "runWithRuffle": "Executați cu Ruffle",
+    "runWithRuffleUnsupported": "Executați cu Ruffle (fără asistență)"
   },
   "tags": {
     "name": "Nume",
@@ -570,8 +570,8 @@
     "searching": "Se caută...",
     "loading": "Se încarcă…",
     "ok": "OK",
-    "allow": "Allow",
-    "orCapitals": "OR",
+    "allow": "Permiteți",
+    "orCapitals": "SAU",
     "andCapitals": "AND"
   },
   "menu": {
@@ -666,8 +666,8 @@
     "requiresAdditionalDownloadPlural": "Pachetul {0} lipsește. Acesta este necesar pentru lansarea în execuție.\nDescărcați acum?",
     "confirmClearPlaytime": "Ștergeți toate datele jocului, inclusiv cele din istoric? Acest lucru este ireversibil.",
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
-    "openWiki": "Open Wiki",
-    "openDiscord": "Join Discord Server",
+    "openWiki": "Deschideți Wiki",
+    "openDiscord": "Alăturați-vă serverului Discord",
     "doNotShowAgain": "Nu afișați din nou",
     "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
     "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
