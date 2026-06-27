@@ -189,8 +189,11 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
     };
 
     // Replace application path with ruffle standalone executable (<base>/<version>/<executable>)
+    // On macOS the release ships as a `Ruffle.app` bundle, so the binary lives inside it.
     const executable = os.platform() === 'win32' ? 'ruffle.exe' : 'ruffle';
-    const execPath = path.join(this.ruffleStandaloneRoot, middlewareConfig.version, executable);
+    const execPath = os.platform() === 'darwin'
+      ? path.join(this.ruffleStandaloneRoot, middlewareConfig.version, 'Ruffle.app', 'Contents', 'MacOS', 'ruffle')
+      : path.join(this.ruffleStandaloneRoot, middlewareConfig.version, executable);
 
     // If exec path is missing, we need to download the correct version
     if (!fs.existsSync(execPath)) {
