@@ -17,8 +17,15 @@ jobs:
           pacman -Syu --noconfirm archlinux-keyring
           pacman -Syu --noconfirm base-devel git sudo wget zsync
 
-          # Enable multilib
-          sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+          # Enable multilib. Recent archlinux:latest containers no longer ship a
+          # commented #[multilib] block, so append the section if absent.
+          if ! grep -q '^\[multilib\]' /etc/pacman.conf; then
+            cat >> /etc/pacman.conf <<'EOF'
+
+          [multilib]
+          Include = /etc/pacman.d/mirrorlist
+          EOF
+          fi
 
           sudo pacman -Syu --noconfirm
 
