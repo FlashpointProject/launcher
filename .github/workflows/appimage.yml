@@ -15,7 +15,7 @@ jobs:
       - name: Install base dependencies
         run: |
           pacman -Syu --noconfirm archlinux-keyring
-          pacman -Syu --noconfirm base-devel git sudo wget zsync
+          pacman -Syu --noconfirm base-devel git sudo wget zsync patchelf
 
           # Enable multilib. Recent archlinux:latest containers no longer ship a
           # commented #[multilib] block, so append the section if absent.
