@@ -15,7 +15,7 @@ jobs:
       - name: Install base dependencies
         run: |
           pacman -Syu --noconfirm archlinux-keyring
-          pacman -Syu --noconfirm base-devel git sudo wget zsync patchelf
+          pacman -Syu --noconfirm base-devel git sudo wget zsync xvfb xorg-server-xvfb patchelf
 
           # Enable multilib. Recent archlinux:latest containers no longer ship a
           # commented #[multilib] block, so append the section if absent.
@@ -48,7 +48,7 @@ jobs:
           makepkg -si --noconfirm
           cd ../AppImage/
           chmod +x AppImage.sh
-          ./AppImage.sh
+          HEADLESS=1 ./AppImage.sh
           EOF
 
       - name: Upload package artifact

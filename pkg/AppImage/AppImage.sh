@@ -31,6 +31,26 @@ chmod +x ./quick-sharun
 wget --retry-connrefused --tries=30 "https://www.7-zip.org/a/7z2602-linux-x64.tar.xz" -O /tmp/7zz.tar.xz
 tar -xf /tmp/7zz.tar.xz -C /tmp 7zzs 2>/dev/null || tar -xf /tmp/7zz.tar.xz -C /tmp 7zz
 
+# The standalone Ruffle binary is not shipped in the fp archive; It's downloaded upon first boot.
+# When HEADLESS=1, boot the launcher (headless) and wait until it shows up, matching a machine that has run once.
+RUFFLE_DIR="$HOME/Games/Flashpoint/Data/Ruffle/standalone/latest"
+if [ "$HEADLESS" = 1 ] && [ ! -x "$RUFFLE_DIR/ruffle" ]; then
+	echo "Standalone Ruffle missing; booting launcher to trigger the core-ruffle extension download..."
+	command -v xvfb-run >/dev/null || { echo "ERROR: xvfb-run not found (install 'xvfb')" >&2; exit 1; }
+	(cd "$HOME/Games/Flashpoint/Launcher" && xvfb-run -a ./flashpoint-launcher) &
+	LAUNCHER_PID=$!
+	WAITED=0
+	while [ ! -x "$RUFFLE_DIR/ruffle" ]; do
+		sleep 2
+		WAITED=$((WAITED+2))
+		[ "$WAITED" -lt 120 ] || break
+	done
+	pkill -f flashpoint-launcher 2>/dev/null || true
+	wait "$LAUNCHER_PID" 2>/dev/null || true
+	[ -x "$RUFFLE_DIR/ruffle" ] || { echo "ERROR: standalone Ruffle not downloaded within ${WAITED}s" >&2; exit 1; }
+	echo "Standalone Ruffle downloaded."
+fi
+
 mkdir -p AppDir
 cp AppRun.sh AppDir/AppRun.sh
 chmod +x AppDir/AppRun.sh
