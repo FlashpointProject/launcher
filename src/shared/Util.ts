@@ -328,6 +328,7 @@ export function parseVarStr(str: string, config?: AppConfigData) {
       case 'os': return process.platform;
       case 'arch': return process.arch;
       case 'cwd': return fixSlashes(process.cwd());
+      case 'home': return process.env.HOME || '';
       case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
       default: return '';
     }

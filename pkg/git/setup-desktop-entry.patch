@@ -1,0 +1,43 @@
+diff --git a/setup-desktop-entry.sh b/setup-desktop-entry.sh
+old mode 100755
+new mode 100644
+index b13a1e6..9d5a91e
+--- a/setup-desktop-entry.sh
++++ b/setup-desktop-entry.sh
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env sh
+ # Generate a desktop entry for Flashpoint Archive.
+ 
+-[ `id -u` -ne 0 ] && cd -P -- "`dirname "$0"`" && [ -f Launcher/flashpoint-launcher ] || exit 1
++[ $(id -u) -eq 0 ] && cd -P -- "`dirname "$0"`" && [ -f "$(realpath "$(dirname "${BASH_SOURCE[0]}")")/Launcher/flashpoint-launcher" ] || exit 1
+ 
+ [ "$ENTRY" ] || ENTRY="$HOME/.local/share/applications/flashpoint-archive.desktop"
+ [ -e "${ENTRY%/*}" ] || mkdir -p "${ENTRY%/*}"
+@@ -11,22 +11,12 @@
+ Type=Application
+ Name=Flashpoint Archive
+ Comment=An archive for games and animations from the web.
+-Icon=$PWD/Launcher/icon.svg
++Icon=flashpoint-launcher
+ StartupWMClass=flashpoint-launcher
+-Exec=/usr/bin/env -S " > "$ENTRY"
+-if [ "`file -b --mime-type Libraries/lib/x86_64-linux-gnu/libgtk-3.so.0`" = 'application/x-sharedlib' ]; then
+-  printf "GALLIUM_DRIVER=\"i915,i965,iris,nouveau,nouveau_vieux,r200,r300,r600,radeon,radeonsi,zink,swrast\" GDK_PIXBUF_MODULE_FILE=\"$PWD/Libraries/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders.cache\" GSETTINGS_SCHEMA_DIR=\"$PWD/Libraries/share/glib-2.0/schemas\" GTK_MODULES= LD_LIBRARY_PATH=\"$PWD/Libraries/lib/x86_64-linux-gnu\" LIBGL_DRIVERS_PATH=\"$PWD/Libraries/lib/x86_64-linux-gnu/dri\" PATH=\"$PWD/Libraries/bin" >> "$ENTRY"
+-  if ! [ -d FPSoftware/Wine/bin ]; then
+-    CMD="`command -v wine`"
+-    [ "$CMD" ] && printf ":${CMD%/*}" >> "$ENTRY"
+-  fi
+-  printf '" ' >> "$ENTRY"
+-fi
+-printf "WINEPREFIX=\"$PWD/FPSoftware/Wine\" ./flashpoint-launcher --js-flags=--lite_mode --ozone-platform-hint=auto
+-Path=$PWD/Launcher
++Exec=sh -c "$HOME/Games/Flashpoint/start-flashpoint.sh %f"
+ Terminal=false
+ Categories=Archiving;Game;
+-SingleMainWindow=true" >> "$ENTRY"
++SingleMainWindow=true" > "$ENTRY"
+ 
+ # This is for backwards compatibility, and will be removed in the future.
+-ln "$ENTRY" Flashpoint.desktop
+\ No newline at end of file
++ln -f "$ENTRY" Flashpoint.desktop
