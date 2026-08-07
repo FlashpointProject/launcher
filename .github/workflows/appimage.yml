@@ -1,0 +1,48 @@
+name: Build Arch Package & AppImage (Git)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build with makepkg
+    runs-on: ubuntu-latest
+
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install base dependencies
+        run: |
+          pacman -Syu --noconfirm archlinux-keyring
+          pacman -Syu --noconfirm base-devel git sudo wget zsync
+
+      - name: Create build user
+        run: |
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Fix permissions
+        run: chown -R builder:builder .
+
+      - name: Build package (makepkg -si)
+        run: |
+          sudo -u builder bash <<'EOF'
+          set -e
+          cd pkg/git
+          makepkg -si --noconfirm
+          cd ../AppImage/
+          chmod +x AppImage.sh
+          ./AppImage.sh
+          EOF
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: arch-package
+          path: |
+            pkg/git/*.pkg.tar.zst
+            pkg/AppImage/dist/*.AppImage

@@ -1,0 +1,36 @@
+diff --git a/start-flashpoint.sh.orig b/start-flashpoint.sh
+index 1eff7b3..90947de 100755
+--- a/start-flashpoint.sh.orig
++++ b/start-flashpoint.sh
+@@ -2,17 +2,27 @@
+ 
+ [ `id -u` -ne 0 ] && cd -P -- "`dirname "$0"`" || exit 1
+ 
++# Set configurable Flashpoint root directory.
++# Default: absolute path to script's directory
++[ "$FP_DIR" ] || FP_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
++
+ if [ "`file -b --mime-type Libraries/lib/x86_64-linux-gnu/libgtk-3.so.0`" = 'application/x-sharedlib' ]; then
+-  export GALLIUM_DRIVER="i915,i965,iris,nouveau,nouveau_vieux,r200,r300,r600,radeon,radeonsi,zink,swrast" GDK_PIXBUF_MODULE_FILE="$PWD/Libraries/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders.cache" GSETTINGS_SCHEMA_DIR="$PWD/Libraries/share/glib-2.0/schemas" GTK_MODULES= LD_LIBRARY_PATH="$PWD/Libraries/lib/x86_64-linux-gnu" LIBGL_DRIVERS_PATH="$PWD/Libraries/lib/x86_64-linux-gnu/dri"
++  export GALLIUM_DRIVER="i915,i965,iris,nouveau,nouveau_vieux,r200,r300,r600,radeon,radeonsi,zink,swrast" GDK_PIXBUF_MODULE_FILE="$FP_DIR/Libraries/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders.cache" GSETTINGS_SCHEMA_DIR="$FP_DIR/Libraries/share/glib-2.0/schemas" GTK_MODULES= LD_LIBRARY_PATH="$FP_DIR/Libraries/lib/x86_64-linux-gnu" LIBGL_DRIVERS_PATH="$FP_DIR/Libraries/lib/x86_64-linux-gnu/dri"
+   if [ ! -d FPSoftware/Wine/bin ]; then
+     CMD="`command -v wine`"
+-    [ "$CMD" ] && export PATH="$PWD/Libraries/bin:${CMD%/*}"
++    [ "$CMD" ] && export PATH="$FP_DIR/Libraries/bin:${CMD%/*}"
+   else
+-    export PATH="$PWD/Libraries/bin"
++    export PATH="$FP_DIR/Libraries/bin"
+   fi
+ fi
+ 
+-export WINEPREFIX="$PWD/FPSoftware/Wine"
++export WINEPREFIX="$FP_DIR/FPSoftware/Wine"
++
++# Check for correct ownership
++if [[ "$(stat -c %U "$FP_DIR/Data/flashpoint.sqlite")" != "$USER" ]]; then
++    echo -e "WARNING: Flashpoint directory is not owned by current user! Expect issues.
++    Run \"sudo USER=\$USER chown -R \$USER $FP_DIR\" to correct this."
++fi
+ 
+ [ $# -eq 0 ] && FP_FLAGS="--js-flags=--lite_mode --ozone-platform-hint=auto" || FP_FLAGS="$@"
+ cd Launcher
