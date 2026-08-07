@@ -37,7 +37,7 @@ RUFFLE_DIR="$HOME/Games/Flashpoint/Data/Ruffle/standalone/latest"
 if [ "$HEADLESS" = 1 ] && [ ! -x "$RUFFLE_DIR/ruffle" ]; then
 	echo "Standalone Ruffle missing; booting launcher to trigger the core-ruffle extension download..."
 	command -v xvfb-run >/dev/null || { echo "ERROR: xvfb-run not found (install 'xvfb')" >&2; exit 1; }
-	(cd "$HOME/Games/Flashpoint/Launcher" && xvfb-run -a ./flashpoint-launcher) &
+	(cd "$HOME/Games/Flashpoint/Launcher" && xvfb-run -a ./flashpoint-launcher --no-sandbox) &
 	LAUNCHER_PID=$!
 	WAITED=0
 	while [ ! -x "$RUFFLE_DIR/ruffle" ]; do
