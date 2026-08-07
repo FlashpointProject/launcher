@@ -16,8 +16,10 @@ jobs:
         run: |
           pacman -Syu --noconfirm archlinux-keyring
           pacman -Syu --noconfirm base-devel git sudo wget zsync
+
           # Enable multilib
-          sudo sed -i '/^\[multilib\]/,/^Include/ s/^#//' /etc/pacman.conf
+          sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+
           sudo pacman -Syu --noconfirm
 
       - name: Create build user
