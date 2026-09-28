@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Name=Flashpoint Archive
+Comment=An archive for games and animations from the web.
+Icon=flashpoint-launcher
+StartupWMClass=flashpoint-launcher
+Exec=sh -c "$HOME/Games/Flashpoint/start-flashpoint.sh %f"
+Terminal=false
+Categories=Archiving;Game;
+SingleMainWindow=true
