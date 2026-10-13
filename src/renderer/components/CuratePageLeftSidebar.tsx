@@ -1,16 +1,14 @@
 import { OpenIcon } from '@renderer/components/OpenIcon';
 import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useMouse } from '@renderer/hooks/useMouse';
+import { changeGroup, createGroup, setCurrentCuration, setCurrentCurationGroup, sortCurations, toggleGroupCollapse, toggleGroupPin } from '@renderer/store/curate/slice';
+import { createDialog } from '@renderer/store/main/slice';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
 import { compare } from '@shared/Util';
 import { uuid } from '@shared/utils/uuid';
-import { CurationState, DialogState } from 'flashpoint-launcher';
+import { CurateGroup, CurationState, DialogState } from 'flashpoint-launcher';
 import * as React from 'react';
-import { useDispatch } from 'react-redux';
-import * as curateActions from '@renderer/store/curate/slice';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { CurateGroup } from '@renderer/store/curate/slice';
-import { createDialog } from '@renderer/store/main/slice';
 
 const index_attr = 'data-index';
 
@@ -23,11 +21,10 @@ type CuratePageLeftSidebarComponentProps = OwnProps & WithMainStateProps;
 
 function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentProps) {
   const [isHovering, setIsHovering] = React.useState(false);
-  const [groupName, setGroupName] = React.useState('');
   const [draggedCuration, setDraggedCuration] = React.useState('');
   const [dragGroupTarget, setDragGroupTarget] = React.useState<string | undefined>(undefined);
   const curate = useAppSelector((state) => state.curate);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
@@ -39,7 +36,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     },
     on_click: (event, folder, clicks) => {
       if (event.button === 0 && clicks === 1) { // Single left click
-        dispatch(curateActions.setCurrentCuration({
+        dispatch(setCurrentCuration({
           folder,
           ctrl: event.ctrlKey,
           shift: event.shiftKey
@@ -66,18 +63,9 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     if (isHovering) { setIsHovering(false); }
   };
 
-  const sortedCurations = React.useMemo(() => {
-    return [...curate.curations].sort((a, b) => {
-      const groupCompare = compare(a.group, b.group);
-      if (groupCompare == 0) {
-        return compare(a.game.title || ('zzzzzzzz' + a.folder), b.game.title || ('zzzzzzzz' + a.folder));
-      } else {
-        return groupCompare;
-      }
-    });
-  }, [curate.curations]);
+  const sortedCurations = [...curate.curations].sort(sortCurations);
 
-  const renderCuration = React.useCallback((curation: CurationState) => {
+  const renderCuration = (curation: CurationState) => {
     let className = '';
     const firstPlatform = (curation.game.platforms && curation.game.platforms.length > 0) ? curation.game.platforms[0].name : '';
     if (curate.selected.includes(curation.folder)) { className = 'curate-list-item--selected--secondary'; }
@@ -113,20 +101,30 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         )}
       </div>
     );
-  }, [curate, draggedCuration, dragGroupTarget]);
+  };
 
-  const onCurationDragDrop = React.useCallback(() => {
+  const onCurationDragDrop = () => {
     if (draggedCuration !== '' && dragGroupTarget !== undefined) {
-      dispatch(curateActions.changeGroup({
-        folder: draggedCuration,
-        group: dragGroupTarget
-      }));
+      if (curate.selected.includes(draggedCuration)) {
+        for (const folder of curate.selected) {
+          dispatch(changeGroup({
+            folder: folder,
+            group: dragGroupTarget
+          }));
+        }
+      } else {
+        dispatch(changeGroup({
+          folder: draggedCuration,
+          group: dragGroupTarget
+        }));
+      }
+
     }
     setDraggedCuration('');
     setDragGroupTarget(undefined);
-  }, [draggedCuration, dragGroupTarget]);
+  };
 
-  const renderCurationGroup = React.useCallback((group: CurateGroup, elems: JSX.Element[]) => {
+  const renderCurationGroup = (group: CurateGroup, elems: React.JSX.Element[]) => {
     const collapsed = curate.collapsedGroups.includes(group.name);
     const pinned = curate.groups.findIndex(g => g.name === group.name) !== -1;
     return (
@@ -137,7 +135,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         <div
           className={'curate-list-group__header'}
           onDoubleClick={() => {
-            dispatch(curateActions.setCurrentCurationGroup(group.name));
+            dispatch(setCurrentCurationGroup(group.name));
           }} >
           <div className={'curate-list-group__header-text'}>
             <div className={'curate-list-group__header-text--name'}>{group.name || 'No Group'}</div>
@@ -145,13 +143,13 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
           </div>
           { group.name !== '' && (
             <div
-              onClick={() => dispatch(curateActions.toggleGroupPin(group))}
+              onClick={() => dispatch(toggleGroupPin(group))}
               className={`curate-list-group__header-pin ${pinned ? 'curate-list-group__header-pinned' : 'curate-list-group__header-unpinned'}`}>
               <OpenIcon icon={'pin'}/>
             </div>
           )}
           <div
-            onClick={() => dispatch(curateActions.toggleGroupCollapse(group.name))}
+            onClick={() => dispatch(toggleGroupCollapse(group.name))}
             className={'curate-list-group__header-caret'}>
             <OpenIcon icon={collapsed ? 'caret-bottom' : 'caret-top'}/>
           </div>
@@ -159,9 +157,9 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         {!collapsed && elems}
       </div>
     );
-  }, [curate.collapsedGroups, curate.groups, dispatch, dragGroupTarget]);
+  };
 
-  const curationsRender = React.useMemo(() => {
+  const curationsRender = () => {
     if (sortedCurations.length === 0) {
       return [];
     }
@@ -173,8 +171,8 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     };
     let stagingGroup: CurateGroup = matchGroup(sortedCurations[0].group);
     // Render all groups present on curations
-    let stagingElems: JSX.Element[] = [];
-    const groupRenders: Map<string, JSX.Element> = new Map();
+    let stagingElems: React.JSX.Element[] = [];
+    const groupRenders: Map<string, React.JSX.Element> = new Map();
     sortedCurations.forEach((cur) => {
       if (stagingGroup.name !== cur.group) {
         // New group, flush and set up new group
@@ -202,10 +200,10 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         return 1;
       }
       return compare(a[0], b[0]);
-    }).reduce<JSX.Element[]>((prev, cur) => prev.concat([cur[1]]), []);
-  }, [curate, curate.groups, draggedCuration, dragGroupTarget]);
+    }).reduce<React.JSX.Element[]>((prev, cur) => prev.concat([cur[1]]), []);
+  };
 
-  const createNewGroup = React.useCallback(() => {
+  const createNewGroup = () => {
     // Open new group dialog
     const dialog: DialogState = {
       largeMessage: true,
@@ -228,7 +226,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
           const exists = curate.groups.findIndex(g => g.name === field.value) > -1;
           if (!exists) {
             console.log('creating group...');
-            dispatch(curateActions.createGroup({
+            dispatch(createGroup({
               name: field.value as string,
               icon: '',
             }));
@@ -236,7 +234,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         }
       }
     });
-  }, [dispatch, curate.groups, setGroupName, groupName]);
+  };
 
   return (
     <div
@@ -258,7 +256,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
           </div>
         </div>
       </div>
-      {curationsRender}
+      {curationsRender()}
     </div>
   );
 }

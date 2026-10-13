@@ -1,498 +1,50 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { useView } from '@renderer/hooks/search';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import { idToGame } from '@renderer/util/async';
-import { Paths } from '@shared/Paths';
-import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
-import { ARCADE, THEATRE } from '@shared/constants';
-import { updatePreferencesData } from '@shared/preferences/util';
+import { createErrorDialogWithPrefix } from '@renderer/dialog';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import { setUpdateInfo } from '@renderer/store/main/slice';
+import { setHomePageBoxOpen } from '@renderer/store/preferences/slice';
+import { launchGame } from '@renderer/Util';
+import { BackIn } from '@shared/back/types';
 import { formatString } from '@shared/utils/StringFormatter';
-import { uuid } from '@shared/utils/uuid';
-import { DialogState, Game, GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
+import { GameLaunchOverride, GameMetadataSource, LangContainer, MetaUpdateInfo } from 'flashpoint-launcher';
+import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import ReactDatePicker from 'react-datepicker';
-import ReactMarkdown from 'react-markdown';
-import { Link } from 'react-router-dom';
-import remarkGfm from 'remark-gfm';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
-import { WithPreferencesProps } from '../../containers/withPreferences';
-import { WithSearchProps } from '../../containers/withSearch';
-import { LangContext } from '../../util/lang';
-import { GameGridItem } from '../GameGridItem';
-import { GameItemContainer } from '../GameItemContainer';
-import { HomePageBox } from '../HomePageBox';
-import { OpenIcon, OpenIconType } from '../OpenIcon';
-import { RandomGames } from '../RandomGames';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { DynamicComponent } from '../DynamicComponent';
 import { SimpleButton } from '../SimpleButton';
-import { SizeProvider } from '../SizeProvider';
 
-type OwnProps = {
-  gotdList: GameOfTheDay[] | undefined;
-  platforms: string[];
-  playlists: Playlist[];
-  /** Generator for game context menu */
-  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
-  onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
-  /** Pass to Random Picks */
-  randomGames: ViewGame[];
-  /** Re-rolls the Random Games */
-  rollRandomGames: () => void;
-  /** Update to clear platform icon cache */
-  logoVersion: number;
-  /** Raw HTML of the Update page grabbed */
-  updateFeedMarkdown: string;
-  selectedGameId?: string;
-  /** List of components from FPM */
-  componentStatuses: ComponentStatus[];
-  openFlashpointManager: () => void;
-};
-
-export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps & WithMainStateProps;
-
-export function HomePage(props: HomePageProps) {
+export function HomePage() {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
-  const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
-  const [updating, setUpdating] = React.useState(false);
+  // eslint-disable-next-line react-hooks/purity
+  const logoDelay = React.useRef((Date.now() * -0.001) + 's').current;
+  const dispatch = useAppDispatch();
+  const displaySettings = useAppSelector(state => state.main.displaySettings);
 
-  const parsedGotdList = React.useMemo(() => {
-    return props.gotdList ? props.gotdList.map(g => {
-      const parts = g.date.split('-');
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      const newDate = new Date(year, month - 1, day);
-      return {
-        ...g,
-        date: newDate
-      };
-    }).sort((a, b) => { return a.date.getTime() - b.date.getTime(); }) : [];
-  }, [props.gotdList]);
-
-  const [selectedGotd, setSelectedGotd] = React.useState(() => {
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const filteredList = window.Shared.config.data.gotdShowAll ? parsedGotdList : parsedGotdList.filter(g => g.date < today);
-    const todaysGame = filteredList.find(g => (g.date > yesterday && g.date < today));
-    if (todaysGame) {
-      // Found todays game
-      return todaysGame;
-    } else {
-      if (filteredList.length >= 1) {
-        const nextGameIndex = filteredList.findIndex(g => g.date > today);
-        if (nextGameIndex > 0) {
-          // Found game closest to today, going backwards in time
-          return filteredList[nextGameIndex - 1];
-        } else {
-          // No GOTD entries before today, just grab the first one on the list
-          return filteredList[0];
-        }
-      }
-    }
-  });
-
-  const allStrings = React.useContext(LangContext);
-  const strings = allStrings.home;
-
-  const toggleMinimizeBox = React.useCallback((cssKey: string) => {
-    const newBoxes = [...props.preferencesData.minimizedHomePageBoxes];
-    const idx = newBoxes.findIndex(s => s === cssKey);
-    if (idx === -1) {
-      newBoxes.push(cssKey);
-    } else {
-      newBoxes.splice(idx, 1);
-    }
-    updatePreferencesData({
-      minimizedHomePageBoxes: newBoxes
-    });
-  }, [props.preferencesData.minimizedHomePageBoxes]);
-
-  const onGameSelect = async (gameId: string | undefined) => {
-    if (gameId) {
-      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
-      if (game) {
-        props.searchActions.selectGame({
-          view: GENERAL_VIEW_ID,
-          game
-        });
-      }
-    }
+  const onLaunchGame = async (gameId: string, override: GameLaunchOverride) => {
+    launchGame(dispatch, gameId, 'flashpoint-archive');
   };
 
-  const onLaunchGame = React.useCallback((gameId: string) => {
-    props.onLaunchGame(gameId, null);
-  }, [props.onLaunchGame]);
-
-  const onHallOfFameClick = React.useCallback(() => {
-    const playlist = props.playlists.find(p => p.title.toLowerCase().includes('hall of fame'));
-    if (playlist) {
-      // TODO: Reimplement
-    }
-  }, [props.playlists]);
-
-  const onFavoriteClick = React.useCallback(() => {
-    const playlist = props.playlists.find(p => p.title === ' Favorites' || p.title === '*Favorites*');
-    if (playlist) {
-      // TODO: Reimplement
-    }
-  }, [props.playlists]);
-
-  // const onHistoryClick = React.useCallback(() => {
-  //   updatePreferencesData({
-  //     gamesOrderBy: 'lastPlayed',
-  //     gamesOrder: 'DESC',
-  //   });
-  //   props.onSelectPlaylist(ARCADE, null);
-  //   props.clearSearch();
-  // }, [props.onSelectPlaylist, props.clearSearch]);
-
-  const onAllGamesClick = React.useCallback(() => {
-    // TODO: Reimplement
-  }, []);
-
-  const onAllAnimationsClick = React.useCallback(() => {
-    // TODO: Reimplement
-  }, []);
-
-  const currentView = useView();
-
-  const platformList = React.useMemo(() => {
-    const elements: JSX.Element[] = [];
-    const views = Object.keys(props.search.views);
-    let viewName = '';
-    for (const view of views) {
-      if (view !== GENERAL_VIEW_ID) {
-        viewName = view;
-        break;
-      }
-    }
-    const sortedPlatforms = [...props.platforms].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-    elements.push(
-      <div className='home-page__platform-box'>
-        {sortedPlatforms.map((platform, idx) => (
-          <Link
-            key={idx}
-            className='home-page__platform-entry'
-            to={joinLibraryRoute(viewName)}
-            onClick={() => {
-              props.searchActions.setSearchText({
-                view: viewName,
-                text: `platform:"${platform}"`
-              });
-              setTimeout(() => {
-                props.searchActions.forceSearch({
-                  view: viewName
-                });
-              }, 100);
-            }}>
-            <div
-              className='home-page__platform-entry__logo'
-              style={{ backgroundImage: `url("${getPlatformIconURL(platform, props.logoVersion)}")` }}/>
-            <div className='home-page__platform-entry__text'>{platform}</div>
-          </Link>
-        )
-        )}
-      </div>
-    );
-    return elements;
-  }, [props.platforms, props.search.views]);
-
-  // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-  const height = 140;
-  const width: number = (height * 0.666) | 0;
-
-  const renderedQuickStart = React.useMemo(() => {
-    const render = (
-      <>
-        <QuickStartItem icon='badge'>
-          {formatString(strings.hallOfFameInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onHallOfFameClick}>{strings.hallOfFame}</Link>)}
-        </QuickStartItem><QuickStartItem icon='play-circle'>
-          {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onAllGamesClick}>{strings.allGames}</Link>)}
-        </QuickStartItem><QuickStartItem icon='video'>
-          {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute(THEATRE)} onClick={onAllAnimationsClick}>{strings.allAnimations}</Link>)}
-        </QuickStartItem><QuickStartItem icon='wrench'>
-          {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
-        </QuickStartItem>
-        <QuickStartItem icon='info'>
-          {formatString(strings.helpInfo, <Link to={Paths.MANUAL}>{strings.help}</Link>)}
-        </QuickStartItem>
-      </>
-    );
-    return (
-      <HomePageBox
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('quickStart')}
-        cssKey={'quickStart'}
-        title={strings.quickStartHeader}
-        onToggleMinimize={() => toggleMinimizeBox('quickStart')}>
-        {render}
-      </HomePageBox>
-    );
-  }, [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
-
-  const renderedExtras = React.useMemo(() => {
-    const render = (
-      <>
-        <QuickStartItem icon='puzzle-piece'>
-          {strings.filterByPlatform}:
-        </QuickStartItem>
-        <QuickStartItem className='home-page__box-item--platforms'>
-          {platformList}
-        </QuickStartItem><br />
-      </>
-    );
-
-    return (
-      <HomePageBox
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('extras')}
-        cssKey={'extras'}
-        title={strings.extrasHeader}
-        onToggleMinimize={() => toggleMinimizeBox('extras')}>
-        {render}
-      </HomePageBox>
-    );
-  }, [strings, onFavoriteClick, platformList, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
-
-  const renderedNotes = React.useMemo(() => {
-    const render = (
-      <QuickStartItem>
-        {strings.notes}
-      </QuickStartItem>
-    );
-    return (
-      <HomePageBox
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('notes')}
-        title={strings.notesHeader}
-        cssKey='notes'
-        onToggleMinimize={() => toggleMinimizeBox('notes')}>
-        {render}
-      </HomePageBox>
-    );
-  }, [strings, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
-
-  const tagGroupIcons = props.preferencesData.tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({tags, iconBase64: tagGroupIcon}) => ({tagFilter:tags, iconBase64:tagGroupIcon}));
-
-  const renderedRandomGames = React.useMemo(() => (
-    <SizeProvider width={width} height={height}>
-      <RandomGames
-        games={props.randomGames}
-        rollRandomGames={props.rollRandomGames}
-        onGameContextMenu={props.onGameContextMenu}
-        onLaunchGame={onLaunchGame}
-        onGameSelect={onGameSelect}
-        extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
-        tagGroupIcons={tagGroupIcons}
-        logoVersion={props.logoVersion}
-        selectedGameId={props.selectedGameId}
-        screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
-        screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
-        hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
-        onToggleMinimize={() => toggleMinimizeBox('random-games')} />
-    </SizeProvider>
-  ), [strings, props.onGameContextMenu, props.selectedGameId, props.logoVersion, props.preferencesData.tagFilters, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
-
-  const [loadedGotd, setLoadedGotd] = React.useState<Game | null>(null);
-  React.useEffect(() => {
-    if (selectedGotd) {
-      window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
-      .then((game) => {
-        if (game) {
-          setLoadedGotd(game);
-        }
-      });
-    }
-  }, [selectedGotd]);
-
-  const onSelectGame = async (gameId: string) => {
-    const game = await idToGame(gameId);
-    if (game) {
-      props.searchActions.selectGame({
-        view: GENERAL_VIEW_ID,
-        game,
-      });
-    }
+  const toggleMinimizeBox = (box: string, open: boolean) => {
+    dispatch(setHomePageBoxOpen({
+      box,
+      open
+    }));
   };
 
-  const extremeIconPath = React.useMemo(() => getExtremeIconURL(props.logoVersion), [props.logoVersion]);
-
-  const renderedGotd = React.useMemo(() => {
-    if (props.gotdList === undefined) {
-      return <></>; // No GOTD to display yet
-    }
-    const extremeTags = props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-    return (
-      <HomePageBox
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('gotd')}
-        title={strings.gotdHeader}
-        cssKey='gotd'
-        onToggleMinimize={() => toggleMinimizeBox('gotd')}>
-        <SizeProvider width={width} height={height}>
-          { selectedGotd ? <div className='home-page__box-item--gotd'>
-            <div className='home-page__box-item--gotd-left'>
-              { loadedGotd ? (
-                <GameItemContainer
-                  className='gotd-container'
-                  onGameContextMenu={(event, gameId, logoPath, screenshotPath) => props.onGameContextMenu(gameId, logoPath, screenshotPath)}
-                  onGameSelect={(event, gameId) => gameId && onSelectGame(gameId)}
-                  onGameLaunch={(event, gameId) => props.onLaunchGame(gameId, null)}
-                  findGameDragEventData={findGameDragEventDataGrid}>
-                  <GameGridItem
-                    key={loadedGotd.id}
-                    id={loadedGotd.id}
-                    title={loadedGotd.title}
-                    platforms={loadedGotd.platforms.map(p => p.trim())}
-                    extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
-                    extremeIconPath={extremeIconPath}
-                    tagGroupIconBase64={tagGroupIcons.find(tg => tg.tagFilter.find(t => loadedGotd?.tags.includes(t)))?.iconBase64 || ''}
-                    thumbnail={getGameImageURL(loadedGotd.logoPath)}
-                    screenshot={getGameImageURL(loadedGotd.screenshotPath)}
-                    screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
-                    screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
-                    hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
-                    logoVersion={props.logoVersion}
-                    isDraggable={true}
-                    isSelected={loadedGotd.id === props.selectedGameId}
-                    isDragged={false} />
-                </GameItemContainer>
-              ) : (
-                <div className='game-grid-item'></div>
-              )}
-            </div>
-            <div className='home-page__box-item--gotd-right'>
-              <div className='home-page__box-item--gotd-author'><b>Suggested By:</b> {selectedGotd.author || 'Anonymous'}</div>
-              <div className='home-page__box-item--gotd-desc'>{selectedGotd.description}</div>
-              <div className='home-page__box-item--gotd-date'>
-                <ReactDatePicker
-                  dateFormat="yyyy-MM-dd"
-                  selected={new Date(selectedGotd.date)}
-                  includeDates={parsedGotdList.filter(g => window.Shared.config.data.gotdShowAll || g.date.getTime() < Date.now()).map(g => new Date(g.date))}
-                  onChange={(date) => {
-                    if (date) {
-                      const newGotd = parsedGotdList.find(g => g.date.toDateString() === date.toDateString());
-                      if (newGotd) {
-                        setSelectedGotd(newGotd);
-                      }
-                    }
-                  }}
-                  customInput={
-                    <SimpleButton/>
-                  }>
-                </ReactDatePicker>
-              </div>
-            </div>
-          </div> : 'None Found' }
-        </SizeProvider>
-      </HomePageBox>
-    );
-  }, [parsedGotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes, selectedGotd]);
-
-  const renderedNewsFeed = React.useMemo(() => {
-    if (props.updateFeedMarkdown) {
-      const markdownRender =
-        <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget={'_blank'}>
-          {props.updateFeedMarkdown}
-        </ReactMarkdown>;
-      return (
-        <HomePageBox
-          minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
-          title={strings.updateFeedHeader}
-          cssKey='updateFeed'
-          onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
-          {markdownRender}
-        </HomePageBox>
-      );
-    }
-  }, [strings, props.updateFeedMarkdown, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
-
-  const renderedMetadataUpdate = React.useMemo(() => {
-    const onPressUpdate = () => {
-      if (updating) {
-        return;
-      }
-      setUpdating(true);
-
-      if (props.main.metadataUpdate.total <= 0) {
-        // Fetch update info
-        window.Shared.back.request(BackIn.PRE_UPDATE_INFO, props.preferencesData.gameMetadataSources[0])
-        .then((total) => {
-          props.mainActions.setUpdateInfo(total);
-        })
-        .finally(() => {
-          setUpdating(false);
-        });
-      } else {
-        // Do update
-        window.Shared.back.request(BackIn.SYNC_ALL, props.preferencesData.gameMetadataSources[0])
-        .then((success) => {
-          if (success) {
-            const dialog: DialogState = {
-              largeMessage: true,
-              message: strings.updateComplete,
-              buttons: [allStrings.misc.ok],
-              id: uuid()
-            };
-            props.mainActions.createDialog(dialog);
-            props.mainActions.setUpdateInfo(0);
-          }
-        })
-        .catch((err) => {
-          log.error('Launcher', `Error updating metadata: ${err}`);
-          const dialog: DialogState = {
-            largeMessage: true,
-            message: `ERROR: ${err}`,
-            buttons: [allStrings.misc.ok],
-            id: uuid()
-          };
-          props.mainActions.createDialog(dialog);
-        })
-        .finally(() => {
-          setUpdating(false);
-        });
-      }
-    };
-
-    if (props.preferencesData.gameMetadataSources.length > 0) {
-      const text = props.main.metadataUpdate.ready ? (
-        props.main.metadataUpdate.total > 0 ? strings.update :
-          props.main.metadataUpdate.total === -1 ? strings.error : strings.checkForUpdates
-      ) : strings.checkingUpdate;
-      return (
-        <div className='update-metadata-box'>
-          <div className='update-metadata-button'>
-            <SimpleButton
-              className='update-metadata-button-inner'
-              value={text}
-              disabled={updating}
-              onClick={onPressUpdate} />
-          </div>
-          <div className='update-metadata-name'>
-            {props.preferencesData.gameMetadataSources[0].name}
-          </div>
-          { props.main.metadataUpdate.ready && props.main.metadataUpdate.total > 0 && (
-            <div className='update-metadata-last'>
-              {formatString(strings.updatedGamesReady, (props.main.metadataUpdate.total + 1).toString())}
-            </div>
-          )}
-          <div className='update-metadata-last'>
-            {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].games.actualUpdateTime)).toLocaleString()}`}
-          </div>
-        </div>
-      );
-    } else {
-      return (<></>);
-    }
-
-  }, [strings, props.preferencesData.gameMetadataSources, props.main.metadataUpdate, updating]);
+  const homePageComponentProps: HomePageComponentProps = {
+    onLaunchGame: (gameId) => onLaunchGame(gameId, null),
+    toggleMinimizeBox,
+  };
 
   // Render
-  return React.useMemo(() => (
+  return (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
-          {/* Metadata Update */}
-          { props.preferencesData.gameMetadataSources.length > 0 && renderedMetadataUpdate }
+          <UpdateComponent/>
           <FancyAnimation
             fancyRender={() => (
               <div
@@ -503,35 +55,175 @@ export function HomePage(props: HomePageProps) {
               <div className='fp-logo'/>
             )}/>
         </div>
-        {/* News Feed */}
-        { renderedNewsFeed }
-        {/* Game of the Day */}
-        { renderedGotd }
-        {/* Quick Start */}
-        { renderedQuickStart }
-        {/* Notes */}
-        { renderedNotes }
-        {/* Random Games */}
-        { renderedRandomGames }
-        {/* Extras */}
-        { renderedExtras }
+        {displaySettings.homePage.map(key =>
+          <DynamicComponent
+            key={key}
+            name={key}
+            props={homePageComponentProps} />
+        )}
       </div>
     </div>
-  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedNewsFeed,
-    renderedGotd, renderedMetadataUpdate]);
+  );
 }
 
-function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
-  return (
-    <li className={'home-page__box-item simple-center ' + (props.className||'')}>
-      { props.icon ? (
-        <div className='home-page__box-item-icon'>
-          <OpenIcon icon={props.icon} />
-        </div>
-      ) : undefined }
-      <div className='simple-center__vertical-inner'>
-        {props.children}
-      </div>
-    </li>
+function UpdateComponent() {
+  const gameMetadataSources = useAppSelector(state => state.preferences.gameMetadataSources);
+  const metadataUpdate = useAppSelector(state => state.main.metadataUpdate);
+  const allStrings = useLocalization();
+  const dispatch = useAppDispatch();
+  const [updating, setUpdating] = useState(false);
+  const strings = allStrings.home;
+
+  const onApplyUpdate = async (source: GameMetadataSource) => {
+    return window.Shared.back.request(BackIn.SYNC_ALL, source)
+    .catch(createErrorDialogWithPrefix('Error updating metadata'));
+  };
+
+  const onCheckForUpdate = async (source: GameMetadataSource) => {
+    return window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
+    .then((total) => {
+      dispatch(setUpdateInfo({
+        id: source.id,
+        total
+      }));
+      return total;
+    })
+    .finally(() => {
+      setUpdating(false);
+    });
+  };
+
+  const onApplyUpdateRow = withUpdating(onApplyUpdate);
+  const onCheckUpdateRow = withUpdating(onCheckForUpdate);
+
+  if (gameMetadataSources.length === 0) {
+    return <></>;
+  }
+
+  let updateAvailable = false;
+  for (const info of Object.values(metadataUpdate)) {
+    if (info.total > 0) {
+      updateAvailable = true;
+      break;
+    }
+  }
+
+  // Collect individual blocks
+  const updateBlocks: React.JSX.Element[] = gameMetadataSources.map(source => {
+    const preUpdateInfo = metadataUpdate[source.id] as MetaUpdateInfo | undefined;
+
+    console.log(JSON.stringify(preUpdateInfo));
+
+    return (
+      <UpdateRow
+        source={source}
+        preUpdateInfo={preUpdateInfo}
+        strings={allStrings}
+        busy={updating}
+        onApplyUpdate={() => onApplyUpdateRow(setUpdating, updating, source)}
+        onCheckForUpdate={() => onCheckUpdateRow(setUpdating, updating, source)}/>
+    );
+  });
+
+  updateBlocks.unshift(
+    <div key={'meta-block'} className='update-metadata-button'>
+      <SimpleButton
+        className='update-metadata-button-inner'
+        value={updateAvailable ? strings.update : strings.checkForUpdates}
+        disabled={updating}
+        onClick={async () => {
+          if (!updating) {
+            setUpdating(true);
+            let updated = false;
+            let total = -1;
+            for (const source of gameMetadataSources) {
+              const preUpdateInfo = metadataUpdate[source.id] as MetaUpdateInfo | undefined;
+              if (preUpdateInfo && preUpdateInfo.total > 0) {
+                updated = true;
+                await onApplyUpdate(source);
+              } else {
+                console.log('checking update');
+                const sourceTotal = await onCheckForUpdate(source);
+                if (total === -1) {
+                  total = sourceTotal;
+                } else {
+                  total += sourceTotal;
+                }
+              }
+            }
+            console.log(updated);
+            console.log(total);
+            if (!updated && total === 0) {
+              toast(strings.upToDate);
+            }
+            setUpdating(false);
+          }
+        }} />
+    </div>
   );
+
+  return <div className='update-metadata-box'>
+    {updateBlocks}
+  </div>;
+}
+
+type UpdateRowProps = {
+  strings: LangContainer,
+  source: GameMetadataSource;
+  preUpdateInfo?: MetaUpdateInfo;
+  busy: boolean;
+  onApplyUpdate: () => void;
+  onCheckForUpdate: () => Promise<number>;
+}
+
+function UpdateRow({ preUpdateInfo, strings, source, busy, onApplyUpdate, onCheckForUpdate }: UpdateRowProps) {
+  return (
+    <div key={source.id}>
+      <div className='update-metadata-name'>
+        {source.name}
+      </div>
+      { preUpdateInfo !== undefined && preUpdateInfo.total > 0 && (
+        <div className='update-metadata-last'>
+          {formatString(strings.home.updatedGamesReady, (preUpdateInfo.total + 1).toString())}
+        </div>
+      )}
+      <div className='update-metadata-last'>
+        {`${strings.home.lastUpdated}: ${(new Date(source.games.actualUpdateTime)).toLocaleString()}`}
+      </div>
+      <SimpleButton
+        disabled={busy || (preUpdateInfo === undefined)}
+        onClick={() => {
+          if (preUpdateInfo !== undefined) {
+            if (preUpdateInfo.total === 0) {
+              onCheckForUpdate()
+              .then((total) => {
+                if (total === 0) {
+                  toast(strings.home.upToDate);
+                }
+              });
+            } else {
+              onApplyUpdate();
+            }
+          }
+        }}
+        value={preUpdateInfo === undefined ? strings.home.checkingUpdate :
+          preUpdateInfo.total > 0 ? strings.home.update : strings.home.checkForUpdates
+        }/>
+    </div>
+  );
+}
+
+function withUpdating<T extends any[], R>(cb: (...args: T) => Promise<R>): (setUpdating: (val: boolean) => void, updating: boolean, ...args:T) => Promise<R> {
+  return async (setUpdating: (val: boolean) => void, updating: boolean, ...args: T): Promise<R> => {
+    if (!updating) {
+      setUpdating(true);
+      try {
+        return await cb(...args);
+      } finally {
+        setUpdating(false);
+      }
+    } else {
+      return Promise.reject(new Error('Operation already in progress'));
+    }
+  };
 }

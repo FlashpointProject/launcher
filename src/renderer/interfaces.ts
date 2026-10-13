@@ -1,7 +1,3 @@
-import { ViewGame } from 'flashpoint-launcher';
-
-export type ViewGameSet = Record<number, ViewGame | undefined>
-
 /** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */
 export type UpgradeStageState = {
   /** If the stage was already installed when the launcher started up (this value is only meaningful if the stage checks are done). */

@@ -196,8 +196,8 @@ body {
 .simple-dropdown__select-icon {
   width: 1.25em;
   align-self: center;
-  flex: 0 0 auto;
-  margin-top: -0.125em;
+  flex-grow: 0;
+  text-align-last: center;
 }
 .simple-dropdown__select-icon:before {
   content: "▾";
@@ -318,11 +318,6 @@ body {
   margin-right: 0.5rem;
 }
 
-/* Log */
-.log {
-  height: 100%;
-  overflow: scroll;
-}
 /* Simple Columns */
 .simple-columns {
   /*--columns: <Number of columns>;*/
@@ -450,17 +445,25 @@ body {
   width: 100%;
   height: 100%;
 }
+.main-wrapper {
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
 .main {
   display: flex;
   width: 100%;
-  height: 100%;
-  flex: 1;
+  flex-grow: 1;
   overflow: hidden;
 }
 
 
 /* ------ TitleBar ------ */
 .title-bar {
+  flex-shrink: 0;
   padding: 4px 0 0 4px;
   -webkit-user-select: none; /* Disable text selection */
   z-index: 1001; /* Hacky way of displaying it in from of the splash screen. */
@@ -527,6 +530,7 @@ body {
   font-size: 0.75em;
   padding: var(--header-padding);
   padding-bottom: 0.4em;
+  width: 100%;
 }
 .header__wrap {
   min-height: 2rem;
@@ -550,6 +554,7 @@ body {
   margin-right: 0.75rem;
 }
 .header-user-box {
+  cursor: pointer;
   display: flex;
   flex-direction: row;
   margin-right: 0.2rem;
@@ -708,6 +713,10 @@ body {
 .footer__scale-slider {
   flex: 1 1 auto;
   min-width: 10rem;
+}
+.footer__scale-slider__wrapper {
+  display: flex;
+  flex-direction: row;
 }
 .footer__scale-slider__inner {
   --slider-size: 1em;
@@ -1131,6 +1140,9 @@ body {
   font-weight: bold;
   margin-top: 0.5rem;
 }
+.curate-page__right-templates {
+  width: 100%;
+}
 .curate-page__right-dropdown-content {
   display: flex;
 }
@@ -1148,6 +1160,7 @@ body {
   width: 2rem;
   height: 2rem;
   padding: 0.5rem;
+  z-index: 10;
 }
 .curate-page-keybinds:hover .curate-page-keybinds-box {
   display: initial;
@@ -1214,7 +1227,8 @@ body {
   display: flex;
 }
 .curate-box-content__entry-icon {
-  height: 1em;
+  height: 100%;
+  padding: 1px;
 }
 .curate-box-content__entry-icon--collapse {
   cursor: pointer;
@@ -1288,9 +1302,9 @@ body {
   user-select: none;
 }
 .curate-box-files__body {
-  min-height: 10rem;
+  min-height: 15rem;
   max-height: 40rem;
-  overflow: auto;
+  display: block;
 }
 /* Curate Box Warnings */
 .curate-box-warnings {
@@ -1587,7 +1601,7 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-grow: 1;
-  min-height: 40%;
+  min-height: 30%;
   flex-direction: column;
   padding: 0 0.8rem;
 }
@@ -1700,9 +1714,27 @@ body {
 .browse-right-sidebar__row:last-child {
   margin-bottom: 0;
 }
-.browse-right-sidebar__row p {
+.browse-right-sidebar__row > :first-child:is(p) {
+  font-weight: bold;
+  font-size: 1.05em;
+}
+.browse-right-sidebar__row-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.browse-right-sidebar__row-header-text {
   display: inline;
   cursor: default;
+  align-self: baseline;
+  font-weight: bold;
+  font-size: 1.05em;
+}
+.browse-right-sidebar__title-row__buttons__edit-button {
+  cursor: pointer;
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist {
+  cursor: pointer;
 }
 .browse-right-sidebar--edit-enabled {
   user-select: none; /* Can not select text while editing is enabled */
@@ -1941,6 +1973,9 @@ body {
 .game-list > div[class='ReactVirtualized__Grid__innerScrollContainer'] {
   width: 100% !important;
 }
+.virtualized-fill {
+  flex: 1 1 auto;
+}
 /* GameList */
 .game-list,
 .tag {
@@ -1972,10 +2007,15 @@ body {
   height: calc(0.8px * var(--height));
   margin: calc(0.09px * var(--height)) calc(0.2px * var(--height)) 0 calc(0.1px * var(--height));
 }
+.game-list-item__right {
+  display: flex;
+}
+.tag-list-item__right {
+  display: block;
+}
 .game-list-item__right,
 .tag-list-item__right {
   flex: 1;
-  display: block;
   width: 100%;
   overflow: hidden;
 }
@@ -2053,18 +2093,6 @@ body {
 .tag-list-header-column--icon {
   flex: 1 0 auto;
   width: calc(1px * var(--height));
-}
-.game-list-header-column--title,
-.game-list-item__field--title {
-  max-width: 40%;
-}
-.game-list-header-column--developer,
-.game-list-item__field--developer {
-  max-width: 30%;
-}
-.game-list-header-column--publisher,
-.game-list-item__field--publisher {
-  max-width: 30%;
 }
 /*.game-list-header-column--tagsStr,
 .game-list-item__field--tagsStr {
@@ -2162,6 +2190,22 @@ body {
   margin: 0 auto;
 }
 
+/* ---- Sidebar ---- */
+
+.sidebar-header {
+  font-weight: 400;
+  font-size: 1.2em;
+  text-align: center;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
+/* --- Left Sidebar --- */
+.leftsidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
 /* ------ Playlist ------ */
 .playlist-list__message {
@@ -2200,7 +2244,6 @@ body {
   padding-left: 0.3rem;
   cursor: pointer;
   overflow: hidden;
-  flex-wrap: wrap;
 }
 .playlist-list-item--editing .playlist-list-item__head {
   cursor: default;
@@ -2228,7 +2271,7 @@ body {
   height: 100%;
 }
 .playlist-list-item__title {
-  flex: 0 1 auto;
+  flex-shrink: 0;
   min-width: 0;
   font-weight: bold;
   padding-left: 0.5rem;
@@ -2241,7 +2284,7 @@ body {
 .playlist-list-item__author {
   flex: 0 1 auto;
   min-width: 0;
-  font-size: 0.9em;
+  font-size: 0.85em;
   font-style: italic;
 }
 .playlist-list-item__author > p {
@@ -2640,7 +2683,7 @@ body {
   flex: auto;
   align-items: center;
 }
-.setting__row__content--override-row__seperator {
+.setting__row__content--override-row__separator {
   margin-left: 0.3rem;
   margin-right: 0.3rem;
   font-weight: bold;
@@ -2734,14 +2777,15 @@ body {
 }
 /* Progress Bar */
 .progress-bar__top-text {
+  text-overflow: ellipsis;
   text-align: center;
   font-weight: bold;
-  font-size: 2em;
+  font-size: 1.8em;
 }
 .progress-bar__bottom-text {
   text-align: center;
   font-weight: bold;
-  font-size: 1.5em;
+  font-size: 1.2em;
 }
 .progress-bar__bar {
   align-self: center;
@@ -2768,16 +2812,16 @@ body {
 
 /* ------ Splash Screen ------ */
 .splash-screen {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   user-select: none;
-  /* Position relative to the window - not the parent */
-  position: fixed;
+  position: absolute;
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 9999999999;
 }
 .splash-screen--fade-out {
@@ -3104,7 +3148,8 @@ body {
 
 .task-bar {
   width: 100%;
-  height: 10%;
+  max-height: 10%;
+  flex-shrink: 0;
   overflow-y: auto;
 }
 
@@ -3152,6 +3197,12 @@ body {
 .main-output-header {
   font-size: 1.5rem;
   font-weight: bold;
+}
+
+.main-output-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
 }
 
 .main-output-content {
@@ -3713,13 +3764,122 @@ body {
   margin: 1rem;
   font-size: 1.5rem;
   font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.downloads-page__upper-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.downloads-page__upper-right > :not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+.downloads-page__data {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.downloads-page__data-content {
+  flex-grow: 1;
+  width: 100%;
 }
 
 .downloads-page__workers {
-  margin-left: 1rem;
-  margin-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
 }
 
-.downloads-page__workers-worker {
+/* --- Menu --- */
+.context-menu {
+  z-index: 999999;
+  position: absolute;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
 
+.menu {
+  width: calc(1px * var(--width));
+}
+
+.menu-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: calc(1px * var(--height));
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+.menu-item-label {
+  font-size: calc(0.6px * var(--height));
+}
+
+.menu-submenu {
+  display: flex;
+  justify-content: space-between;
+}
+
+.menu-separator-wrapper {
+  height: calc(0.5px * var(--height));
+  display: flex;
+  align-items: center;
+}
+
+.menu-separator {
+  height: 1px;
+  margin-left: 0.55rem;
+  margin-right: 0.55rem;
+}
+
+/** -- Unrecoverable Error Page -- */
+
+.unrecoverable-error-page {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  overflow: auto;
+}
+
+.unrecoverable-error-header {
+  font-size: 2em;
+}
+
+.unrecoverable-error-stack-trace {
+  max-height: 50vh;
+  max-width: 80vw;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.unrecoverable-error-buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.unrecoverable-error-buttons > :not(:first-child) {
+  margin-left: 0.5rem;
+}
+
+/** ---- FPFSS Page ---- */
+.fpfss-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.fpfss-page-left-sidebar-wrapper {
+  min-width: 16rem;
+  flex: 0 0 auto;
+  overflow-y: auto;
 }

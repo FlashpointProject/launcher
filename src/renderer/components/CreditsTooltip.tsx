@@ -1,6 +1,5 @@
-import * as React from 'react';
+import { CreditsDataProfile, CreditsDataRole } from 'flashpoint-launcher';
 import { useEffect, useRef } from 'react';
-import { CreditsDataProfile, CreditsDataRole } from '../credits/types';
 
 export type CreditsTooltipProps = {
   /** Roles to grab color info from */
@@ -17,6 +16,12 @@ export type CreditsTooltipProps = {
 export function CreditsTooltip(props: CreditsTooltipProps) {
   const ref = useRef<HTMLDivElement>(null);
 
+  function onMouseMove(event: MouseEvent) {
+    if (ref.current) {
+      setPosition(ref.current, event.clientX, event.clientY);
+    }
+  }
+
   // Follow cursor
   useEffect(() => {
     if (!props.profile) { return; } // (Tooltip is not visible)
@@ -27,32 +32,24 @@ export function CreditsTooltip(props: CreditsTooltipProps) {
 
     document.addEventListener('mousemove', onMouseMove);
     return () => { document.removeEventListener('mousemove', onMouseMove); };
-
-    function onMouseMove(event: MouseEvent) {
-      if (ref.current) {
-        setPosition(ref.current, event.clientX, event.clientY);
-      }
-    }
-  }, [ref.current, props.profile, props.profileX, props.profileY]);
+  }, [props.profile, props.profileX, props.profileY]);
 
   // Render profile
-  const profileElement = React.useMemo(() => (
-    props.profile ? (
-      <>
-        <p className='about-page__credits__tooltip__title'>{props.profile.title}</p>
-        { props.profile.note ? (
-          <p className='about-page__credits__tooltip__note'>{props.profile.note}</p>
-        ) : undefined }
-        <ul className='about-page__credits__tooltip__roles'>
-          { props.profile.roles.map((role, index) => (
-            <li key={index} style={{ color: getRoleColor(role, props.roles) }}>
-              <p>{role}</p>
-            </li>
-          )) }
-        </ul>
-      </>
-    ) : undefined
-  ), [props.profile]);
+  const profileElement = props.profile ? (
+    <>
+      <p className='about-page__credits__tooltip__title'>{props.profile.title}</p>
+      { props.profile.note ? (
+        <p className='about-page__credits__tooltip__note'>{props.profile.note}</p>
+      ) : undefined }
+      <ul className='about-page__credits__tooltip__roles'>
+        { props.profile.roles.map((role, index) => (
+          <li key={index} style={{ color: getRoleColor(role, props.roles) }}>
+            <p>{role}</p>
+          </li>
+        )) }
+      </ul>
+    </>
+  ) : undefined;
 
   // Render
   return (

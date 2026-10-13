@@ -1,6 +1,6 @@
 import * as fastXmlParser from 'fast-xml-parser';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { promisify } from 'util';
 import { Legacy_GameParser } from './GameParser';
 import { Legacy_GamePlatform, Legacy_IRawPlatformFile } from './interfaces';

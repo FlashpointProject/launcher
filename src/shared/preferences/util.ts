@@ -1,6 +1,8 @@
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
-import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
+import { Paths } from '@shared/Paths';
+import { getDefaultAdvancedFilter } from '@shared/search/util';
+import * as Coerce from '@shared/utils/Coerce';
 import {
   AdvancedFilter,
   AdvancedFilterAndToggles,
@@ -8,62 +10,22 @@ import {
   AppPathOverride,
   AppPreferencesData,
   AppPreferencesDataMainWindow,
+  CurateGroup,
+  ExtOrder,
   GameDataSource,
   GameMetadataSource, GameOrderBy, GameOrderReverse,
   MetadataUpdateInfo,
+  ScaleValues,
   SingleUsePromptPrefs,
   StoredView,
   TagFilterGroup
 } from 'flashpoint-launcher';
-import { BackIn } from '../back/types';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
-import { deepCopy, parseVarStr } from '../Util';
-import * as Coerce from '@shared/utils/Coerce';
+import { parseVarStr } from '../Util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { CurateGroup } from '@renderer/store/curate/slice';
-import { getDefaultAdvancedFilter } from '@shared/search/util';
-import { Paths } from '@shared/Paths';
-
-export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
-  const preferences = window.Shared.preferences;
-  // @TODO Figure out the delta change of the object tree, and only send the changes
-  preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
-  if (send) {
-    sendPrefs();
-  }
-  if (preferences.onUpdate) { preferences.onUpdate(); }
-}
-
-export async function updatePreferencesDataAsync(data: DeepPartial<AppPreferencesData>, send = true) {
-  const preferences = window.Shared.preferences;
-  // @TODO Figure out the delta change of the object tree, and only send the changes
-  preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
-  if (send) {
-    await sendPrefsAsync();
-  }
-  if (preferences.onUpdate) { preferences.onUpdate(); }
-}
-
-const sendPrefs = delayedThrottle(() => {
-  const preferences = window.Shared.preferences;
-  window.Shared.back.send(
-    BackIn.UPDATE_PREFERENCES,
-    preferences.data,
-    false
-  );
-}, 200);
-
-const sendPrefsAsync = delayedThrottleAsync(async () => {
-  const preferences = window.Shared.preferences;
-  await window.Shared.back.request(
-    BackIn.UPDATE_PREFERENCES,
-    preferences.data,
-    false
-  );
-}, 200);
 
 const { num, str } = Coerce;
 
@@ -138,8 +100,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   searchLimit: 0,
   onlineManual: 'https://flashpointproject.github.io/manual/',
   offlineManual: '',
-  fpfssBaseUrl: 'https://fpfss.unstable.life',
-  groups: [],
+  curateGroups: [],
   server: 'Apache Webserver',
   curateServer: 'Apache Webserver',
   shortcuts: {
@@ -176,6 +137,15 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   hideNewViewButton: false,
   autoClearWininetCache: false,
   useSelectedGameScroll: false,
+  hideScreenshotSidebar: false,
+  disabledExtensions: [],
+  scaleValues: {
+    browse: 0.5,
+    logs: 0.5,
+    menuItem: 0.5,
+  },
+  useCustomTitlebar: true,
+  migration: 0,
 });
 
 /**
@@ -242,8 +212,8 @@ export function overwritePreferenceData(
   parser.prop('updateFeedUrl',                 v => source.updateFeedUrl                 = str(v), true);
   parser.prop('onlineManual',                  v => source.onlineManual                  = str(v), true);
   parser.prop('offlineManual',                 v => source.offlineManual                 = str(v), true);
-  parser.prop('fpfssBaseUrl',                  v => source.fpfssBaseUrl                  = str(v), true);
   parser.prop('fancyAnimations',               v => source.fancyAnimations               = !!v, true);
+  parser.prop('useCustomTitlebar',             v => source.useCustomTitlebar             = !!v, true);
   parser.prop('searchLimit',                   v => source.searchLimit                   = num(v), true);
   parser.prop('server',                        v => source.server                        = str(v), true);
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
@@ -260,6 +230,9 @@ export function overwritePreferenceData(
   parser.prop('hideNewViewButton',             v => source.hideNewViewButton             = !!v, true);
   parser.prop('autoClearWininetCache',         v => source.autoClearWininetCache         = !!v, true);
   parser.prop('useSelectedGameScroll',         v => source.useSelectedGameScroll         = !!v, true);
+  parser.prop('hideScreenshotSidebar',         v => source.hideScreenshotSidebar         = !!v, true);
+  parser.prop('disabledExtensions',            v => source.disabledExtensions            = strArray(v), true);
+  parser.prop('migration',                     v => source.migration                     = num(v), true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {
@@ -274,10 +247,10 @@ export function overwritePreferenceData(
     // @TODO Validate
     source.shortcuts = Object.assign(source.shortcuts, data.shortcuts);
   }
-  if (data.groups) {
+  if (data.curateGroups) {
     const newGroups: CurateGroup[] = [];
-    parser.prop('groups').array((item, index) => newGroups[index] = parseCurateGroup(item));
-    source.groups = newGroups;
+    parser.prop('curateGroups').array((item, index) => newGroups[index] = parseCurateGroup(item));
+    source.curateGroups = newGroups;
   }
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
@@ -294,6 +267,9 @@ export function overwritePreferenceData(
   if (data.showLogLevel) {
     parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
   }
+  if (data.scaleValues) {
+    source.scaleValues = parseScaleValues(parser.prop('scaleValues') as IObjectParserProp<ScaleValues>);
+  }
   parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
   if (data.tagFilters) {
     // Why is this or undefined anyway?
@@ -301,7 +277,7 @@ export function overwritePreferenceData(
     parser.prop('tagFilters').array((item, index) => newTagFilters[index] = parseTagFilterGroup(item as IObjectParserProp<TagFilterGroup>));
     source.tagFilters = newTagFilters;
   }
-  if (data.gameDataSources) {
+  if (data.gameDataSources !== undefined) {
     const newSources: GameDataSource[] = [];
     parser.prop('gameDataSources').array((item, index) => newSources[index] = parseGameDataSource(item as IObjectParserProp<GameDataSource>));
     source.gameDataSources = newSources;
@@ -337,6 +313,21 @@ function parseScreenshotPreviewMode(v: any): ScreenshotPreviewMode {
   }
 }
 
+function parseScaleValues(parser: IObjectParserProp<ScaleValues>): ScaleValues {
+  const defaultScale = 0.5;
+  const scales: ScaleValues = {
+    browse: defaultScale,
+    logs: defaultScale,
+    menuItem: defaultScale,
+  };
+
+  parser.prop('browse', v => scales.browse = num(v), true);
+  parser.prop('logs', v => scales.logs = num(v), true);
+  parser.prop('menuItem', v => scales.menuItem = num(v), true);
+
+  return scales;
+}
+
 function parseSingleUsePrompt(parser: IObjectParserProp<SingleUsePromptPrefs>): SingleUsePromptPrefs {
   const prompts: SingleUsePromptPrefs = {
     badAntiVirus: false,
@@ -367,20 +358,30 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   return override;
 }
 
+function strOrArray(v: any) {
+  if (Array.isArray(v)) {
+    return v.join(' ');
+  } else {
+    return `${v}`;
+  }
+}
+
 function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDataSource {
   const source: GameDataSource = {
     type: 'raw',
     name: '',
-    arguments: []
+    arguments: ''
   };
+
   parser.prop('type', v => source.type = str(v));
   parser.prop('name', v => source.name = str(v));
-  parser.prop('arguments').arrayRaw((item, index) => source.arguments.push(item));
+  parser.prop('arguments', v => source.arguments = strOrArray(v), true);
   return source;
 }
 
 function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>): GameMetadataSource {
   const source: GameMetadataSource = {
+    id: '',
     name: '',
     baseUrl: '',
     games: {
@@ -394,8 +395,13 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
       latestUpdateTime: '1970-01-01'
     },
   };
+  parser.prop('id',               v => source.id               = str(v), true);
   parser.prop('name',             v => source.name             = str(v));
   parser.prop('baseUrl',          v => source.baseUrl          = str(v));
+  parser.prop('fpfssUrl',         v => source.fpfssUrl         = str(v), true);
+  if (source.id === 'flashpoint-archive' && !source.fpfssUrl) {
+    source.fpfssUrl = 'https://fpfss.unstable.life';
+  }
   parseMetadataUpdateInfo(parser.prop('games'), source.games);
   parseMetadataUpdateInfo(parser.prop('tags'), source.tags);
   return source;
@@ -414,7 +420,7 @@ function parseAdvancedFilterAndToggles(parser: IObjectParserProp<AdvancedFilterA
   parser.prop('platform', v => output.platform = !!v, true);
   parser.prop('tags', v => output.tags = !!v, true);
   parser.prop('developer', v => output.developer = !!v, true);
-  parser.prop('publisher', v => output.publisher = !!v, true)
+  parser.prop('publisher', v => output.publisher = !!v, true);
   parser.prop('series', v => output.series = !!v, true);
   parser.prop('ruffleSupport', v => output.ruffleSupport = !!v, true);
 }
@@ -434,6 +440,12 @@ function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: 
   parseAdvancedFilterAndToggles(parser.prop('andToggles'), output.andToggles);
 }
 
+function parseExtOrder(parser: IObjectParserProp<ExtOrder>, output: ExtOrder) {
+  parser.prop('extId', v => output.extId = str(v));
+  parser.prop('key', v => output.key = str(v));
+  parser.prop('default', v => output.default = v);
+}
+
 function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
   const source: StoredView = {
     view: '',
@@ -441,6 +453,11 @@ function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
     advancedFilter: getDefaultAdvancedFilter(),
     orderBy: 'title',
     orderReverse: 'ASC',
+    extOrder: {
+      extId: '',
+      key: '',
+      default: ''
+    },
     expanded: true,
   };
 
@@ -449,6 +466,7 @@ function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
   parseAdvancedFilter(parser.prop('advancedFilter'), source.advancedFilter);
   parser.prop('orderBy', v => source.orderBy = parseOrderBy(v), true);
   parser.prop('orderReverse', v => source.orderReverse = parseOrderReverse(v), true);
+  parseExtOrder(parser.prop('extOrder'), source.extOrder);
   parser.prop('selectedPlaylistId', v => source.selectedPlaylistId = str(v), true);
   parser.prop('selectedGameId', v => source.selectedGameId = str(v), true);
   parser.prop('expanded', v => source.expanded = !!v, true);
@@ -480,7 +498,7 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
   parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
   parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
   parser.prop('extreme', v => tfg.extreme = !!v);
-  parser.prop('iconBase64', v => tfg.iconBase64 = str(v));
+  parser.prop('iconBase64', v => tfg.iconBase64 = str(v), true);
   return tfg;
 }
 

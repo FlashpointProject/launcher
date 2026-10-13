@@ -1,184 +1,92 @@
-import * as remote from '@electron/remote';
-import { SocketClient } from '@shared/back/SocketClient';
-import { BackIn, BackOut } from '@shared/back/types';
-import { CustomIPC, WindowIPC } from '@shared/interfaces';
-import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { setTheme } from '@shared/Theme';
-import { createErrorProxy } from '@shared/Util';
-import * as electron from 'electron';
-import { OpenDialogOptions } from 'electron';
-import { ipcRenderer } from 'electron/renderer';
-import * as path from 'path';
-import { isDev } from './Util';
-import { EventEmitter } from 'events';
+import { contextBridge, ipcRenderer, OpenDialogOptions } from 'electron';
 
-/**
- * Object with functions that bridge between this and the Main processes
- * (Note: This is mostly a left-over from when "node integration" was disabled.
- *        It might be a good idea to move this to the Renderer?)
- */
+console.log('preloading');
 
-window.Shared = {
-  version: createErrorProxy('version'),
-
-  platform: remote.process.platform + '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
-
-  minimize() {
-    const currentWindow = remote.getCurrentWindow();
-    currentWindow.minimize();
+// Register Electron API functions we might need later
+contextBridge.exposeInMainWorld('electronAPI', {
+  getInitData: () => {
+    return ipcRenderer.sendSync('renderer-init');
   },
-
-  maximize() {
-    const currentWindow = remote.getCurrentWindow();
-    if (currentWindow.isMaximized()) {
-      currentWindow.unmaximize();
-    } else {
-      currentWindow.maximize();
+  fileExists: (path: string) => {
+    path = fixPath(path);
+    return ipcRenderer.invoke(CustomIPC.FILE_EXISTS, path);
+  },
+  openExternal: (url: string, opts?: Electron.OpenExternalOptions) => {
+    ipcRenderer.send(CustomIPC.OPEN_EXTERNAL, url, opts);
+  },
+  showItemInFolder: (path: string) => {
+    path = fixPath(path);
+    ipcRenderer.send(CustomIPC.SHOW_FILE_IN_FOLDER, path);
+  },
+  showOpenDialog: (opts: OpenDialogOptions) => {
+    return ipcRenderer.invoke(CustomIPC.SELECT_FOLDER, opts) as Promise<string[] | undefined>;
+  },
+  writeClipboardText: (text: string) => {
+    ipcRenderer.send(CustomIPC.WRITE_CLIPBOARD, text);
+  },
+  relaunch: () => {
+    ipcRenderer.send(CustomIPC.RELOAD_FULL);
+  },
+  protocolReady: () => {
+    ipcRenderer.send(WindowIPC.PROTOCOL);
+  },
+  registerProtocol: async (enabled: boolean) => {
+    const success = await ipcRenderer.invoke(CustomIPC.REGISTER_PROTOCOL, enabled);
+    if (!success) {
+      const regVerb = enabled ? 'add' : 'remove';
+      alert('Failed to ' + regVerb + ' protocol registration');
     }
   },
-
+  toggleDevTools: () => {
+    ipcRenderer.send(CustomIPC.TOGGLE_DEVTOOLS);
+  },
+  minimize() {
+    ipcRenderer.send(WindowIPC.WINDOW_MINIMIZE);
+  },
+  maximize() {
+    ipcRenderer.send(WindowIPC.WINDOW_MAXIMIZE);
+  },
   close() {
-    const currentWindow = remote.getCurrentWindow();
-    currentWindow.webContents.closeDevTools();
-    currentWindow.close();
+    ipcRenderer.send(WindowIPC.WINDOW_CLOSE);
   },
+  ipcRenderer,
+} satisfies typeof window.electronAPI);
 
-  restart() {
-    remote.app.relaunch();
-    remote.app.quit();
-  },
 
-  showOpenDialogSync(options: OpenDialogOptions): string[] | undefined {
-    // @HACK: Electron set the incorrect return type for "showOpenDialogSync".
-    return remote.dialog.showOpenDialogSync(options) as any;
-  },
+/** IPC channels used to relay window events from main to renderer. */
+enum WindowIPC {
+  WINDOW_MINIMIZE = 'window-minimize',
+  WINDOW_MAXIMIZE = 'window-maximize',
+  WINDOW_MOVE     = 'window-move',
+  WINDOW_RESIZE   = 'window-resize',
+  WINDOW_CLOSE    = 'window-close',
+  /** Sent whenever a flashpoint:// protocol is run */
+  PROTOCOL        = 'protocol',
+}
 
-  toggleDevtools(): void {
-    remote.getCurrentWindow().webContents.toggleDevTools();
-  },
+/** IPC channels for everything else */
 
-  preferences: {
-    data: createErrorProxy('preferences.data'),
-    onUpdate: undefined,
-  },
+enum CustomIPC {
+  SHOW_MESSAGE_BOX = 'show-message-box',
+  SHOW_SAVE_DIALOG = 'show-save-dialog',
+  SHOW_OPEN_DIALOG = 'show-open-dialog',
+  REGISTER_PROTOCOL = 'register-protocol',
+  RELOAD_FULL = 'reload-full',
+  RELOAD_WINDOW = 'reload-window',
+  OPEN_EXTERNAL = 'open-external',
+  SHOW_FILE_IN_FOLDER = 'show-file-in-folder',
+  TOGGLE_DEVTOOLS = 'toggle-devtools',
+  SELECT_FOLDER = 'select-folder',
+  FILE_EXISTS = 'file-exists',
+  WRITE_CLIPBOARD = 'write-clipboard',
+}
 
-  config: createErrorProxy('config'),
-
-  log: {
-    entries: [],
-    offset: 0,
-  },
-
-  isDev,
-
-  isBackRemote: createErrorProxy('isBackRemote'),
-
-  back: new SocketClient(WebSocket, () => {
-    // Ask to send output to renderer if backend crashes
-    ipcRenderer.send(WindowIPC.MAIN_OUTPUT);
-  }),
-
-  fileServerPort: -1,
-
-  backUrl: createErrorProxy('backUrl'),
-
-  customVersion: undefined,
-
-  initialLang: createErrorProxy('initialLang'),
-  initialLangList: createErrorProxy('initialLangList'),
-  initialThemes: createErrorProxy('initialThemes'),
-  initialLocaleCode: createErrorProxy('initialLocaleCode'),
-
-  dialogResEvent: new EventEmitter(),
-
-  waitUntilInitialized() {
-    if (!isInitDone) { return onInit; }
+function fixPath(path: string) {
+  if (path.length >= 3) {
+    if (path[0] === '/' && path[2] === ':') {
+      path = path.substring(1);
+    }
   }
-};
 
-let isInitDone = false;
-const onInit = (async () => {
-  // Fetch data from main process
-  const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
-  // Store value(s)
-  window.Shared.version = data.version;
-  window.Shared.isBackRemote = data.isBackRemote;
-  window.Shared.backUrl = new URL(data.host);
-  window.Shared.url = data.url;
-  // Connect to the back
-  const socket = await SocketClient.connect(WebSocket, data.host, data.secret);
-  window.Shared.back.url = data.host;
-  window.Shared.back.secret = data.secret;
-  window.Shared.back.setSocket(socket);
-})()
-.then(() => new Promise<void>((resolve, reject) => {
-  registerHandlers();
-
-  // Fetch the config and preferences
-  window.Shared.back.request(BackIn.GET_RENDERER_INIT_DATA)
-  .then(data => {
-    if (data) {
-      window.Shared.preferences.data = data.preferences;
-      window.Shared.config = {
-        data: data.config,
-        // @FIXTHIS This should take if this is installed into account
-        fullFlashpointPath: path.resolve(data.config.flashpointPath),
-        fullJsonFolderPath: path.resolve(data.config.flashpointPath, data.preferences.jsonFolderPath),
-      };
-      window.Shared.fileServerPort = data.fileServerPort;
-      window.Shared.log.entries = data.log;
-      // window.Shared.initialServices = data.services;
-      window.Shared.customVersion = data.customVersion;
-      window.Shared.initialLang = data.language;
-      window.Shared.initialLangList = data.languages;
-      window.Shared.initialThemes = data.themes;
-      // window.Shared.initialPlaylists = data.playlists;
-      // window.Shared.initialLibraries = data.libraries;
-      // window.Shared.initialServerNames = data.serverNames;
-      // window.Shared.initialMad4fpEnabled = data.mad4fpEnabled;
-      // window.Shared.initialPlatforms = data.platforms;
-      window.Shared.initialLocaleCode = data.localeCode;
-      // window.Shared.initialTagCategories = data.tagCategories;
-      // window.Shared.initialExtensions = data.extensions;
-      // window.Shared.initialDevScripts = data.devScripts;
-      // window.Shared.initialContextButtons = data.contextButtons;
-      // window.Shared.initialCurationTemplates = data.curationTemplates;
-      // window.Shared.initialLogoSets = data.logoSets;
-      // window.Shared.initialExtConfigs = data.extConfigs;
-      // window.Shared.initialExtConfig = data.extConfig;
-      // window.Shared.initialUpdateFeedMarkdown = data.updateFeedMarkdown;
-      // window.Shared.initialCurations = data.curations;
-      if (window.Shared.preferences.data.currentTheme) {
-        const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
-        if (theme) { setTheme(theme); }
-      }
-      resolve();
-    } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }
-  });
-}))
-.then(() => { isInitDone = true; });
-
-function registerHandlers(): void {
-  window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {
-    window.Shared.preferences.data = data;
-  });
-
-  window.Shared.back.register(BackOut.OPEN_MESSAGE_BOX, async (event, data) => {
-    const result = await ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, data);
-    return result.response;
-  });
-
-  window.Shared.back.register(BackOut.OPEN_SAVE_DIALOG, async (event, data) => {
-    const result = await ipcRenderer.invoke(CustomIPC.SHOW_SAVE_DIALOG, data);
-    return result.filePath;
-  });
-
-  window.Shared.back.register(BackOut.OPEN_OPEN_DIALOG, async (event, data) => {
-    const result = await ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, data);
-    return result.filePaths;
-  });
-
-  window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, url, options) => {
-    await remote.shell.openExternal(url, options);
-  });
+  return path;
 }

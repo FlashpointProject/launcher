@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useMemo, useReducer } from 'react';
+import { useReducer } from 'react';
 import { ReducerContext, ReducerContextValue } from './interfaces';
 
 /** Short-hand type. */
@@ -20,9 +20,7 @@ export function ContextReducerProvider<R extends AnyReducer>(props: ContextReduc
     props.context.initialState
   );
   // Context value (reducer state and dispatcher)
-  const contextValue = useMemo((): ReducerContextValue<R> => {
-    return [state, dispatch];
-  }, [state, dispatch]);
+  const contextValue: ReducerContextValue<R> = [state, dispatch];
   // Render
   return (
     <Provider value={contextValue}>

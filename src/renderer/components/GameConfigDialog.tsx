@@ -2,12 +2,13 @@ import { deepCopy } from '@shared/Util';
 import { BackIn, FetchedGameInfo, MiddlewareVersionPair } from '@shared/back/types';
 import * as Coerce from '@shared/utils/Coerce';
 import { ConfigProp, ConfigSchema, Game, GameConfig, GameMiddlewareConfig, GameMiddlewareInfo } from 'flashpoint-launcher';
+import { DropdownRowProps, InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement } from './ConfirmElement';
 import { Dropdown } from './Dropdown';
 import { FloatingContainer } from './FloatingContainer';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
@@ -35,7 +36,7 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
   React.useEffect(() => {
     window.Shared.back.request(BackIn.GET_VALID_MIDDLEWARE, props.info.game)
     .then(setValidMiddleware);
-  }, []);
+  }, [setValidMiddleware, props.info.game]);
 
   const openEditor = async (config: GameConfig, idx: number) => {
     // Populate config schemas
@@ -63,7 +64,7 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
     setEditorOpen(false);
   };
 
-  const newConfig = React.useCallback(() => {
+  const newConfig = () => {
     const config: GameConfigEdit = {
       id: null,
       gameId: props.info.game.id,
@@ -76,98 +77,94 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
     setConfigCopy(config);
     setCopyIdx(props.info.configs.length);
     setEditorOpen(true);
-  }, [props.info.configs.length, props.info.game.id]);
+  };
 
   // Generate rows
-  const rows = React.useMemo(() => {
-    return props.info.configs.map((c, idx) => {
-      return (
-        <div className='game-config-dialog__config' key={idx}>
-          <div className='game-config-dialog__config-row'>
-            <div className='game-config-dialog__config-left'>
-              { c.gameId === 'template' && (
-                <div className='game-config-dialog__config-title-prefix'>
-                  {'(Template)'}
-                </div>
-              ) }
-              <div className='game-config-dialog__config-title'>
-                {c.name}
+  const rows = props.info.configs.map((c, idx) => {
+    return (
+      <div className='game-config-dialog__config' key={idx}>
+        <div className='game-config-dialog__config-row'>
+          <div className='game-config-dialog__config-left'>
+            { c.gameId === 'template' && (
+              <div className='game-config-dialog__config-title-prefix'>
+                {'(Template)'}
               </div>
-            </div>
-            <div className='game-config-dialog__config-right'>
-              <div className='game-config-dialog__config-source-label'>
-                {'Source:'}
-              </div>
-              <div className='game-config-dialog__config-source-value'>
-                {c.owner}
-              </div>
+            ) }
+            <div className='game-config-dialog__config-title'>
+              {c.name}
             </div>
           </div>
-          <div className='game-config-dialog__config-row'>
-            <div className='game-config-dialog__config-left'>
-              <div className='game-config-dialog__config-middlewares'>
-                <div className='game-config-dialog__config-middleware-label'>
-                  {'Middleware:'}
-                </div>
-                {c.middleware.map((m, idx) => (
-                  <div key={idx}>
-                    {`${m.name} (version: ${m.version})`}
-                  </div>
-                ))}
-              </div>
+          <div className='game-config-dialog__config-right'>
+            <div className='game-config-dialog__config-source-label'>
+              {'Source:'}
             </div>
-          </div>
-          <div className='game-config-dialog__config-row'>
-            <div className='game-config-dialog__config-left'>
-            </div>
-            <div className='game-config-dialog__config-right game-config-dialog__config-buttons'>
-              { c.gameId !== 'template' && (
-                <SimpleButton
-                  value='Make Template'
-                  onClick={() => {
-                    props.makeTemplateConfig(idx);
-                  }}/>
-              )}
-              <ConfirmElement
-                message={'Are you sure you want to delete this configuration?'}
-                onConfirm={() => {
-                  props.deleteConfig(idx);
-                }}
-                render={({ confirm }) => {
-                  return (
-                    <SimpleButton
-                      onClick={() => { confirm(); }}
-                      value='Delete'/>
-                  );
-                }} />
-              { c.owner === 'local' && (
-                <SimpleButton
-                  value={'Modify'}
-                  onClick={() => {
-                    openEditor(c, idx);
-                  }} />
-              )}
-              <SimpleButton
-                value={'Make Copy'}
-                onClick={() => {
-                  props.duplicateConfig(idx);
-                }} />
+            <div className='game-config-dialog__config-source-value'>
+              {c.owner}
             </div>
           </div>
         </div>
-      );
-    });
-  }, [props.info]);
-
-  const buttonRow = React.useMemo(() => {
-    return (
-      <div className='game-config-dialog__config-buttons game-config-dialog__config-new'>
-        <SimpleButton
-          onClick={newConfig}
-          value={'New Configuration'}/>
+        <div className='game-config-dialog__config-row'>
+          <div className='game-config-dialog__config-left'>
+            <div className='game-config-dialog__config-middlewares'>
+              <div className='game-config-dialog__config-middleware-label'>
+                {'Middleware:'}
+              </div>
+              {c.middleware.map((m, idx) => (
+                <div key={idx}>
+                  {`${m.name} (version: ${m.version})`}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className='game-config-dialog__config-row'>
+          <div className='game-config-dialog__config-left'>
+          </div>
+          <div className='game-config-dialog__config-right game-config-dialog__config-buttons'>
+            { c.gameId !== 'template' && (
+              <SimpleButton
+                value='Make Template'
+                onClick={() => {
+                  props.makeTemplateConfig(idx);
+                }}/>
+            )}
+            <ConfirmElement
+              message={'Are you sure you want to delete this configuration?'}
+              onConfirm={() => {
+                props.deleteConfig(idx);
+              }}
+              render={({ confirm }) => {
+                return (
+                  <SimpleButton
+                    onClick={() => { confirm(); }}
+                    value='Delete'/>
+                );
+              }} />
+            { c.owner === 'local' && (
+              <SimpleButton
+                value={'Modify'}
+                onClick={() => {
+                  openEditor(c, idx);
+                }} />
+            )}
+            <SimpleButton
+              value={'Make Copy'}
+              onClick={() => {
+                props.duplicateConfig(idx);
+              }} />
+          </div>
+        </div>
       </div>
     );
-  }, [newConfig]);
+  });
+
+  const buttonRow = (
+    <div className='game-config-dialog__config-buttons game-config-dialog__config-new'>
+      <SimpleButton
+        onClick={newConfig}
+        value={'New Configuration'}/>
+    </div>
+  );
 
   return (
     <FloatingContainer floatingClassName='game-config-dialog-container'>
@@ -201,6 +198,28 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
   );
 }
 
+type MiddlewareDropdownRowProps = {
+  items: GameMiddlewareInfo[],
+  setSelectedNewMiddleware: (middleware: GameMiddlewareInfo) => void;
+};
+
+function MiddlewareDropdownRow({ items, setSelectedNewMiddleware, index }: DropdownRowProps<MiddlewareDropdownRowProps>) {
+  const middleware = items[index];
+
+  return (
+    <label
+      className='curate-page__right-dropdown-content simple-dropdown-button'
+      key={index}
+      onClick={() => {
+        setSelectedNewMiddleware(middleware);
+      }}>
+      <div>
+        {middleware.name}
+      </div>
+    </label>
+  );
+}
+
 type GameConfigEditorDialogProps = {
   game: Game;
   validMiddleware: GameMiddlewareInfo[];
@@ -210,19 +229,20 @@ type GameConfigEditorDialogProps = {
   discard: () => void;
 };
 
+
 function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
   const [versionEditorOpen, setVersionEditorOpen] = React.useState(false);
   const [versionEditorMiddlewareIdx, setVersionEditorMiddlewareIdx] = React.useState(0);
   const [collapsedRows, setCollapsedRows] = React.useState<number[]>([]);
 
   // Apply config to middleware at idx
-  const onSaveMiddlewareConfig = React.useCallback((idx: number, config: any) => {
+  const onSaveMiddlewareConfig = (idx: number, config: any) => {
     const newConfig = deepCopy(props.config);
     newConfig.middleware[idx].config = config;
     props.setConfig(newConfig);
-  }, [props.config]);
+  };
 
-  const addMiddleware = React.useCallback((middleware: GameMiddlewareInfo) => {
+  const addMiddleware = (middleware: GameMiddlewareInfo) => {
     window.Shared.back.request(BackIn.GET_MIDDLEWARE_DEFAULT_CONFIG, middleware.middlewareId, props.game)
     .then((newMiddlewareInfo) => {
       const newCopy: GameConfigEdit = {
@@ -235,9 +255,9 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
       newCopy.schemas[`${newMiddlewareInfo.config.middlewareId}-${newMiddlewareInfo.config.version}`] = newMiddlewareInfo.schema;
       props.setConfig(newCopy);
     });
-  }, [props.config, props.game]);
+  };
 
-  const deleteMiddleware = React.useCallback((idx: number) => {
+  const deleteMiddleware = (idx: number) => {
     const newCopy: GameConfigEdit = {
       ...props.config,
       middleware: [
@@ -246,111 +266,98 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
     };
     newCopy.middleware.splice(idx, 1);
     props.setConfig(newCopy);
-  }, [props.config]);
+  };
 
-  const setConfigName = React.useCallback((event: React.ChangeEvent<InputElement>) => {
+  const setConfigName = (event: React.ChangeEvent<InputElement>) => {
     const newCopy: GameConfigEdit = {
       ...props.config,
       name: event.currentTarget.value
     };
     props.setConfig(newCopy);
-  }, [props.config]);
+  };
 
   const [selectedNewMiddleware, setSelectedNewMiddleware] = React.useState<GameMiddlewareInfo>();
-  const newMiddlewareRow = React.useMemo(() => {
-    const text = selectedNewMiddleware ? selectedNewMiddleware.name : 'Select Middleware';
-    return (
-      <div className='game-config-dialog__config-buttons game-config-dialog__config-row'>
-        <Dropdown
-          form={true}
-          className={`browse-right-sidebar__game-config-dropdown ${selectedNewMiddleware !== undefined ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
-          text={text}>
-          {props.validMiddleware.map((m, idx) => {
-            return (
-              <label
-                className='curate-page__right-dropdown-content simple-dropdown-button'
-                key={idx}
-                onClick={() => {
-                  setSelectedNewMiddleware(m);
-                }}>
-                <div>
-                  {m.name}
-                </div>
-              </label>
-            );
-          })}
-        </Dropdown>
-        <SimpleButton
-          onClick={() => {
-            if (selectedNewMiddleware) {
-              addMiddleware(selectedNewMiddleware);
-            }
-          }}
-          value="Add Middleware"/>
-      </div>
-    );
-  }, [props.validMiddleware, addMiddleware, selectedNewMiddleware]);
+  const text = selectedNewMiddleware ? selectedNewMiddleware.name : 'Select Middleware';
+  const newMiddlewareRow = (
+    <div className='game-config-dialog__config-buttons game-config-dialog__config-row'>
+      <Dropdown
+        form={true}
+        className={`browse-right-sidebar__game-config-dropdown ${selectedNewMiddleware !== undefined ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
+        text={text}
+        rowCount={props.validMiddleware.length}
+        rowProps={{
+          items: props.validMiddleware,
+          setSelectedNewMiddleware,
+        }}
+        rowRenderer={MiddlewareDropdownRow}/>
+      <SimpleButton
+        onClick={() => {
+          if (selectedNewMiddleware) {
+            addMiddleware(selectedNewMiddleware);
+          }
+        }}
+        value="Add Middleware"/>
+    </div>
+  );
 
-  const rows = React.useMemo(() => {
-    return props.config.middleware.map((m, idx) => {
-      const isCollapsed = collapsedRows.includes(idx);
-      const schemaId = `${m.middlewareId}-${m.version}`;
-      const schema = schemaId in props.config.schemas ? props.config.schemas[schemaId] : null;
-      return (
-        <div key={idx}>
-          <div className='game-config-dialog__config' key={idx}>
-            <div className='game-config-dialog__config-row'>
-              <div className='game-config-dialog__config-left'>
-                <div className='game-config-dialog__config-title'>
-                  {m.name}
-                </div>
-                <div className='game-config-dialog__config-version'>
-                  {`(version: ${m.version})`}
-                </div>
+  const rows = props.config.middleware.map((m, idx) => {
+    const isCollapsed = collapsedRows.includes(idx);
+    const schemaId = `${m.middlewareId}-${m.version}`;
+    const schema = schemaId in props.config.schemas ? props.config.schemas[schemaId] : null;
+    return (
+      <div key={idx}>
+        <div className='game-config-dialog__config' key={idx}>
+          <div className='game-config-dialog__config-row'>
+            <div className='game-config-dialog__config-left'>
+              <div className='game-config-dialog__config-title'>
+                {m.name}
               </div>
-              <div className='game-config-dialog__config-right'>
-                <div className='game-config-dialog__config-buttons'>
-                  <SimpleButton
-                    onClick={() => {
-                      deleteMiddleware(idx);
-                    }}
-                    value='Delete'/>
-                  <SimpleButton
-                    onClick={() => {
-                      onOpenVersionEditor(idx);
-                    }}
-                    value='Set Version'/>
-                </div>
-                <div
-                  className='game-config-dialog__config-chevron-expansion'
+              <div className='game-config-dialog__config-version'>
+                {`(version: ${m.version})`}
+              </div>
+            </div>
+            <div className='game-config-dialog__config-right'>
+              <div className='game-config-dialog__config-buttons'>
+                <SimpleButton
                   onClick={() => {
-                    // Toggle collapsed state
-                    if (isCollapsed) {
-                      setCollapsedRows(collapsedRows.filter((i) => i !== idx));
-                    } else {
-                      setCollapsedRows([...collapsedRows, idx]);
-                    }
-                  }}>
-                  <OpenIcon icon={isCollapsed ? 'chevron-top' : 'chevron-bottom'}/>
-                </div>
+                    deleteMiddleware(idx);
+                  }}
+                  value='Delete'/>
+                <SimpleButton
+                  onClick={() => {
+                    onOpenVersionEditor(idx);
+                  }}
+                  value='Set Version'/>
+              </div>
+              <div
+                className='game-config-dialog__config-chevron-expansion'
+                onClick={() => {
+                  // Toggle collapsed state
+                  if (isCollapsed) {
+                    setCollapsedRows(collapsedRows.filter((i) => i !== idx));
+                  } else {
+                    setCollapsedRows([...collapsedRows, idx]);
+                  }
+                }}>
+                <OpenIcon icon={isCollapsed ? 'chevron-top' : 'chevron-bottom'}/>
               </div>
             </div>
           </div>
-          { !isCollapsed && (
-            <div className='game-config-dialog-inputs'>
-              {schema ?
-                schema.map((inputProps) => {
-                  return renderMiddlewareInput(inputProps, m.config, (config) => {
-                    onSaveMiddlewareConfig(idx, config);
-                  });
-                })
-                : ('Failed to load config schema')}
-            </div>
-          )}
         </div>
-      );
-    });
-  }, [props.config.middleware, props.config.schemas, collapsedRows]);
+        { !isCollapsed && (
+          <div className='game-config-dialog-inputs'>
+            {schema ?
+              schema.map((inputProps) => {
+                return renderMiddlewareInput(inputProps, m.config, (config) => {
+                  onSaveMiddlewareConfig(idx, config);
+                });
+              })
+              : ('Failed to load config schema')}
+          </div>
+        )}
+      </div>
+    );
+  });
 
   const nameEditRow = (
     <div className='game-config-dialog__config-name-row'>
@@ -367,12 +374,12 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
     </div>
   );
 
-  const onOpenVersionEditor = React.useCallback((idx: number) => {
+  const onOpenVersionEditor = (idx: number) => {
     setVersionEditorMiddlewareIdx(idx);
     setVersionEditorOpen(true);
-  }, [props.config.middleware]);
+  };
 
-  const onSaveVersion = React.useCallback(async (version: string) => {
+  const onSaveVersion = async (version: string) => {
     // Fetch new config schema
     const mId = props.config.middleware[versionEditorMiddlewareIdx].middlewareId;
     const newSchemas = await window.Shared.back.request(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, [{
@@ -389,7 +396,7 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
     newConfig.middleware[versionEditorMiddlewareIdx].version = version;
     props.setConfig(newConfig);
     setVersionEditorOpen(false);
-  }, [props.config.middleware, versionEditorMiddlewareIdx]);
+  };
 
   return versionEditorOpen ? (
     <GameConfigSetVersionDialog
@@ -422,8 +429,30 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
   );
 }
 
+type MiddlewareInputSelectRowProps<T> = {
+  items: T[];
+  onSelect: (option: T) => void;
+}
+
+function MiddlewareInputSelectRow<T>({ items, onSelect, index }: DropdownRowProps<MiddlewareInputSelectRowProps<T>>) {
+  const option = items[index];
+
+  return (
+    <label
+      className='curate-page__right-dropdown-content simple-dropdown-button'
+      key={index}
+      onClick={() => {
+        onSelect(option);
+      }}>
+      <div>
+        {`${option}`}
+      </div>
+    </label>
+  );
+}
+
 function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: (config: any) => void) {
-  let input: JSX.Element = <></>;
+  let input: React.JSX.Element = <></>;
   const value = inputProps.type !== 'label' ? (inputProps.key in config ? config[inputProps.key] :
     inputProps.default ? inputProps.default : null) : null;
 
@@ -470,26 +499,20 @@ function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: 
     }
     case 'number': {
       const inputRow = inputProps.options ?
-        <Dropdown
+        <Dropdown<MiddlewareInputSelectRowProps<number>>
           form={true}
-          text={value}>
-          {inputProps.options.map((option, idx) => {
-            return (
-              <label
-                className='curate-page__right-dropdown-content simple-dropdown-button'
-                key={idx}
-                onClick={() => {
-                  saveConfig({
-                    ...config,
-                    [inputProps.key]: option
-                  });
-                }}>
-                <div>
-                  {option}
-                </div>
-              </label>
-            );
-          })}
+          text={value}
+          rowProps={{
+            items: inputProps.options || [],
+            onSelect: (option) => {
+              saveConfig({
+                ...config,
+                [inputProps.key]: option
+              });
+            }
+          }}
+          rowCount={inputProps.options ? inputProps.options.length : 0}
+          rowRenderer={MiddlewareInputSelectRow}>
         </Dropdown>
         : (
           <InputField
@@ -537,27 +560,20 @@ function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: 
     }
     case 'string': {
       const inputRow = inputProps.options ?
-        <Dropdown
+        <Dropdown<MiddlewareInputSelectRowProps<string>>
           form={true}
-          text={value}>
-          {inputProps.options.map((option, idx) => {
-            return (
-              <label
-                className='curate-page__right-dropdown-content simple-dropdown-button'
-                key={idx}
-                onClick={() => {
-                  saveConfig({
-                    ...config,
-                    [inputProps.key]: option
-                  });
-                }}>
-                <div>
-                  {option}
-                </div>
-              </label>
-            );
-          })}
-        </Dropdown>
+          text={value}
+          rowProps={{
+            items: inputProps.options || [],
+            onSelect: (option) => {
+              saveConfig({
+                ...config,
+                [inputProps.key]: option
+              });
+            }
+          }}
+          rowCount={inputProps.options ? inputProps.options.length : 0}
+          rowRenderer={MiddlewareInputSelectRow}/>
         : (
           <InputField
             className='input-field-form'
@@ -607,11 +623,11 @@ function GameConfigSetVersionDialog(props: GameConfigSetVersionDialogProps) {
   const [valid, setValid] = React.useState(true);
   const [version, setVersion] = React.useState(props.middleware.version);
 
-  const onSave = React.useCallback(() => {
+  const onSave = () => {
     if (valid) {
       props.save(version);
     }
-  }, [valid, version]);
+  };
 
   const onSetVersion = async (event: React.ChangeEvent<InputElement>) => {
     const newVersion = event.target.value;

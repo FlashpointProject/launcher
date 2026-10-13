@@ -23,7 +23,7 @@ export type ImagePreviewState = {
 
 /** An overlay that covers the entire window and displays an image in the center. */
 export class ImagePreview extends React.Component<ImagePreviewProps, ImagePreviewState> {
-  borderRef: React.RefObject<HTMLDivElement> = React.createRef();
+  borderRef: React.RefObject<HTMLDivElement | null> = React.createRef();
   /** Parent element of the overlay root element. */
   parent: HTMLElement;
   /** Root element of the overlay. */

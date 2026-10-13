@@ -102,25 +102,17 @@ type MouseRef<T> = {
  * @param initializer Returns the options object to use for this hook. Only called the first time.
  * @param deps Array of dependencies that if changed, will call the initializer again.
  */
-export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.DependencyList | undefined) {
-  const ref = React.useRef<MouseRef<T>>(undefined as any);
-  if (!ref.current) {
-    ref.current = {
-      opts: initializer(),
-      id: undefined,
-      button: -1,
-      click_timestamp: 0,
-      clicks: 0,
-    };
-  }
+export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.DependencyList) {
+  const [options] = React.useState(initializer);
+  const ref = React.useRef<MouseRef<T>>({
+    opts: options,
+    id: undefined,
+    button: -1,
+    click_timestamp: 0,
+    clicks: 0,
+  });
 
-  React.useEffect(() => {
-    if (ref.current) {
-      ref.current.opts = initializer();
-    }
-  }, deps || []);
-
-  const on_mouse_down = React.useCallback((event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const on_mouse_down = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     const id = ref.current.opts.find_id(event);
 
     if (id !== undefined) {
@@ -145,9 +137,9 @@ export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.Depe
     } else {
       reset(ref.current);
     }
-  }, deps || []);
+  };
 
-  const on_mouse_up = React.useCallback((event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const on_mouse_up = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     const id = ref.current.opts.find_id(event);
 
     if ((id !== undefined) && (ref.current.button === event.button) && compare(id, ref.current.id, ref.current.opts.compare_id)) {
@@ -164,7 +156,7 @@ export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.Depe
     } else {
       reset(ref.current);
     }
-  }, deps || []);
+  };
 
   return [on_mouse_down, on_mouse_up];
 }

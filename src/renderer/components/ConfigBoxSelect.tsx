@@ -1,17 +1,7 @@
 import { memoizeOne } from '@shared/memoize';
+import { ConfigBoxSelectProps, SelectItem } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { ConfigBox, ConfigBoxProps } from './ConfigBox';
-
-export type SelectItem<T> = {
-  value: T;
-  display?: string;
-}
-
-export type ConfigBoxSelectProps<T extends string | number> = ConfigBoxProps & {
-  value: T;
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  items: SelectItem<T>[];
-};
+import { ConfigBox } from './ConfigBox';
 
 export function ConfigBoxSelect<T extends string | number>(props: ConfigBoxSelectProps<T>) {
   return (
@@ -30,7 +20,7 @@ export function ConfigBoxSelect<T extends string | number>(props: ConfigBoxSelec
   );
 }
 
-const renderSelectItemsMemo = memoizeOne(<T extends string | number>(selectItems: SelectItem<T>[]): JSX.Element[] => {
+const renderSelectItemsMemo = memoizeOne(<T extends string | number>(selectItems: SelectItem<T>[]): React.JSX.Element[] => {
   return selectItems.map((item, idx)=> (
     <option
       key={idx}

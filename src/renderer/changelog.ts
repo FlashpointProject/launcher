@@ -8,7 +8,7 @@ type ChangelogEntry = {
 }
 
 export const CHANGELOG: Changelog = {
-  "2025-02-10": {
+  '2025-02-10': {
     title: 'Flashpoint Launcher 14.0.0',
     message: `
 # Flashpoint Launcher 14.0.0
@@ -78,7 +78,7 @@ export const CHANGELOG: Changelog = {
 - Bluezip is no longer included as an external tool
 `
   },
-  "2024-03-29": {
+  '2024-03-29': {
     title: 'Flashpoint Launcher 13.0.0',
     message: `
 # Flashpoint Launcher 13.0.0
@@ -104,9 +104,9 @@ export const CHANGELOG: Changelog = {
 * Game configurations (middleware) are no longer supported. The functionality will be reintroduced at a later date.
 * Fixed tags / tag categories not being editable via their respective pages.
     `
-  }, 
-  "2023-09-30": {
-    title: "Flashpoint Launcher 12.1.1",
+  },
+  '2023-09-30': {
+    title: 'Flashpoint Launcher 12.1.1',
     message: `
 # Flashpoint Launcher 12.1.1
 
@@ -117,8 +117,8 @@ Added archive state variables
 Fix tags page stutter @prostagma-fp 
     `
   },
-  "2023-07-12": {
-    title: "Flashpoint Launcher 12.0.0",
+  '2023-07-12': {
+    title: 'Flashpoint Launcher 12.0.0',
     message: `
 # Flashpoint Launcher 12.0.0
 
@@ -127,8 +127,8 @@ I'll update this later down the line - This includes a massive amount of changes
 Future self note: Idiot never did.
     `
   },
-  "2022-10-10": {
-    title: "Flashpoint Launcher 10.1.7",
+  '2022-10-10': {
+    title: 'Flashpoint Launcher 10.1.7',
     message: `
 # Flashpoint Launcher 10.1.7
 

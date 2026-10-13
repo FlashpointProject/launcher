@@ -10,6 +10,7 @@
     "strict": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
@@ -18,7 +19,8 @@
       "@shared/*": ["./shared/*"],
       "@main/*": ["./main/*"],
       "@back/*": ["./back/*"],
-      "@renderer/*": ["./renderer/*"]
+      "@renderer/*": ["./renderer/*"],
+      "@test/*": ["./test/*"]
     },
     "plugins": [
       {

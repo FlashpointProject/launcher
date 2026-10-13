@@ -1,6 +1,6 @@
 import * as flashpoint from 'flashpoint-launcher';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import mustache from 'mustache';
 
 export function buildBasicTemplate(game: flashpoint.Game, sourceUrl: string) {

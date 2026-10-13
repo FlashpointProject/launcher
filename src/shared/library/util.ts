@@ -1,5 +1,4 @@
-import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
-import { LangContainer } from '../lang';
+import { GameOrderBy, GameOrderReverse, LangContainer } from 'flashpoint-launcher';
 
 /**
  * Get the title of a library item from a language sub-container (or return the item's route if none was found).

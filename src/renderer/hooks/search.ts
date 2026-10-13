@@ -5,6 +5,10 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 export function useView() {
   const location = useLocation();
   const viewName = getViewName(location.pathname);
-  const search = useAppSelector((state) => state.search);
-  return search.views[viewName];
+  return useAppSelector((state) => state.search.views[viewName]);
+}
+
+export function useViewName() {
+  const location = useLocation();
+  return getViewName(location.pathname);
 }

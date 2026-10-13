@@ -72,7 +72,9 @@ export class ApiEmitter<T> implements ApiEmitterFirable<T> {
         } else {
           log.error('Launcher', `API Event Error: ${e.message || e.toString()}`);
         }
-        onError && onError(e, listener.name);
+        if (onError) {
+          onError(e, listener.name);
+        }
       }
     }
   }

@@ -1,6 +1,6 @@
 import { GameData, PartialGameData } from '@fparchive/flashpoint-archive';
 import { ArchiveState } from '@shared/back/types';
-import { CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { CURATIONS_FOLDER_TEMP, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { AddAppCuration, CurationMeta } from '@shared/curate/types';
@@ -12,7 +12,7 @@ import { execFile } from 'child_process';
 import * as crypto from 'crypto';
 import { AdditionalApp, Game, GameLaunchInfo, LoadedCuration, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as YAML from 'yaml';
 import { addPromise, fpDatabase } from '.';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts, checkAndInstallPlatform } from './GameLauncher';
@@ -249,9 +249,9 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     const zipPath = path.join(tempDir, `${curation.folder}.zip`);
     // Create content.json just for safety / compat
     const contentJson = {
-      "version": 1,
-      "uniqueId": gameId,
-      "platform": curation.game.primaryPlatform
+      'version': 1,
+      'uniqueId': gameId,
+      'platform': curation.game.primaryPlatform
     };
     const contentJsonPath = path.join(tempDir, 'content.json');
     await fs.promises.writeFile(contentJsonPath, JSON.stringify(contentJson, undefined, 2));
@@ -261,7 +261,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       contentPath,
       contentJsonPath
     ], { $bin: opts.sevenZipPath, recursive: true });
-    
+
     log.debug('Import', 'Importing game data...');
     taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
     await importGameData(game.id, zipPath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
@@ -304,7 +304,6 @@ function importGameData(gameId: string, filePath: string, dataPacksFolderPath: s
         if (existingGameData) {
           if (existingGameData.presentOnDisk === false) {
             // File wasn't on disk before but is now, update GameData info
-            existingGameData.path = newFilename;
             existingGameData.presentOnDisk = true;
             fpDatabase.saveGameData(existingGameData)
             .then(async (gameData) => {
@@ -470,7 +469,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     screenshotPath:        `Screenshots/${gameId.substring(0,2)}/${gameId.substring(2,4)}/${gameId}.png`,
     ruffleSupport:         gameMeta.ruffleSupport       || '',
   };
-  game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game))
+  game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
   return game;
 }
 
@@ -494,7 +493,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
       // Check if the image is its own file
       if (image.filePath !== undefined) {
         await fs.promises.mkdir(path.dirname(imagePath), { recursive: true });
-        await fs.promises.access(image.filePath, fs.constants.R_OK).then(() => log.debug('TEST', 'CAN READ')).catch(() => log.debug('TEST', 'CAN NOT READ'));
+        await fs.promises.access(image.filePath, fs.constants.R_OK);
         await fs.promises.copyFile(image.filePath, imagePath);
       }
       // Check if the image is extracted

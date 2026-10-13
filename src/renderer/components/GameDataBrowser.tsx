@@ -1,12 +1,12 @@
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
+import { Game, GameData } from 'flashpoint-launcher';
 import * as React from 'react';
 import { FloatingContainer } from './FloatingContainer';
 import { GameDataInfo } from './GameDataInfo';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { Game, GameData } from 'flashpoint-launcher';
 
 export type GameDataBrowserState = {
   error?: string;
@@ -50,7 +50,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
     const strings = this.context;
     const path = window.Shared.showOpenDialogSync({
       message: strings.dialog.selectDataPackToImport,
-      filters: [{ extensions: ['zip'], name: 'Data Pack'}]
+      filters: [{ extensions: ['zip'], name: 'Data Pack' }]
     });
     if (path && path.length > 0) {
       // Send path to backend to import
@@ -106,7 +106,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
       const newData = [...this.state.gameData];
       const idx = newData.findIndex(pd => pd.id === gameData.id);
       if (idx > -1) {
-        newData[idx] = {...newData[idx], ...gameData, title: newData[idx].title };
+        newData[idx] = { ...newData[idx], ...gameData, title: newData[idx].title };
         this.setState({ gameData: newData });
       }
     }
@@ -147,7 +147,6 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
               .then(() => {
                 const newDatas = [...this.state.gameData];
                 newDatas[index].presentOnDisk = false;
-                newDatas[index].path = undefined;
                 this.setState({ gameData: newDatas });
                 this.props.onForceUpdateGameData();
               })

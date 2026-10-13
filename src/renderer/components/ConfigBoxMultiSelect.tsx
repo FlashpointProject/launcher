@@ -1,16 +1,6 @@
-import { ConfigBox, ConfigBoxProps } from './ConfigBox';
-import { SelectItem } from './ConfigBoxSelect';
+import { ConfigBoxMultiSelectProps, DropdownRowProps, MultiSelectItem } from 'flashpoint-launcher-renderer';
+import { ConfigBox } from './ConfigBox';
 import { Dropdown } from './Dropdown';
-
-export type ConfigBoxMultiSelectProps<T> = ConfigBoxProps & {
-  text: string;
-  onChange: (item: T) => void;
-  items: MultiSelectItem<T>[];
-};
-
-export type MultiSelectItem<T> = SelectItem<T> & {
-  checked: boolean;
-}
 
 export function ConfigBoxMultiSelect<T>(props: ConfigBoxMultiSelectProps<T>) {
   return (
@@ -19,19 +9,31 @@ export function ConfigBoxMultiSelect<T>(props: ConfigBoxMultiSelectProps<T>) {
       // key={props.text}
       contentClassName={`${props.contentClassName || ''} setting__row__content--toggle`}>
       <div>
-        <Dropdown
-          text={props.text}>
-          {renderMultiSelectItems(props.items, props.onChange)}
+        <Dropdown<ConfigBoxMultiSelectRowProps<T>>
+          text={props.text}
+          rowProps={{
+            items: props.items,
+            onChange: props.onChange
+          }}
+          rowCount={props.items.length}
+          rowRenderer={ConfigBoxMultiSelectRow}>
         </Dropdown>
       </div>
     </ConfigBox>
   );
 }
 
-function renderMultiSelectItems<T>(items: MultiSelectItem<T>[], onChange: (item: T) => void): JSX.Element[] {
-  return items.map((item, idx) => (
+type ConfigBoxMultiSelectRowProps<T> = {
+  items: MultiSelectItem<T>[];
+  onChange: (item: T) => void;
+};
+
+function ConfigBoxMultiSelectRow({ items, onChange, index }: DropdownRowProps<ConfigBoxMultiSelectRowProps<any>>) {
+  const item = items[index];
+
+  return (
     <label
-      key={idx}
+      key={index}
       className='log-page__dropdown-item'>
       <div className='simple-center'>
         <input
@@ -42,9 +44,9 @@ function renderMultiSelectItems<T>(items: MultiSelectItem<T>[], onChange: (item:
       </div>
       <div className='simple-center'>
         <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-          {item.display || item.value}
+          {item.display || (item.value as any)}
         </p>
       </div>
     </label>
-  ));
+  );
 }

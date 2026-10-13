@@ -1,14 +1,13 @@
-import { BackInit, ComponentStatus, FpfssUser } from '@shared/back/types';
-import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
-import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
-import { LangContainer, LangFile } from '@shared/lang';
-import { ILogEntry } from '@shared/Log/interface';
+import { BackInit } from '@shared/back/types';
+import { ExecMapping, GamePropSuggestions, INamedBackProcessInfo } from '@shared/interfaces';
 import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
+import { FastifyInstance } from 'fastify';
 import * as flashpoint from 'flashpoint-launcher';
-import { Game, GameOrderBy, GameOrderReverse, TagCategory, ViewGame } from 'flashpoint-launcher';
+import { AppConfigData, AppExtConfigData, ComponentStatus, Game, GameOrderBy, GameOrderReverse, IBackProcessInfo, LangFile, PlatformAppPathSuggestions, TagCategory, ViewGame } from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
+import { Downloader } from './Downloader';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
@@ -17,25 +16,28 @@ import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
-import { FileServer } from './util/FileServer';
+import { ISimpleDownloader } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
-import { PlatformAppPathSuggestions } from '@shared/curate/types';
-import { Downloader } from './Downloader';
 
 /** Contains most state for the back process. */
 export type BackState = {
   // @TODO Write comments for these properties
+  startTime: number;
   readyForInit: boolean;
   ignoreQuit: boolean; // Ignore quit calls from renderer
   runInit: boolean;
   isExit: boolean;
   isDev: boolean;
+  isElectron: boolean;
+  updateInProgress: boolean;
   verbose: boolean;
   socketServer: SocketServer;
+  curationsReady: boolean;
   downloader: Downloader;
-  fileServer: FileServer;
   fileServerPort: number;
+  onDemandImageDownloader: ISimpleDownloader;
+  fileServer: FastifyInstance;
   fileServerDownloads: {
     queue: ImageDownloadItem[];
     current: ImageDownloadItem[];
@@ -46,8 +48,6 @@ export type BackState = {
   configFolder: string;
   exePath: string;
   localeCode: string;
-  version: string;
-  versionStr: string;
   suggestions: GamePropSuggestions;
   logFile: LogFile;
   customVersion?: string,
@@ -56,14 +56,13 @@ export type BackState = {
   isHandling: boolean;
   init: { [key in BackInit]: boolean; };
   initEmitter: InitEmitter;
-  queries: Record<string, BackQueryChache>;
-  log: ILogEntry[];
+  log: flashpoint.ILogEntry[];
   serviceInfo?: ServiceFileData;
   services: Map<string, ManagedChildProcess>;
   languageWatcher: FolderWatcher;
   languageQueue: EventQueue;
   languages: LangFile[];
-  languageContainer: LangContainer;
+  languageContainer: flashpoint.LangContainer;
   readonly themeState: ThemeState;
   playlists: flashpoint.Playlist[];
   execMappings: ExecMapping[];
@@ -77,6 +76,8 @@ export type BackState = {
   sevenZipPath: string;
   /** All currently loaded curations. */
   loadedCurations: flashpoint.CurationState[];
+  /** List of curation template files */
+  curationTemplates: string[];
   /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
   platformAppPaths: PlatformAppPathSuggestions;
   writeLocks: number;
@@ -167,7 +168,7 @@ export type TagsFile = {
   tags: flashpoint.Tag[];
 }
 
-export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
+export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => string;
 export type ShowMessageBoxBroadcastFunc = (options: flashpoint.DialogStateTemplate) => void;
 export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
@@ -199,8 +200,10 @@ export type ApiEmittersState = Readonly<{
     onDidInstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
+    onInterceptGetGame: ApiEmitter<flashpoint.Game>;
   }>,
   curations: Readonly <{
+    onCurationsReady: ApiEmitter<void>,
     onDidCurationListChange: ApiEmitter<{ added?: flashpoint.CurationState[], removed?: string[] }>;
     onDidCurationChange: ApiEmitter<flashpoint.CurationState>;
     onWillGenCurationWarnings: ApiEmitter<{

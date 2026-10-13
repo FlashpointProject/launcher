@@ -1,26 +1,19 @@
 # Flashpoint Launcher
-The launcher for Flashpoint Archive (the non-profit web preservation project).
+The launcher for Flashpoint Archive (the community web preservation project).
 
 ![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
 
 ### Status
 
-[![Release Status](https://github.com/FlashpointProject/launcher/workflows/Release%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
-[![Build Status](https://github.com/FlashpointProject/launcher/workflows/Build%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
-[![Coverage Status](https://coveralls.io/repos/github/FlashpointProject/launcher/badge.svg?branch=master)](https://coveralls.io/github/FlashpointProject/launcher?branch=master)
 [![Crowdin](https://badges.crowdin.net/flashpoint-launcher/localized.svg)](https://crowdin.com/project/flashpoint-launcher)
 
 ### Links
 * [Documentation](https://flashpointproject.github.io/launcher) - Documentation for Configuation, Development and Extensions information of the Flashpoint Launcher.
 * [Flashpoint Archive](https://flashpointarchive.org) - Download Flashpoint here (the launcher is bundled with it)
-* [Donate](https://opencollective.com/flashpointarchive) - Funds go towards the Flashpoint Archive non-profit to sustain archival efforts, not to fund developers of the launcher.
+* [Donate](https://opencollective.com/flashpointarchive) - Funds go towards the Flashpoint Archive to sustain archival efforts (server costs), not to individual contributors.
 
 ## About
-The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for Flashpoint Archive, a non-profit with the goal of furthering archival and accessibility efforts for games, animations and other digital interactive experiences on the web.
-
-See the `docs` folder for more information on setting up Flashpoint and Extension authoring.
-
-Extension API Documentation: https://flashpointproject.github.io/launcher_ApiDocs/
+The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for Flashpoint Archive, a community project with the goal of furthering archival and accessibility efforts for games, animations and other digital interactive experiences on the web.
 
 ## Building from source
 
@@ -42,30 +35,42 @@ Install by running ``sudo apt install libgtk-3-0 libnss3``
 
 1. Clone the repository with ``git clone --branch develop --recurse-submodules https://github.com/FlashpointProject/launcher.git launcher`` (where ``launcher`` is the path of the directory you want to be the root of the repository).
 
-2. Navigate to the root of the repository and run ``npm install`` - this will download and install all the dependencies from npm (it may take a few minutes).
+2. ``npm install``
 
-3. Run ``npm run build`` or ``npm run watch`` (at the root of the repository). This will compile the source code and such so the launcher can be executed. If ``watch`` is used, it will rebuild the launcher automatically when a source code or static file is changed.
+3. You have 2 options for development, Electron or Browser:
 
-4. Run ``npm run start`` (at the root of the repository) to start the launcher. It is recommended to do this in a second command prompt / terminal.
+Browser:
+`npm run watch:web` - Builds extensions, builds and watches backend process and static files
+`npm run start:web` - Builds and watches renderer, automatically opens in browser
+Node debugging for the backend is available on port 9229.
+There is also a vscode task (`Watch Full Stack (Web)`) and debug configuration (`Debug Backend (Web)`) available to use
 
-5. **Optional** - It is highly recommended to set the launcher's "Flashpoint folder". This is where the launcher will read and write most data to and from. You can set the "Flashpoint folder" path at the "Config" tab in the launcher. Make sure the background of the text field is green (this means the path is valid) and don't forget to hit "Save and Exit"!
+Electron:
+`npm run watch` - Builds and watches extensions, backend process and static files
+`npm run start` - Starts Electron process
+
+5. **Optional** - It is highly recommended to set the launcher's "Flashpoint folder" after first running it. This is where the launcher will read and write most data to and from. You can set the "Flashpoint Path" in the "Config" tab in the launcher. Make sure the background of the text field is green (this means the path is valid) and don't forget to hit "Save and Restart"!
+
+You can also manually set this in the `config.json` file created in the project after first run
 
 Notes:
 
+* React components use the React Compiler. If creating new components please make sure they are compiled, see this extension for a handy IDE hint in Vscode. Existing components are fine to be skipped. https://marketplace.visualstudio.com/items?itemName=blazejkustra.react-compiler-marker
 * You will need to run ``npm install`` whenever a dependency is added or upgraded in ``package.json``.
-* The launcher is changing rapidly and does not always support older "Flashpoint folders". Sometimes it does not even support the most recent one.
-* It is recommended to have a separate "Flashpoint folder" for launcher development than normal usage.
+* Best practice is to use the most recent Flashpoint Infinity installation folder as your Flashpoint Path
+* It is recommended to have a separate "Flashpoint Path" for launcher development than normal usage.
 
 ## Package Scripts
 Short descriptions of what the scripts in ``package.json`` do:
 
-* ``build`` - Build the launcher (build main & renderer and copy static files to ``./build/``)
-* ``watch`` - Build the launcher and incrementally rebuild it when the source or static files change
-* ``pack`` - Pack the latest build (and put the packaged file with the executable electron app in ``./dist/``)
-* ``snapshot`` - Build then pack the launcher (same as running ``build`` then ``pack``)
-* ``release`` - Build then pack the launcher in release mode (same as ``snapshot`` but it also creates installers, build artifacts etc.)
-* ``start`` - Run the latest build of the launcher
-* ``test`` - Run the test suite (to find out if anything covered by the tests has been broken)
+* ``build`` - *(Electron)* Build the launcher
+* ``watch`` - *(Electron) Builds and watches extensions, backend process and static files
+* ``watch:web` - *(Browser)* Builds extensions, builds and watches backend process and static files
+* ``nexusBuild`` - Builds the 32 bit Windows version of the Launcher
+* ``nexusPack`` - Packages the build as expected for full release
+* ``start`` - *(Electron)* Run the Electron version of the launcher
+* ``start:web`` - *(Browser)* Builds and watches the Browser version of the launcher
+* ``test`` - Run the test suite
 * ``lint`` - Run the linter
 
 ``pack`` / ``snapshot`` / ``release`` will by default pack for the OS and architecture of the machine that runs it.

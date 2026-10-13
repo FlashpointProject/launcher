@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import { readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';

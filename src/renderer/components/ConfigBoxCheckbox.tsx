@@ -1,7 +1,6 @@
-import { CheckBox, CheckBoxProps } from './CheckBox';
-import { ConfigBox, ConfigBoxProps } from './ConfigBox';
-
-export type ConfigBoxCheckboxProps = ConfigBoxProps & CheckBoxProps;
+import { ConfigBoxCheckboxProps } from 'flashpoint-launcher-renderer';
+import { CheckBox } from './CheckBox';
+import { ConfigBox } from './ConfigBox';
 
 export function ConfigBoxCheckbox(props: ConfigBoxCheckboxProps) {
   return (

@@ -18,7 +18,7 @@ export function getTaggedSearch(tagFilters?: TagFilterGroup[]): GameSearch {
     const filter = newSubfilter();
     filter.exactBlacklist.tags = flatFilters;
     filter.matchAny = true;
-    search.filter.subfilters.push(filter);  
+    search.filter.subfilters.push(filter);
   }
 
   return search;
@@ -96,6 +96,10 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
     }
   }
 
+  if (query.extOrder.extId !== '') {
+    search.order.column = GameSearchSortable.TITLE;
+    search.extOrder = query.extOrder;
+  }
 
   // Tag filters
   const filteredTags = preferences.tagFilters

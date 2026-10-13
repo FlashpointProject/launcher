@@ -1,7 +1,7 @@
-import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
+import { AppConfigData, AppExtConfigData } from 'flashpoint-launcher';
 
 const { num, str } = Coerce;
 
@@ -33,12 +33,12 @@ const configDataDefaults: IConfigDataDefaults = {
   // Windows
   win32: Object.freeze(overwriteConfigData(
     deepCopy(configDataDefaultBase),
-    { useCustomTitlebar: true, }
+    {}
   )),
   // Linux
   linux: Object.freeze(overwriteConfigData(
     deepCopy(configDataDefaultBase),
-    { useCustomTitlebar: false, }
+    {}
   )),
   // ...
 };
@@ -70,7 +70,6 @@ export function overwriteConfigData(
     onError: onError && (e => onError(`Error while parsing Config: ${e.toString()}`)),
   });
   parser.prop('flashpointPath',         v => source.flashpointPath         = parseVarStr(str(v)));
-  parser.prop('useCustomTitlebar',      v => source.useCustomTitlebar      = !!v);
   parser.prop('startServer',            v => source.startServer            = !!v);
   parser.prop('backPortMin',            v => source.backPortMin            = num(v));
   parser.prop('backPortMax',            v => source.backPortMax            = num(v));

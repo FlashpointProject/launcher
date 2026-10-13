@@ -1,37 +1,20 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { BackIn } from '@shared/back/types';
+import { AddAppCuration } from '@shared/curate/types';
+import { compare } from '@shared/Util';
+import { uuid } from '@shared/utils/uuid';
 import {
   AddAppCurationMeta,
   ContentTree,
+  CurateGroup,
   CurationMeta,
   CurationState, CurationWarnings,
   EditCurationMeta,
   Platform,
+  PlatformAppPathSuggestions,
   Tag
 } from 'flashpoint-launcher';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BackIn } from '@shared/back/types';
-import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
-import uuid = require('uuid');
-import { updatePreferencesData } from '@shared/preferences/util';
-
-export type CurateGroup = {
-  name: string;
-  icon: string;
-}
-
-export type CurateState = {
-  /** Persistant Group Names */
-  groups: CurateGroup[];
-  /** Collapsed curation groups */
-  collapsedGroups: string[];
-  /** Loaded curations. */
-  curations: CurationState[];
-  /** Folder of the currently selected curation (-1 if none). */
-  current: string;
-  /** List of curations that are selected */
-  selected: string[];
-  /** Last curation that was clicked */
-  lastSelected: string;
-}
+import { CurateState } from 'flashpoint-launcher-renderer';
 
 export type AddAppType = 'normal' | 'extras' | 'message';
 
@@ -124,19 +107,26 @@ export type CurateTaskAction = {
   taskId: string;
 }
 
-const initialState: CurateState = {
-  groups: [],
-  collapsedGroups: [],
-  curations: [],
-  current: '',
-  selected: [],
-  lastSelected: ''
-};
+export function initialCurateState(): CurateState {
+  return {
+    loaded: false,
+    groups: [],
+    collapsedGroups: [],
+    curations: [],
+    current: '',
+    selected: [],
+    lastSelected: '',
+    curationTemplates: [],
+  };
+}
 
 const curateSlice = createSlice({
   name: 'curate',
-  initialState,
+  initialState: initialCurateState(),
   reducers: {
+    setCurateLoaded(state: CurateState) {
+      state.loaded = true;
+    },
     createCuration(_: CurateState, { payload }: PayloadAction<NewCurateAction>) {
       window.Shared.back.send(BackIn.CURATE_CREATE_CURATION, payload.folder, payload.meta);
     },
@@ -154,7 +144,6 @@ const curateSlice = createSlice({
       }
       window.Shared.back.send(BackIn.CURATE_IMPORT, {
         curations,
-        saveCuration: window.Shared.preferences.data.saveImportedCurations,
         taskId: payload.taskId,
       });
     },
@@ -173,9 +162,19 @@ const curateSlice = createSlice({
       window.Shared.back.send(BackIn.CURATE_EXPORT, curations, payload.taskId);
     },
     setSelectedCurations(state: CurateState, { payload }: PayloadAction<string[]>) {
-      state.selected = payload;
-      state.current = payload[0];
-      state.lastSelected = payload[0];
+      const curationFolders = state.curations.map(c => c.folder);
+      const selectable = payload.filter(p => curationFolders.includes(p));
+      if (selectable.length > 0) {
+        state.selected = selectable;
+        state.current = selectable[0];
+        state.lastSelected = selectable[0];
+        const currentCuration = state.curations.find(c => c.folder === state.current);
+        if (currentCuration && !currentCuration.contentRequested) {
+          currentCuration.contentRequested = true;
+          // Request the content tree now it's visible
+          window.Shared.back.send(BackIn.CURATE_REQUEST_CONTENT, state.current);
+        }
+      }
     },
     setCurrentCurationGroup(state: CurateState, { payload }: PayloadAction<string>) {
       const curations = state.curations.filter(c => c.group === payload);
@@ -192,6 +191,7 @@ const curateSlice = createSlice({
       if (!ctrl && !shift) {
         state.selected = [folder];
         state.current = folder;
+        state.lastSelected = folder;
       }
 
       // Ctrl - Single toggle
@@ -204,13 +204,17 @@ const curateSlice = createSlice({
           // Select
           state.selected.push(folder);
         }
+        state.lastSelected = folder;
       // Shift - Select range
       } else if (shift) {
         if (state.lastSelected === '') {
           // No last selected, treat as single select
           state.selected = [folder];
+          state.lastSelected = folder;
           state.current = folder;
         } else {
+          state.curations.sort(sortCurations);
+
           // Select all from previous to current
           const lastSelectedIdx = state.curations.findIndex(c => c.folder === state.lastSelected);
           const nextSelectedIdx = state.curations.findIndex(c => c.folder === folder);
@@ -218,7 +222,7 @@ const curateSlice = createSlice({
           // Make sure both exist
           if (lastSelectedIdx !== -1 && nextSelectedIdx !== -1) {
             const startIdx = Math.min(lastSelectedIdx, nextSelectedIdx);
-            const endIdx = Math.min(lastSelectedIdx, nextSelectedIdx);
+            const endIdx = Math.max(lastSelectedIdx, nextSelectedIdx);
             state.selected = state.curations.slice(startIdx, endIdx + 1).reduce<string[]>((prev, next) => prev.concat(next.folder), []);
           }
         }
@@ -231,6 +235,13 @@ const curateSlice = createSlice({
         } else {
           state.current = '';
         }
+      }
+
+      const currentCuration = state.curations.find(c => c.folder === state.current);
+      if (currentCuration && !currentCuration.contentRequested) {
+        currentCuration.contentRequested = true;
+        // Request the content tree now it's visible
+        window.Shared.back.send(BackIn.CURATE_REQUEST_CONTENT, state.current);
       }
     },
     createAddApp: lockedFunc((state: CurateState, { payload }: PayloadAction<CreateAddAppAction>) => {
@@ -434,15 +445,8 @@ const curateSlice = createSlice({
           icon: payload.icon,
         });
       }
-
-      updatePreferencesData({
-        groups: state.groups
-      });
     },
     toggleGroupCollapse(state: CurateState, { payload }: PayloadAction<string>) {
-      console.log('collapsing');
-      console.log(payload);
-      console.log(JSON.stringify(state.groups, undefined, 2));
       const collapsedIdx = state.collapsedGroups.findIndex(g => g === payload);
       if (collapsedIdx > -1) {
         // Uncollapse
@@ -464,10 +468,6 @@ const curateSlice = createSlice({
       } else {
         state.groups.splice(groupIdx, 1);
       }
-
-      updatePreferencesData({
-        groups: state.groups
-      });
     },
     changeGroup: lockedFunc((state: CurateState, { payload }: PayloadAction<ChangeGroupAction>)=> {
       const curation = state.curations.find(c => c.folder === payload.folder);
@@ -483,6 +483,9 @@ const curateSlice = createSlice({
         }
       }
     }),
+    setCurationTemplates(state: CurateState, { payload }: PayloadAction<string[]>) {
+      state.curationTemplates = payload;
+    },
     setLock(state: CurateState, { payload }: PayloadAction<SetLockAction>) {
       const curation = state.curations.find(c => c.folder === payload.folder);
       if (curation) {
@@ -524,6 +527,15 @@ function lockedFunc<T extends BaseCurateAction>(func: (state: CurateState, actio
   };
 }
 
+export function sortCurations(a: CurationState, b: CurationState) {
+  const groupCompare = compare(a.group, b.group);
+  if (groupCompare == 0) {
+    return compare(a.game.title || ('zzzzzzzz' + a.folder), b.game.title || ('zzzzzzzz' + a.folder));
+  } else {
+    return groupCompare;
+  }
+}
+
 export const { actions: curateActions } = curateSlice;
 export const { createCuration,
   deleteCurations,
@@ -552,5 +564,7 @@ export const { createCuration,
   toggleGroupCollapse,
   toggleGroupPin,
   changeGroup,
+  setCurateLoaded,
+  setCurationTemplates,
   setLock } = curateSlice.actions;
 export default curateSlice.reducer;

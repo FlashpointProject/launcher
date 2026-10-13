@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 
 export function getElevatePath(isDev: boolean, exePath: string) {
   const basePath = isDev ? process.cwd() : path.dirname(exePath);

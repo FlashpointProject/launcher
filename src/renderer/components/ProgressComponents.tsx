@@ -1,6 +1,6 @@
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import * as React from 'react';
 import { ProgressData } from '../context/ProgressContext';
-import { LangContext } from '../util/lang';
 
 export type ProgressComponentProps = {
   /** Data to read from. */
@@ -46,21 +46,27 @@ export function StatusBar(props: ProgressComponentProps) {
 
 // Large top text `Percent% Complete`, medium progress bar, small underneath primary text.
 export function ProgressBar(props: ProgressComponentProps) {
-  const strings = React.useContext(LangContext);
-  const barCssProps: React.CSSProperties = React.useMemo(() => ({
-    width: `${props.progressData.percentDone}%`
-  }), [props.progressData.percentDone]);
+  const strings = useLocalization();
+  const percentDone = props.progressData.isDone ? 100 : Math.round(props.progressData.percentDone);
+  const barCssProps: React.CSSProperties = {
+    width: `${percentDone}%`
+  };
 
   return (
     <div className={'progress-component__wrapper' + (props.wrapperClass ? ' ' + props.wrapperClass : '')}>
-      <div className='progress-bar__top-text'>{`${Math.round(props.progressData.percentDone)}% ${strings.misc.complete}`}</div>
+      <div className='progress-bar__top-text'>{`${percentDone}% ${strings.misc.complete}`}</div>
       <div className='progress-bar__bar'>
         <div className='progress-bar__bar__inner' style={barCssProps} />
       </div>
       { props.progressData.text ? (
-        <div className='progress-bar__bottom-text'>
-          {props.progressData.text}
-        </div>
+        <>
+          <div className='progress-bar__top-text'>{props.progressData.text}</div>
+          { props.progressData.secondaryText ? (
+            <div className='progress-bar__bottom-text'>
+              {props.progressData.secondaryText}
+            </div>
+          ) : undefined }
+        </>
       ) : undefined }
     </div>
   );

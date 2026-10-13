@@ -1,21 +1,20 @@
-import * as remoteMain from '@electron/remote/main';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { createErrorProxy } from '@shared/Util';
 import { SocketClient } from '@shared/back/SocketClient';
-import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
-import { AppConfigData } from '@shared/config/interfaces';
+import { BackIn, BackOut } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
-import { CustomIPC, WindowIPC } from '@shared/interfaces';
+import { num } from '@shared/utils/Coerce';
 import { ChildProcess, fork } from 'child_process';
-import { randomBytes } from 'crypto';
-import { BrowserWindow, IpcMainEvent, WebContents, app, dialog, ipcMain, session, shell } from 'electron';
-import { REACT_DEVELOPER_TOOLS, installExtension } from 'electron-extension-installer';
-import { AppPreferencesData } from 'flashpoint-launcher';
+import * as electron from 'electron';
+import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
+import { AppConfigData, AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { argv } from 'process';
-import * as WebSocket from 'ws';
+import { WebSocket } from 'ws';
 import * as Util from './Util';
+import { CustomIPC, WindowIPC } from './constants';
+import { createHeadlessServer } from './headless';
 import { Init } from './types';
 
 const TIMEOUT_DELAY = 60_000;
@@ -31,16 +30,10 @@ const ALLOWED_HOSTS = [
   'cdn.discordapp.com',
 ];
 
-type LaunchOptions = {
-  backend: boolean;
-  frontend: boolean;
-}
-
 type MainState = {
   window?: BrowserWindow;
   _installed?: boolean;
   backHost: URL;
-  _secret: string;
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: number;
   preferences?: AppPreferencesData;
@@ -56,12 +49,17 @@ type MainState = {
   output: string;
 }
 
+type LaunchComponents = {
+  backend: boolean;
+  browserFrontend: boolean;
+  electronWindow: boolean;
+}
+
 export function main(init: Init): void {
   const state: MainState = {
     window: undefined,
     _installed: undefined,
     backHost: init.args['connect-remote'] ? new URL('ws://'+init.args['connect-remote']) : new URL('ws://localhost'),
-    _secret: '',
     /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
     _version: -2,
     preferences: undefined,
@@ -74,10 +72,19 @@ export function main(init: Init): void {
     output: '',
   };
 
-  startup({
+  const launchComponents: LaunchComponents = {
     backend: !init.args['host-remote'],
-    frontend: !init.args['back-only'],
-  })
+    browserFrontend: !!init.args['browser-mode'] && !init.args['back-only'],
+    electronWindow: !init.args['browser-mode'] && !init.args['back-only'],
+  };
+
+  if (!launchComponents.backend && !launchComponents.browserFrontend && !launchComponents.electronWindow) {
+    console.log('Arguments for startup mean no components would run, exiting...');
+    process.exit();
+    return;
+  }
+
+  startup(launchComponents)
   .catch((error) => {
     console.error(error);
     if (!Util.isDev) {
@@ -91,10 +98,10 @@ export function main(init: Init): void {
     app.quit();
   });
 
-  // -- Functions --
-
-  async function startup(opts: LaunchOptions) {
-    app.disableHardwareAcceleration();
+  async function startup(opts: LaunchComponents) {
+    console.log(JSON.stringify(opts, undefined, 2));
+    state.mainFolderPath = Util.getMainFolderPath();
+    // app.disableHardwareAcceleration();
 
     // Single process
     // No more than one "main" instance should exist at any time. Multiple "flash" instances are fine.
@@ -103,14 +110,16 @@ export function main(init: Init): void {
       return;
     }
 
-    // Add app event listener(s)
-    app.once('ready', onAppReady);
-    app.once('window-all-closed', onAppWindowAllClosed);
     app.once('will-quit', onAppWillQuit);
-    app.once('web-contents-created', onAppWebContentsCreated);
-    app.on('activate', onAppActivate);
+    app.once('ready', onAppReady);
+    app.on('web-contents-created', onAppWebContentsCreated);
     app.on('second-instance', onAppSecondInstance);
     app.on('open-url', onAppOpenUrl);
+    app.on('activate', onAppActivate);
+    app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
+
+    // Prevent closure on Mac after window closes
+    app.once('window-all-closed', onAppWindowAllClosed);
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
@@ -123,10 +132,56 @@ export function main(init: Init): void {
     ipcMain.handle(CustomIPC.SHOW_SAVE_DIALOG, async (event, opts) => {
       return dialog.showSaveDialog(opts);
     });
+    ipcMain.handle(CustomIPC.FILE_EXISTS, async (event, path) => {
+      return fs.existsSync(path);
+    });
+    ipcMain.on(CustomIPC.WRITE_CLIPBOARD, async (event, text) => {
+      electron.clipboard.writeText(text);
+    });
+    ipcMain.on(CustomIPC.OPEN_EXTERNAL, (event, url, opts) => {
+      shell.openExternal(url, opts);
+    });
+    ipcMain.on(CustomIPC.SHOW_FILE_IN_FOLDER, (event, filePath) => {
+      shell.showItemInFolder(path.normalize(filePath));
+    });
+    ipcMain.handle(CustomIPC.SELECT_FOLDER, (event, opts) => {
+      return dialog.showOpenDialogSync(opts);
+    });
+    ipcMain.on(CustomIPC.TOGGLE_DEVTOOLS, (event) => {
+      if (state.window) {
+        state.window.webContents.toggleDevTools();
+      }
+    });
+    ipcMain.on(WindowIPC.WINDOW_MINIMIZE, () => {
+      if (state.window) {
+        state.window.minimize();
+      }
+    });
+    ipcMain.on(WindowIPC.WINDOW_MAXIMIZE, () => {
+      if (state.window) {
+        if (state.window.isMaximized()) {
+          state.window.unmaximize();
+        } else {
+          state.window.maximize();
+        }
+      }
+    });
+    ipcMain.on(WindowIPC.WINDOW_CLOSE, () => {
+      if (state.window) {
+        state.window.webContents.closeDevTools();
+        state.window.close();
+      }
+    });
     ipcMain.handle(CustomIPC.REGISTER_PROTOCOL, async (event, register) => {
       return setProtocolRegistrationState(register);
     });
-    ipcMain.handle(CustomIPC.RELOAD_WINDOW, async (event) => {
+    ipcMain.on(CustomIPC.RELOAD_FULL, async (event) => {
+      if (state.backProc) {
+        await killProcess(state.backProc);
+      }
+      app.relaunch();
+    });
+    ipcMain.on(CustomIPC.RELOAD_WINDOW, async (event) => {
       // Tell back to ignore exit call for 1000ms
       state.socket.request(BackIn.PREP_RELOAD_WINDOW)
       .then(() => {
@@ -138,48 +193,49 @@ export function main(init: Init): void {
         }
       });
     });
-
-    // Add Socket event listener(s)
-    state.socket.register(BackOut.QUIT, () => {
-      state.isQuitting = true;
-      state.socket.allowDeath();
-      app.quit();
+    ipcMain.on(WindowIPC.PROTOCOL, async (event) => {
+      const url = argv.find((arg) => arg.startsWith('flashpoint://'));
+      if (state.window?.webContents) {
+        state.window.webContents.send(WindowIPC.PROTOCOL, url);
+      }
     });
 
-    app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
-
-    state.mainFolderPath = Util.getMainFolderPath();
-
     // ---- Initialize ----
-    // Load custom version text file
-    await fs.promises.readFile(path.join(state.mainFolderPath, '.version'))
-    .then((data) => {
-      state._version = (data)
-        ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
-        : -1; // (Version not found error code)
-    })
-    .catch(() => { /** No file, ignore */ });
-
-    // Load or generate secret
-    const secretFilePath = path.join(state.mainFolderPath, 'secret.dat');
-    try {
-      state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
-    } catch (e) {
-      state._secret = randomBytes(2048).toString('hex');
-      try {
-        await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
-      } catch (e) {
-        console.warn(`Failed to save new secret to disk.\n${e}`);
-      }
-    }
 
     // Start backend
     if (opts.backend) {
+      // Exit Electron app if the backend quits
+      state.socket.register(BackOut.QUIT, () => {
+        state.isQuitting = true;
+        state.socket.allowDeath();
+        app.quit();
+      });
+
       await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
         // Increase memory limit in dev instance (mostly for developer page functions)
         const env = Util.isDev ? Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env ) : process.env;
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
+        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+        let localeCode: string;
+        if (process.platform === 'win32' && !app.isReady()) {
+          localeCode = 'en';
+        } else {
+          localeCode = app.getLocale().toLowerCase();
+          state._sentLocaleCode = true;
+        }
+
+        const args: string[] = [
+          '--config-folder', state.mainFolderPath,
+          '--locale', localeCode,
+          '--exe-path', app.getPath('exe'),
+          '--electron',
+        ];
+        if (Util.isDev) { args.push('--dev'); }
+        if (init.args['verbose']) { args.push('--verbose'); }
+        if (init.args['host-remote']) { args.push('--accept-remote'); }
+        if (init.rest) { args.push(init.rest);}
+
+        state.backProc = fork(path.join(__dirname, '../back/backend.js'), args, { detached: true, env, stdio: 'pipe' });
         state.backProc.on('exit', (code) => {
           if (!code || code === 0) {
             console.log('Back proc exited cleanly, killing self.');
@@ -195,13 +251,11 @@ export function main(init: Init): void {
         if (state.backProc.stdout) {
           state.backProc.stdout.on('data', (chunk) => {
             process.stdout.write(chunk);
-            state.output += chunk.toString();
           });
         }
         if (state.backProc.stderr) {
           state.backProc.stderr.on('data', (chunk) => {
             process.stderr.write(chunk);
-            state.output += chunk.toString();
           });
         }
         const initHandler = (message: any) => {
@@ -236,91 +290,57 @@ export function main(init: Init): void {
         };
         // Wait for process to prep, handle any queries, store config and prefs after finishing
         state.backProc.on('message', initHandler);
-        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-        let localeCode: string;
-        if (process.platform === 'win32' && !app.isReady()) {
-          localeCode = 'en';
-        } else {
-          localeCode = app.getLocale().toLowerCase();
-          state._sentLocaleCode = true;
-        }
-        // Send prep message
-        const msg: BackInitArgs = {
-          configFolder: state.mainFolderPath,
-          secret: state._secret,
-          isDev: Util.isDev,
-          verbose: !!init.args['verbose'],
-          // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-          localeCode: localeCode,
-          exePath: app.getPath('exe'),
-          acceptRemote: !!init.args['host-remote'],
-          version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
-        };
-        state.backProc.send(JSON.stringify(msg));
       })
       .then(() => {
         if (!state.preferences) { throw new Error('Preferences not loaded by backend.'); }
         // Update flashpoint:// protocol registration state
         setProtocolRegistrationState(state.preferences.registerProtocol);
       });
+
+      // Open websocket to backend, so we can get QUIT events
+      const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
+        const sock = new WebSocket(state.backHost.href);
+        sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
+        sock.onerror = (event) => { reject(event.error); };
+        sock.onopen  = () => {
+          sock.onmessage = () => {
+            sock.onclose = noop;
+            sock.onerror = noop;
+            resolve(sock);
+          };
+          sock.send('flashpoint-launcher');
+        };
+      }), TIMEOUT_DELAY);
+      state.socket.setSocket(ws);
+      state.socket.killOnDisconnect = true;
     }
 
-    // Open websocket to backend, for communication between front and back
-    const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
-      const sock = new WebSocket(state.backHost.href);
-      sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
-      sock.onerror = (event) => { reject(event.error); };
-      sock.onopen  = () => {
-        sock.onmessage = () => {
-          sock.onclose = noop;
-          sock.onerror = noop;
-          resolve(sock);
-        };
-        sock.send(state._secret);
-      };
-    }), TIMEOUT_DELAY);
-    state.socket.setSocket(ws);
-    state.socket.killOnDisconnect = true;
+    // Start appropriate frontend
+    if (opts.browserFrontend) {
+      // Create headless server
+      const hostname = init.args['browser-mode-host'] || 'localhost';
+      const port = init.args['browser-mode-port'] || 9000;
+      const url = init.args['browser-mode-url'] || `http://${hostname}:${port}/`;
+      createHeadlessServer(hostname, num(port), url);
+    }
 
-    // Start frontend
-    if (opts.frontend) {
+    if (opts.electronWindow) {
       await app.whenReady();
-      // Create main window
+
       if (!state.window) {
         state.window = createMainWindow();
       }
-    } else {
-      // Frontend not running, give Backend init message from Main
-      state.socket.send(BackIn.INIT_LISTEN);
     }
   }
 
   async function onAppReady() {
     // Enable DoH
-    // app.configureHostResolver({
-    //   secureDnsMode: 'secure',
-    //   secureDnsServers: ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query']
-    // });
-
-    if (Util.isDev) {
-      installExtension(REACT_DEVELOPER_TOOLS, {
-        loadExtensionOptions: {
-          allowFileAccess: true
-        }
-      })
-      .then((ext) => console.log(`Installed Extension - ${ext}`))
-      .catch((ext) => console.log(`Failed to install Extension - ${ext}`));
-    }
 
     // Send locale code (if it has no been sent already)
     if (process.platform === 'win32' && !state._sentLocaleCode && state.socket.client.socket) {
       state.socket.send(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
       state._sentLocaleCode = true;
     }
-    // Reject all permission requests since we don't need any permissions.
-    session.defaultSession.setPermissionRequestHandler(
-      (webContents, permission, callback) => callback(false)
-    );
     // Ignore proxy settings with chromium APIs (makes WebSockets not close when the Redirector changes proxy settings)
     session.defaultSession.setProxy({
       pacScript: '',
@@ -344,9 +364,15 @@ export function main(init: Init): void {
         const hostname = new URL(state.preferences.onlineManual).hostname;
         allowedHosts.push(hostname);
       }
-      if (state.preferences && state.preferences.fpfssBaseUrl) {
-        const hostname = new URL(state.preferences.fpfssBaseUrl).hostname;
-        allowedHosts.push(hostname);
+      if (state.preferences && state.preferences.gameMetadataSources) {
+        for (const source of state.preferences.gameMetadataSources) {
+          if (source.fpfssUrl) {
+            const hostname = new URL(source.fpfssUrl).hostname;
+            allowedHosts.push(hostname);
+          }
+          const hostname = new URL(source.baseUrl).hostname;
+          allowedHosts.push(hostname);
+        }
       }
       const allow = (
         url && (
@@ -358,7 +384,7 @@ export function main(init: Init): void {
           )
         )
       );
-      if (!allow && !Util.isDev) {
+      if (Util.isDev ? false : !allow) {
         console.log(`Request Denied to ${url?.hostname || remoteHostname}`);
       }
 
@@ -377,7 +403,7 @@ export function main(init: Init): void {
     }
   }
 
-  function onAppWillQuit(event: Event): void {
+  function onAppWillQuit(event: Electron.Event): void {
     if (!init.args['connect-remote'] && !state.isQuitting && state.socket.client.socket) { // (Local back)
       state.socket.send(BackIn.QUIT);
       event.preventDefault();
@@ -387,11 +413,28 @@ export function main(init: Init): void {
   function onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
-    webContents.on('will-navigate', onNewPage);
-    webContents.on('new-window', onNewPage);
-
-    function onNewPage(event: Electron.Event, navigationUrl: string): void {
+    webContents.on('will-navigate', (event, url) => {
+      console.log('NAV');
       event.preventDefault();
+      onNewPage(url);
+    });
+    webContents.setWindowOpenHandler((details) => {
+      console.log('OPEN');
+      onNewPage(details.url);
+      return {
+        action: 'deny'
+      };
+    });
+
+    webContents.session.setPermissionRequestHandler((webContents, permission, requestingOrigin, details) => {
+      if (permission === 'fullscreen') {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    function onNewPage(navigationUrl: string): void {
       shell.openExternal(navigationUrl);
     }
   }
@@ -432,10 +475,8 @@ export function main(init: Init): void {
     const url = argv.find((arg) => arg.startsWith('flashpoint://'));
     const data: InitRendererData = {
       isBackRemote: !!init.args['connect-remote'],
-      installed: !!state._installed,
-      version: state._version,
       host: state.backHost.href,
-      secret: state._secret,
+      isDev: Util.isDev,
       url
     };
     event.returnValue = data;
@@ -448,7 +489,7 @@ export function main(init: Init): void {
     // Create the browser window.
     let width:  number = mw.width  ? mw.width  : 1000;
     let height: number = mw.height ? mw.height :  650;
-    if (mw.width && mw.height && !state.config.useCustomTitlebar) {
+    if (mw.width && mw.height && !state.preferences.useCustomTitlebar) {
       width  += 8; // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
@@ -458,19 +499,17 @@ export function main(init: Init): void {
       y: mw.y,
       width: width,
       height: height,
-      frame: !state.config.useCustomTitlebar,
+      minWidth: 200,
+      minHeight: 200,
+      frame: !state.preferences.useCustomTitlebar,
       icon: path.join(__dirname, '../window/images/icon.png'),
       webPreferences: {
-        preload: path.resolve(__dirname, './MainWindowPreload.js'),
-        nodeIntegration: true,
-        contextIsolation: false
+        preload: path.resolve(__dirname, 'preload.js'),
+        nodeIntegration: false,
+        contextIsolation: true,
       },
     });
-    remoteMain.enable(window.webContents);
-    // Enable crash reporter
-    ipcMain.on(WindowIPC.MAIN_OUTPUT, () => {
-      window.webContents.send(WindowIPC.MAIN_OUTPUT, state.output);
-    });
+
     // Add protocol report func
     ipcMain.on(WindowIPC.PROTOCOL, () => {
       if (init.protocol) {
@@ -480,7 +519,7 @@ export function main(init: Init): void {
     // Remove the menu bar
     window.setMenu(null);
     // and load the index.html of the app.
-    window.loadFile(path.join(__dirname, '../window/index.html'));
+    window.loadFile(path.join(__dirname, '../window/renderer.html'));
     // Open the DevTools. Don't open if using a remote debugger (like vscode)
     if (Util.isDev && !process.env.REMOTE_DEBUG) {
       window.webContents.openDevTools();
@@ -490,11 +529,11 @@ export function main(init: Init): void {
       window.maximize();
     }
     // Relay window's maximize/unmaximize events to the renderer (as a single event with a flag)
-    window.on('maximize', (event: BrowserWindowEvent) => {
-      event.sender.send(WindowIPC.WINDOW_MAXIMIZE, true);
+    window.on('maximize', () => {
+      window.webContents.send(WindowIPC.WINDOW_MAXIMIZE, true);
     });
-    window.on('unmaximize', (event: BrowserWindowEvent) => {
-      event.sender.send(WindowIPC.WINDOW_MAXIMIZE, false);
+    window.on('unmaximize', () => {
+      window.webContents.send(WindowIPC.WINDOW_MAXIMIZE, false);
     });
     // Replay window's move event to the renderer
     window.on('move', () => {
@@ -596,11 +635,20 @@ export function main(init: Init): void {
   function noop() { /* Do nothing. */ }
 }
 
-/**
- * Type of the event emitted by BrowserWindow for the "maximize" and "unmaximize" events.
- * This type is not defined by Electron, so I guess I have to do it here instead.
- */
-type BrowserWindowEvent = {
-  preventDefault: () => void;
-  sender: WebContents;
+async function killProcess(proc: ChildProcess) {
+  if (!proc || proc.killed) {
+    return;
+  }
+
+  return new Promise((resolve) => {
+    proc.on('exit', resolve);
+    proc.kill('SIGTERM');
+
+    // Force kill after timeout
+    setTimeout(() => {
+      if (!proc.killed) {
+        proc.kill('SIGKILL');
+      }
+    }, 3000);
+  });
 }

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FancyAnimation } from './FancyAnimation';
 
 type ResizableSidebarProps = {
@@ -18,15 +18,6 @@ type ResizableSidebarProps = {
   children?: React.ReactNode;
 };
 
-type ResizableSidebarState = {
-  /** If the divider is grabbed. */
-  isDragging: boolean;
-  /** The cursor's x position when it grabbed the divider (in pixels). */
-  startX: number;
-  /** Width of the whole sidebar when the divider was grabbed. */
-  startWidth: number;
-};
-
 export type SidebarResizeEvent = {
   /** Underlying mouse event. */
   event: MouseEvent;
@@ -36,94 +27,82 @@ export type SidebarResizeEvent = {
   startWidth: number;
 };
 
-export class ResizableSidebar extends React.Component<ResizableSidebarProps, ResizableSidebarState> {
-  sidebarRef: React.RefObject<HTMLDivElement> = React.createRef();
+export function ResizableSidebar(props: ResizableSidebarProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startWidth, setStartWidth] = useState(0);
+  const sidebarRef = useRef(null);
+  const { onResizeStart, onResizeEnd, onResize, className, width, divider, show } = props;
 
-  constructor(props: ResizableSidebarProps) {
-    super(props);
-    this.state = {
-      isDragging: false,
-      startX: 0,
-      startWidth: 0,
-    };
-  }
+  const onDividerMouseDown = (event: React.MouseEvent): void => {
+    if (event.button === 0 && !isDragging) {
+      if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
+      if (!sidebarRef.current) { throw new Error('sidebar div is missing.'); }
+      setIsDragging(true);
+      setStartX(event.clientX);
+      setStartWidth(parseInt(document.defaultView.getComputedStyle(sidebarRef.current).width || '', 10));
+      if (onResizeStart) { onResizeStart(); }
+      event.preventDefault();
+    }
+  };
 
-  componentDidMount() {
-    window.addEventListener('mouseup', this.onMouseUp);
-    window.addEventListener('mousemove', this.onMouseMove);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('mouseup', this.onMouseUp);
-    window.removeEventListener('mousemove', this.onMouseMove);
-  }
-
-  render() {
-    const { show, className, divider, width } = this.props;
-    return (
-      <div
-        className={
-          'game-browser__sidebar' +
-          (className ? ' '+className+' ' : '') +
-          (show ? '' : ' game-browser__sidebar--hidden')
-        }
-        style={{ width }}
-        ref={this.sidebarRef}>
-        <div className='game-browser__sidebar__inner'>
-          { divider === 'before' && show && this.renderDivider() }
-          <div className='game-browser__sidebar__content simple-scroll'>
-            {this.props.children}
-          </div>
-          { divider === 'after' && show && this.renderDivider() }
-        </div>
-      </div>
-    );
-  }
-
-  renderDivider() {
+  const renderDivider = () => {
     return (
       <FancyAnimation
         normalRender={(
           <div
             className='game-browser__sidebar__divider'
-            onMouseDown={this.onDividerMouseDown} />
+            onMouseDown={onDividerMouseDown} />
         )}
         fancyRender={(
           <div
             className='game-browser__sidebar__divider game-browser__sidebar__divider--animated'
-            onMouseDown={this.onDividerMouseDown} />
+            onMouseDown={onDividerMouseDown} />
         )}/>
     );
-  }
-
-  onDividerMouseDown = (event: React.MouseEvent): void => {
-    if (event.button === 0 && !this.state.isDragging) {
-      if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
-      if (!this.sidebarRef.current) { throw new Error('sidebar div is missing.'); }
-      this.setState({
-        isDragging: true,
-        startX: event.clientX,
-        startWidth: parseInt(document.defaultView.getComputedStyle(this.sidebarRef.current).width || '', 10),
-      });
-      if (this.props.onResizeStart) { this.props.onResizeStart(); }
-      event.preventDefault();
-    }
   };
 
-  onMouseUp = (event: MouseEvent): void => {
-    if (event.button === 0 && this.state.isDragging) {
-      this.setState({ isDragging: false });
-      if (this.props.onResizeEnd) { this.props.onResizeEnd(); }
-      event.preventDefault();
-    }
-  };
+  useEffect(() => {
+    const onMouseUp = (event: MouseEvent): void => {
+      if (event.button === 0 && isDragging) {
+        setIsDragging(false);
+        if (onResizeEnd) { onResizeEnd(); }
+        event.preventDefault();
+      }
+    };
 
-  onMouseMove = (event: MouseEvent): void => {
-    if (this.state.isDragging) {
-      const { startX, startWidth } = this.state;
-      if (this.props.onResize) { this.props.onResize({ event, startX, startWidth }); }
-    }
-  };
+    const onMouseMove = (event: MouseEvent): void => {
+      if (isDragging) {
+        if (onResize) { onResize({ event, startX, startWidth }); }
+      }
+    };
+
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
+    return () => {
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, [isDragging, props, startWidth, startX, onResize, onResizeEnd]);
+
+  return (
+    <div
+      className={
+        'sidebar game-browser__sidebar' +
+        (className ? ' '+className+' ' : '') +
+        (show ? '' : ' game-browser__sidebar--hidden')
+      }
+      ref={sidebarRef}
+      style={{ width }}>
+      <div className='game-browser__sidebar__inner'>
+        { divider === 'before' && show && renderDivider() }
+        <div className='game-browser__sidebar__content simple-scroll'>
+          {props.children}
+        </div>
+        { divider === 'after' && show && renderDivider() }
+      </div>
+    </div>
+  );
 }
 
 type DividerOrientation = 'before' | 'after';

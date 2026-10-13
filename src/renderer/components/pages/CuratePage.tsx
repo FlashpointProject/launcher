@@ -1,50 +1,56 @@
-import * as remote from '@electron/remote';
 import { CurateBox } from '@renderer/components/CurateBox';
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { WithTasksProps } from '@renderer/containers/withTasks';
-import { axios, getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
-import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
-import { LangContext } from '@renderer/util/lang';
+import { createErrorDialogWithPrefix } from '@renderer/dialog';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import * as curateActions from '@renderer/store/curate/slice';
+import { updatePreferences } from '@renderer/store/preferences/slice';
+import { addTask, setTask } from '@renderer/store/tasks/slice';
+import { axios, getCurationPostURL, openUrlInWindow } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { CustomIPC, Task } from '@shared/interfaces';
-import { updatePreferencesData } from '@shared/preferences/util';
+import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
+import { getFileServerURL } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { ipcRenderer } from 'electron';
-import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
-import * as path from 'path';
+import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion, Task } from 'flashpoint-launcher';
+import * as path from 'node:path';
 import * as React from 'react';
+import { useShortcut } from 'react-keybind';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
-import { Dropdown } from '../Dropdown';
+import { Dropdown, DropdownStringRow } from '../Dropdown';
+import { useFileLoader } from '../FileLoader';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { useDispatch } from 'react-redux';
-import * as curateActions from '@renderer/store/curate/slice';
-import { setTask } from '@renderer/store/tasks/slice';
-import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
-type OwnProps = {
-  extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
-  extContextButtons: ExtensionContribution<'contextButtons'>[];
-  mad4fpEnabled: boolean;
-  logoVersion: number;
-}
-
-export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithConfirmDialogProps & WithTasksProps & WithShortcutProps;
-
-export function CuratePage(props: CuratePageProps) {
-  const strings = React.useContext(LangContext);
+// ERROR: Failed to compile the file. Please check the file content. Legacy octal literals are not allowed in strict mode. (1:9)
+// False error from the marker extension, this is still memomized
+export function CuratePage() {
+  const strings = useLocalization();
   const curate = useAppSelector((state) => state.curate);
+  const currentCuration = curate.current;
+  const extensions = useAppSelector((state) => state.main.extensions);
+  const logoVersion = useAppSelector((state) => state.main.logoVersion);
+  const tagCategories = useAppSelector((state) => state.tagCategories);
+  const suggestions = useAppSelector((state) => state.main.suggestions);
+  const platformAppPaths = useAppSelector((state) => state.main.platformAppPaths);
+  const tagFiltersInCurate = useAppSelector(state => state.preferences.tagFiltersInCurate);
+  const saveImportedCurations = useAppSelector(state => state.preferences.saveImportedCurations);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
+  const shortcutPrefs = useAppSelector(state => state.preferences.shortcuts);
+  const symlinkCurationContent = useAppSelector(state => state.preferences.symlinkCurationContent);
+  const curationTemplates = useAppSelector(state => state.curate.curationTemplates);
+  const extContextButtons = useAppSelector(state => state.main.contextButtons);
+  const mad4fpEnabled = useAppSelector(state => state.main.mad4fpEnabled);
+  const { fileLoader, openFileSelect } = useFileLoader();
+  const shortcut = useShortcut();
   const dispatch = useDispatch();
-  const curation: CurationState | undefined = curate.curations.find(c => c.folder === curate.current);
+  const curation: CurationState | undefined = curate.curations.find(c => c.folder === currentCuration);
+  const source = useAppSelector(state => state.preferences.gameMetadataSources.find(s => s.id === curation?.fpfssInfo?.sourceId));
 
   const suggsDebounce = eventResponseDebouncerFactory<TagSuggestion[]>();
 
@@ -53,22 +59,20 @@ export function CuratePage(props: CuratePageProps) {
   const [platformText, setPlatformText] = React.useState<string>('');
   const [platformSuggestions, setPlatformSuggestions] = React.useState<TagSuggestion[]>([]);
 
-  const onCheckboxChange = (key: keyof AppPreferencesData) => React.useCallback((checked: boolean) => {
-    updatePreferencesData({ [key]: checked });
-  }, []);
+  const onCheckboxChange = (key: keyof AppPreferencesData) => (checked: boolean) => dispatch(updatePreferences({ [key]: checked }));
 
   const onSymlinkCurationContentChange = onCheckboxChange('symlinkCurationContent');
   const onSaveImportedCurationChange = onCheckboxChange('saveImportedCurations');
   const onTagFiltersInCurateChange = onCheckboxChange('tagFiltersInCurate');
 
   const onOpenSubmissionPage = () => {
-    if (curation?.fpfssInfo) {
-      const subPage = `${props.preferencesData.fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
-      remote.shell.openExternal(subPage);
+    if (curation?.fpfssInfo && source && source.fpfssUrl) {
+      const subPage = `${source.fpfssUrl}/web/submission/${curation.fpfssInfo.id}`;
+      openUrlInWindow(subPage);
     }
   };
 
-  const onDupeCurations = React.useCallback(() => {
+  const onDupeCurations = () => {
     const selected = curate.selected;
     for (const folder of selected) {
       dispatch(curateActions.setLock({
@@ -88,43 +92,99 @@ export function CuratePage(props: CuratePageProps) {
         }));
       }
     });
-  }, [curate.selected]);
+  };
 
-  const onScanForNewCurations = React.useCallback(() => {
+  const onCreateTemplateFromCuration = () => {
+    const curation = curate.curations.find(c => c.folder === curate.current);
+    if (curation) {
+      window.Shared.back.request(BackIn.CURATE_CREATE_TEMPLATE_FROM_CURATION, curation.folder, curation.game.title || 'Template Curation ' + Date.now());
+    }
+  };
+
+  const onScanForNewCurations = () => {
     window.Shared.back.send(BackIn.CURATE_SCAN_NEW_CURATIONS);
-  }, []);
+  };
 
-  const onLoadCuration = React.useCallback(() => {
-    // Generate task
-    ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, {
-      title: strings.dialog.selectCurationArchive,
-      properties: [ 'multiSelections' ],
-    })
-    .then(value => {
-      const filePaths = value.filePaths;
-      if (filePaths.length > 0) {
-        const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...', props.addTask);
-        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
-      }
-    });
-  }, []);
+  const onLoadCuration = async () => {
+    if (window.electronAPI !== undefined) {
+      window.electronAPI.showOpenDialog({
+        title: strings.dialog.selectCurationArchive,
+        properties: [ 'multiSelections' ]
+      })
+      .then((filePaths) => {
+        if (filePaths !== undefined && filePaths.length > 0) {
+          const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
+          dispatch(addTask(newTask));
+          window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, false, newTask.id);
+        }
+      });
+    } else {
+      openFileSelect(async (fileList) => {
+        if (fileList) {
+          if (fileList.length > 0) {
+            const newText = (index: number) => `Uploading Curations (${index} of ${fileList.length})`;
+            const toastId = toast(newText(0), {
+              type: 'info',
+              autoClose: false,
+              closeButton: false,
+            });
+            const url = `${getFileServerURL()}/curation`;
+            for (let i = 0; i < fileList.length; i++) {
+              const file = fileList[i];
+              const res = await fetch(url, {
+                method: 'POST',
+                body: await file.arrayBuffer(),
+              });
+              if (!res.ok) {
+                toast.update(toastId, {
+                  render: () =><div>Upload Failure ({file.name}): {res.statusText}</div>,
+                  type: 'error',
+                  closeOnClick: true,
+                  closeButton: true
+                });
+                return;
+              }
 
-  const onNewCuration = React.useCallback((meta?: EditCurationMeta) => {
+              if (i < fileList.length - 1) {
+
+                // Not last one, update text before loop starts
+                toast.update(toastId, {
+                  render: () => <div>{newText(i+1)}</div>
+                });
+              }
+            }
+
+            toast.update(toastId, {
+              render: () =><div>Curation Upload Complete!</div>,
+              type: 'success',
+              closeOnClick: true,
+              closeButton: true
+            });
+          }
+        }
+      }, {
+        accept: '.7z',
+        multiple: true,
+      });
+    }
+  };
+
+  const onNewCuration = (meta?: EditCurationMeta) => {
     dispatch(curateActions.createCuration({
       folder: uuid(),
       meta
     }));
-  }, []);
+  };
 
   // Keybinds
 
-  // Prev Curation
   React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
-        if (curate.current) {
+    const keybinds = shortcutPrefs.curate;
+    if (shortcut && shortcut.registerShortcut) {
+      shortcut.registerShortcut(() => {
+        if (currentCuration) {
           // Find current curation, shift 1 up or wrap
-          const curationIdx = curate.curations.findIndex(c => c.folder === curate.current);
+          const curationIdx = curate.curations.findIndex(c => c.folder === currentCuration);
           if (curationIdx !== -1) {
             if (curationIdx > 0) {
               dispatch(curateActions.setCurrentCuration({
@@ -144,22 +204,12 @@ export function CuratePage(props: CuratePageProps) {
             }));
           }
         }
-      }, props.preferencesData.shortcuts.curate.prev, 'Prev', 'Previous Curation');
-    }
-    return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.prev);
-      }
-    };
-  }, [curate.current, curate.curations, props.preferencesData.shortcuts.curate.prev]);
+      }, shortcutPrefs.curate.prev, 'Prev', 'Previous Curation');
 
-  // Next Curation
-  React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
-        if (curate.current) {
+      shortcut.registerShortcut(() => {
+        if (currentCuration) {
           // Find current curation, shift 1 down or wrap
-          const curationIdx = curate.curations.findIndex(c => c.folder === curate.current);
+          const curationIdx = curate.curations.findIndex(c => c.folder === currentCuration);
           if (curationIdx !== -1) {
             if (curationIdx < (curate.curations.length + 1)) {
               dispatch(curateActions.setCurrentCuration({
@@ -180,132 +230,89 @@ export function CuratePage(props: CuratePageProps) {
             }));
           }
         }
-      }, props.preferencesData.shortcuts.curate.next, 'curate:Next', 'Next Curation');
-    }
-    return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.next);
-      }
-    };
-  }, [curate.current, curate.curations, props.preferencesData.shortcuts.curate.next]);
+      }, shortcutPrefs.curate.next, 'curate:Next', 'Next Curation');
 
-  // New Curation
-  React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
-        onNewCuration();
-      }, props.preferencesData.shortcuts.curate.newCur, 'curate:New', 'New Curation');
-    }
-    return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.newCur);
-      }
-    };
-  }, [props.preferencesData.shortcuts.curate.newCur]);
+      shortcut.registerShortcut(() => {
+        dispatch(curateActions.createCuration({
+          folder: uuid()
+        }));
+      }, shortcutPrefs.curate.newCur, 'curate:New', 'New Curation');
 
-  // Load Archives
-  React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
+      shortcut.registerShortcut(() => {
         onLoadCuration();
-      }, props.preferencesData.shortcuts.curate.load, 'curate:Load Archives', 'Load Curation Archives');
-    }
-    return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.load);
-      }
-    };
-  }, [props.preferencesData.shortcuts.curate.load]);
+      }, shortcutPrefs.curate.load, 'curate:Load Archives', 'Load Curation Archives');
 
-  // Refresh content tree
-  React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
-        if (curate.current) {
-          window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, curate.current);
+      shortcut.registerShortcut(() => {
+        if (currentCuration) {
+          window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, currentCuration);
         }
-      }, props.preferencesData.shortcuts.curate.refresh, 'curate:Refresh', 'Refresh Active Curation + Content Tree');
-    }
-    return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.refresh);
-      }
-    };
-  }, [curate.current, props.preferencesData.shortcuts.curate.refresh]);
+      }, shortcutPrefs.curate.refresh, 'curate:Refresh', 'Refresh Active Curation + Content Tree');
 
-  // Export selected
-  React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
+      shortcut.registerShortcut(() => {
         if (curate.selected.length > 0) {
-          const newTask = newCurateTask(`Exporting ${curate.selected.length} Curations`, 'Exporting...', props.addTask);
+          const newTask = newCurateTask(`Exporting ${curate.selected.length} Curations`, 'Exporting...');
+          dispatch(addTask(newTask));
           dispatch(curateActions.exportCurations({
             taskId: newTask.id
           }));
         }
-      }, props.preferencesData.shortcuts.curate.exportCurs, 'curate:Export', 'Export Selected Curations');
-      props.shortcut.registerShortcut(() => {
+      }, shortcutPrefs.curate.exportCurs, 'curate:Export', 'Export Selected Curations');
+
+      shortcut.registerShortcut(() => {
         if (curate.selected.length > 0) {
-          const newTask = newCurateTask(`Exporting Data Packs for ${curate.selected.length} Curations`, 'Exporting...', props.addTask);
+          const newTask = newCurateTask(`Exporting Data Packs for ${curate.selected.length} Curations`, 'Exporting...');
+          dispatch(addTask(newTask));
           dispatch(curateActions.exportCurationDataPacks({
             taskId: newTask.id
           }));
         }
-      }, props.preferencesData.shortcuts.curate.exportDataPacks, 'curate:Export Data Packs', 'Export Data Packs for Selected Curations');
-    }
-    return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.exportCurs);
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.exportDataPacks);
-      }
-    };
-  }, [curate.selected, props.preferencesData.shortcuts.curate.exportCurs, props.preferencesData.shortcuts.curate.exportDataPacks]);
+      }, shortcutPrefs.curate.exportDataPacks, 'curate:Export Data Packs', 'Export Data Packs for Selected Curations');
 
-  // Test Run
-  React.useEffect(() => {
-    if (props.shortcut && props.shortcut.registerShortcut) {
-      props.shortcut.registerShortcut(() => {
+      shortcut.registerShortcut(() => {
         if (curation) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
             curation,
             mad4fp: false,
-            symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+            symlinkCurationContent,
             override: null,
           });
         }
-      }, props.preferencesData.shortcuts.curate.run, 'curate:Test', 'Run Active Curation');
-      props.shortcut.registerShortcut(() => {
-        if (curation && props.preferencesData.symlinkCurationContent) {
+      }, shortcutPrefs.curate.run, 'curate:Test', 'Run Active Curation');
+
+      shortcut.registerShortcut(() => {
+        if (curation && symlinkCurationContent) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
             curation,
             mad4fp: true,
-            symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+            symlinkCurationContent,
             override: null,
           });
         }
-      }, props.preferencesData.shortcuts.curate.runMad4fp, 'curate:Test MAD4FP', 'Run Active Curation with MAD4FP');
+      }, shortcutPrefs.curate.runMad4fp, 'curate:Test MAD4FP', 'Run Active Curation with MAD4FP');
     }
     return () => {
-      if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.run);
-        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.runMad4fp);
+      if (shortcut && shortcut.unregisterShortcut) {
+        for (const keybind of Object.values(keybinds)) {
+          shortcut.unregisterShortcut(keybind);
+        }
       }
     };
-  }, [curation, props.preferencesData.symlinkCurationContent, props.preferencesData.shortcuts.curate.run, props.preferencesData.shortcuts.curate.runMad4fp]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCuration]);
 
-  const onTagTextChange = React.useCallback((tagText: string) => {
+  const onTagTextChange = (tagText: string) => {
     const splitTags = tagText.split(';');
     const lastTag = (splitTags.length > 0 ? splitTags.pop() || '' : '').trim();
     setTagText(tagText);
     if (tagText !== '') {
-      suggsDebounce.dispatch(window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.preferencesData.browsePageShowExtreme))), setTagSuggestions);
+      suggsDebounce.dispatch(window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !browsePageShowExtreme))), setTagSuggestions);
     } else {
       suggsDebounce.invalidate();
       setTagSuggestions([]);
     }
-  }, [setTagText, setTagSuggestions]);
+  };
 
-  const onPlatformTextChange = React.useCallback((platformText: string) => {
+  const onPlatformTextChange = (platformText: string) => {
     const splitPlatforms = platformText.split(';');
     const lastPlatform = (splitPlatforms.length > 0 ? splitPlatforms.pop() || '' : '').trim();
     if (platformText !== '') {
@@ -313,162 +320,132 @@ export function CuratePage(props: CuratePageProps) {
       .then((data) => {
         if (data) {
           setPlatformSuggestions(data);
-          console.log(data.length + ' platform suggs');
         }
       });
     } else {
       setPlatformSuggestions([]);
     }
     setPlatformText(platformText);
-  }, [setPlatformText, setPlatformSuggestions]);
+  };
 
-  const onOpenCurationsFolder = React.useCallback(async () => {
-    await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
-  }, []);
+  const onOpenCurationsFolder = () => {
+    window.electronAPI?.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
+  };
 
-  const onOpenCurationFolder = React.useCallback(async () => {
+  const onOpenCurationFolder = () => {
     if (curation) {
-      await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
+      window.electronAPI?.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
     }
-  }, [curation]);
+  };
 
-  const onImportCuration = React.useCallback(async () => {
+  const onImportCuration = async () => {
     if (curate.selected.length > 0) {
       // Generate task
-      const newTask = newCurateTask(`Importing ${curate.selected.length} Curations`, 'Importing...', props.addTask);
+      const newTask = newCurateTask(`Importing ${curate.selected.length} Curations`, 'Importing...');
+      dispatch(addTask(newTask));
       dispatch(curateActions.importCurations({
         taskId: newTask.id
       }));
     }
-  }, [curate.selected]);
+  };
 
-  const onRegenerateUUID = React.useCallback(async () => {
+  const onRegenerateUUID = async () => {
     if (curation) {
       dispatch(curateActions.regenUuid({
         folder: curation.folder
       }));
     }
-  }, [curation, dispatch]);
+  };
 
-  const onExportDataPacks = React.useCallback(async () => {
+  const onExportCurations = async () => {
     if (curate.selected.length > 0) {
       // Generate task
-      const newTask = newCurateTask(`Exporting Data Packs for ${curate.selected.length} Curations`, 'Exporting...', props.addTask);
-      dispatch(curateActions.exportCurationDataPacks({
-        taskId: newTask.id
-      }));
-    }
-  }, [curate.selected, dispatch]);
-
-  const onExportCurations = React.useCallback(async () => {
-    if (curate.selected.length > 0) {
-      // Generate task
-      const newTask = newCurateTask(`Exporting ${curate.selected.length} Curations`, 'Exporting...', props.addTask);
+      const newTask = newCurateTask(`Exporting ${curate.selected.length} Curations`, 'Exporting...');
+      dispatch(addTask(newTask));
       dispatch(curateActions.exportCurations({
         taskId: newTask.id
       }));
     }
-  }, [curate.selected]);
+  };
 
-  const onDeleteCurations = React.useCallback(async () => {
+  const onDeleteCurations = async () => {
     if (curate.selected.length > 0) {
-      const task = newCurateTask(`Deleting ${curate.selected.length} Curations`, 'Deleting...', props.addTask);
+      const newTask = newCurateTask(`Deleting ${curate.selected.length} Curations`, 'Deleting...');
+      dispatch(addTask(newTask));
       dispatch(curateActions.deleteCurations({
-        taskId: task.id
+        taskId: newTask.id
       }));
     }
-  }, [curate.selected]);
+  };
 
-  const onRunCurationOverride = React.useCallback(async (override: GameLaunchOverride) => {
+  const onRunCurationOverride = async (override: GameLaunchOverride) => {
     if (curation) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: false,
-        symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+        symlinkCurationContent,
         override,
       });
     }
-  }, [curation]);
+  };
 
-  const onRunCuration = React.useCallback(async () => {
+  const onRunCuration = async () => {
     if (curation) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: false,
-        symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+        symlinkCurationContent,
         override: null,
       });
     }
-  }, [curation]);
+  };
 
-  const onRunMAD4FPCuration = React.useCallback(async () => {
+  const onRunMAD4FPCuration = async () => {
     if (curation) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: true,
-        symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+        symlinkCurationContent,
         override: null,
       });
     }
-  }, [curation]);
+  };
 
-  const warningCount = React.useMemo(() => curation ? curation.warnings.writtenWarnings.length : 0, [curation]);
+  const warningCount = curation ? curation.warnings.writtenWarnings.length : 0;
   const disabled = !curation;
 
   const runExtCommand = (command: string) => {
-    window.Shared.back.send(BackIn.RUN_COMMAND, command, [curation, curate.selected]);
+    window.Shared.back.request(BackIn.RUN_COMMAND, command, curation, curate.selected)
+    .catch(createErrorDialogWithPrefix(`Failed to run Ext Curate Command ${command}`));
   };
 
   // Gen extension buttons
-  const extButtons = React.useMemo(() =>
-    props.extContextButtons.map((c, index) => {
-      const ext = props.main.extensions.find(e => e.id === c.extId);
-      const buttons = c.value.filter(c => c.context === 'curation').map((contextButton, index) => (
-        <SimpleButton
-          key={index}
-          className='curate-page__right--button'
-          disabled={disabled && !contextButton.runWithNoCuration}
-          onClick={() => runExtCommand(contextButton.command)}
-          value={contextButton.name} />
-      ));
-      if (buttons.length > 0) {
-        return (
-          <div
-            className='curate-page__right--section'
-            key={index}>
-            <div className='curate-page__right--header'>{ext ? ext.displayName || ext.name : c.extId}</div>
-            {buttons}
-          </div>
-        );
-      }
-    }), [disabled, props.extContextButtons, curate]);
+  const extButtons = extContextButtons.map((c, index) => {
+    const ext = extensions.find(e => e.id === c.extId);
+    const buttons = c.value.filter(c => c.context === 'curation').map((contextButton, index) => (
+      <SimpleButton
+        key={index}
+        className='curate-page__right--button'
+        disabled={disabled && !contextButton.runWithNoCuration}
+        onClick={() => runExtCommand(contextButton.command)}
+        value={contextButton.name} />
+    ));
+    if (buttons.length > 0) {
+      return (
+        <div
+          className='curate-page__right--section'
+          key={index}>
+          <div className='curate-page__right--header'>{ext ? ext.displayName || ext.name : c.extId}</div>
+          {buttons}
+        </div>
+      );
+    }
+  });
 
-  const curationTemplateButtons = React.useMemo(() => {
-    const arrays = props.extCurationTemplates.map(c => {
-      return c.value.map((template, index) => {
-        return (
-          <label
-            className='curate-page__right-dropdown-content simple-dropdown-button'
-            key={index}
-            onClick={() => {
-              onNewCuration(template.meta);
-            }}>
-            <div
-              className='curate-page__right-dropdown-content-icon'
-              style={{ backgroundImage: `url('${getPlatformIconURL(template.logo, props.main.logoVersion)}')` }} />
-            <div>
-              {template.name}
-            </div>
-          </label>
-        );
-      });
-    });
-    return arrays.reduce((prev, cur) => prev.concat(cur), []);
-  }, [props.extCurationTemplates]);
-
-  const onLoadCurationDrop = React.useCallback(async (event: React.DragEvent) => {
+  const onLoadCurationDrop = async (event: React.DragEvent) => {
     const files = event.dataTransfer.files;
-    const newTask = newCurateTask(`Loading ${files.length} Archives`, 'Loading...', props.addTask);
+    const newTask = newCurateTask(`Loading ${files.length} Archives`, 'Loading...');
+    dispatch(addTask(newTask));
 
     if (files.length > 0) {
       for (let i = 0; i < files.length; i++) {
@@ -493,62 +470,51 @@ export function CuratePage(props: CuratePageProps) {
       status: '',
       finished: true
     }));
-  }, []);
+  };
 
-  const leftSidebar = React.useMemo(() => (
-    <CuratePageLeftSidebar
-      logoVersion={props.main.logoVersion}
-      onCurationDrop={onLoadCurationDrop}/>
-  ), [curate, props.main.logoVersion]);
+  const leftSidebar = <CuratePageLeftSidebar
+    logoVersion={logoVersion}
+    onCurationDrop={onLoadCurationDrop}/>;
 
-  const keybindsRender = React.useMemo(() => {
-    return (
-      <div className='curate-page-keybinds-box'>
-        <h3>{strings.curate.shortcuts}</h3>
-        <table>
-          <tbody>
-            {props.shortcut && props.shortcut.shortcuts.filter(s => s.title.startsWith('curate:')).map((binding, idx) => (
-              <tr key={idx} className='curate-page-keybinds-box-row'>
-                <td>
-                  {filterKeysByOS(binding.keys).map((combo, idx) => {
-                    return (
-                      <div key={binding.title + idx} className='curate-page-keybinds-box-combo'>
-                        {combo}
-                      </div>
-                    );
-                  })}
-                </td>
-                <td>{binding.description}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }, [props.shortcut]);
+  const keybindsRender = (
+    <div className='curate-page-keybinds-box'>
+      <h3>{strings.curate.shortcuts}</h3>
+      <table>
+        <tbody>
+          {shortcut && shortcut.shortcuts.filter(s => s.title.startsWith('curate:')).map((binding, idx) => (
+            <tr key={idx} className='curate-page-keybinds-box-row'>
+              <td>
+                {filterKeysByOS(binding.keys).map((combo, idx) => {
+                  return (
+                    <div key={binding.title + idx} className='curate-page-keybinds-box-combo'>
+                      {combo}
+                    </div>
+                  );
+                })}
+              </td>
+              <td>{binding.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 
-  const dependantStrings = React.useMemo(() => {
-    if (curate.selected.length > 1) {
-      return {
-        import: strings.curate.importSelected,
-        export: strings.curate.exportSelected,
-        delete: strings.curate.deleteSelected,
-        exportDataPack: strings.curate.exportSelectedDataPacks
-      };
-    } else {
-      return {
-        import: strings.curate.import,
-        export: strings.curate.export,
-        delete: strings.curate.delete,
-        exportDataPack: strings.curate.exportDataPacks
-      };
-    }
-  }, [curate.selected]);
+  const dependantStrings = curate.selected.length > 1 ? {
+    import: strings.curate.importSelected,
+    export: strings.curate.exportSelected,
+    delete: strings.curate.deleteSelected,
+    exportDataPack: strings.curate.exportSelectedDataPacks
+  } : {
+    import: strings.curate.import,
+    export: strings.curate.export,
+    delete: strings.curate.delete,
+    exportDataPack: strings.curate.exportDataPacks
+  };
 
-  console.log('ruffle: ' + curation?.game.ruffleSupport);
-
-  return (
+  return curate.loaded ? (
     <div className='curate-page'>
+      {fileLoader}
       {leftSidebar}
       <div className='curate-page__center simple-scroll'>
         <div className='curate-page-keybinds'>
@@ -558,17 +524,17 @@ export function CuratePage(props: CuratePageProps) {
         { curation ? (
           <CurateBox
             curation={curation}
-            suggestions={props.main.suggestions}
-            tagCategories={props.tagCategories}
-            platformAppPaths={props.main.platformAppPaths}
+            suggestions={suggestions}
+            tagCategories={tagCategories}
+            platformAppPaths={platformAppPaths}
             tagText={tagText}
             platformText={platformText}
             onPlatformTextChange={onPlatformTextChange}
             onTagTextChange={onTagTextChange}
             tagSuggestions={tagSuggestions}
             platformSuggestions={platformSuggestions}
-            logoVersion={props.logoVersion}
-            symlinkCurationContent={props.preferencesData.symlinkCurationContent} />
+            logoVersion={logoVersion}
+            symlinkCurationContent={symlinkCurationContent} />
         ) : (
           <div className='curate-page__header-text'>
             {strings.curate.noCurationSelected}
@@ -578,13 +544,18 @@ export function CuratePage(props: CuratePageProps) {
       <div className='curate-page__right simple-scroll'>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerFileOperations}</div>
-          { curationTemplateButtons.length > 0 && (
+          {curationTemplates.length > 0 && (
             <Dropdown
-              className='curate-page__right--button'
-              headerClassName='simple-dropdown-button'
-              text={strings.curate.newCurationFromTemplate}>
-              {curationTemplateButtons}
-            </Dropdown>
+              className='curate-page__right-templates'
+              rowProps={{
+                items: curationTemplates,
+                onSelect: (index) => {
+                  window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, [curationTemplates[index]], true);
+                }
+              }}
+              rowRenderer={DropdownStringRow}
+              rowCount={curationTemplates.length}
+              text={strings.curate.newCurationFromTemplate}/>
           )}
           <SimpleButton
             className='curate-page__right--button'
@@ -597,25 +568,34 @@ export function CuratePage(props: CuratePageProps) {
             value={strings.curate.duplicateCuration}/>
           <SimpleButton
             className='curate-page__right--button'
+            onClick={onCreateTemplateFromCuration}
+            disabled={disabled}
+            value={strings.curate.createTemplateFromCuration}/>
+          <SimpleButton
+            className='curate-page__right--button'
             onClick={onLoadCuration}
             value={strings.curate.loadArchive}/>
           <SimpleButton
             className='curate-page__right--button'
             onClick={onScanForNewCurations}
             value={strings.curate.scanNewCurationFolders}/>
-          <SimpleButton
-            className='curate-page__right--button'
-            onClick={onOpenCurationsFolder}
-            value={strings.curate.openCurationsFolder}
-            title={strings.curate.openCurationsFolderDesc}/>
+          { window.electronAPI !== undefined && (
+            <SimpleButton
+              className='curate-page__right--button'
+              onClick={onOpenCurationsFolder}
+              value={strings.curate.openCurationsFolder}
+              title={strings.curate.openCurationsFolderDesc}/>
+          )}
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerEditCuration}</div>
-          <SimpleButton
-            className='curate-page__right--button'
-            onClick={onOpenCurationFolder}
-            disabled={disabled}
-            value={strings.curate.openFolder}/>
+          { window.electronAPI !== undefined && (
+            <SimpleButton
+              className='curate-page__right--button'
+              onClick={onOpenCurationFolder}
+              disabled={disabled}
+              value={strings.curate.openFolder}/>
+          )}
           <ConfirmElement
             render={renderConfirmButton}
             message={strings.dialog.deleteCuration}
@@ -660,28 +640,11 @@ export function CuratePage(props: CuratePageProps) {
               value: 'Regenerate UUID',
               disabled
             }}/>
-          { warningCount > 0 ? (
-            <ConfirmElement
-              render={renderConfirmButton}
-              message={strings.dialog.exportCurationWithWarnings}
-              onConfirm={onExportDataPacks}
-              extra={{
-                className: 'curate-page__right--button',
-                value: dependantStrings.exportDataPack,
-                disabled
-              }}/>
-          ) : (
-            <SimpleButton
-              className='curate-page__right--button'
-              onClick={onExportDataPacks}
-              disabled={disabled}
-              value={dependantStrings.exportDataPack}/>
-          )}
           <SimpleButton
             className='curate-page__right--button'
             onClick={() => {
-              if (curate.current) {
-                window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, curate.current);
+              if (currentCuration) {
+                window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, currentCuration);
               }
             }}
             disabled={disabled}
@@ -691,14 +654,14 @@ export function CuratePage(props: CuratePageProps) {
             <CheckBox
               className='browse-right-sidebar__row__check-box'
               onToggle={onTagFiltersInCurateChange}
-              checked={props.preferencesData.tagFiltersInCurate} />
+              checked={tagFiltersInCurate} />
           </div>
           <div className='curate-page__right--checkbox'>
             <div>{strings.curate.saveImportedCurations}</div>
             <CheckBox
               className='browse-right-sidebar__row__check-box'
               onToggle={onSaveImportedCurationChange}
-              checked={props.preferencesData.saveImportedCurations} />
+              checked={saveImportedCurations} />
           </div>
         </div>
         <div className='curate-page__right--section'>
@@ -708,10 +671,10 @@ export function CuratePage(props: CuratePageProps) {
             disabled={disabled}
             value={strings.curate.run}
             onClick={onRunCuration}/>
-          { props.mad4fpEnabled && (
+          { mad4fpEnabled && (
             <SimpleButton
               className='curate-page__right--button'
-              disabled={disabled || !props.preferencesData.symlinkCurationContent}
+              disabled={disabled || !symlinkCurationContent}
               value={strings.curate.runWithMAD4FP}
               onClick={onRunMAD4FPCuration}/>
           )}
@@ -723,14 +686,14 @@ export function CuratePage(props: CuratePageProps) {
           <SimpleButton
             className='curate-page__right--button'
             disabled={disabled || (!curation.game.launchCommand?.endsWith('.swf') && !curation.game.ruffleSupport)}
-            value={(!!(curation?.game.ruffleSupport)) ? strings.browse.runWithRuffle : strings.browse.runWithRuffleUnsupported}
+            value={(curation?.game.ruffleSupport) ? strings.browse.runWithRuffle : strings.browse.runWithRuffleUnsupported}
             onClick={() => onRunCurationOverride('ruffle')}/>
           <div className='curate-page__right--checkbox'>
             <div>{strings.curate.symlinkCurationContent}</div>
             <CheckBox
               className='browse-right-sidebar__row__check-box'
               onToggle={onSymlinkCurationContentChange}
-              checked={props.preferencesData.symlinkCurationContent} />
+              checked={symlinkCurationContent} />
           </div>
         </div>
         <div className='curate-page__right--section'>
@@ -744,6 +707,8 @@ export function CuratePage(props: CuratePageProps) {
         {extButtons}
       </div>
     </div>
+  ) : (
+    <div>Loading</div>
   );
 }
 
@@ -755,7 +720,7 @@ function renderConfirmButton({ confirm, extra }: ConfirmElementArgs<SimpleButton
   );
 }
 
-export function newCurateTask(name: string, status: string, addTask: (task: Task) => void): Task {
+export function newCurateTask(name: string, status: string): Task {
   const task: Task = {
     id: uuid(),
     name,
@@ -763,7 +728,6 @@ export function newCurateTask(name: string, status: string, addTask: (task: Task
     progress: 0,
     finished: false
   };
-  addTask(task);
   return task;
 }
 

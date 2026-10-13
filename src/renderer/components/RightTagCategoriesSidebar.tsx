@@ -1,12 +1,12 @@
-import { LangContainer } from '@shared/lang';
+import { LangContainer, TagCategory } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { ColorResult, SketchPicker } from 'react-color';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { InputElement, InputField } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { TagCategory } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected tag category (if any) */
@@ -24,15 +24,14 @@ type OwnProps = {
 
 export type RightTagCategoriesSidebarProps = OwnProps & WithPreferencesProps;
 
-type RRightTagCategoriesSidebarState = {
-};
+type RRightTagCategoriesSidebarState = Record<string, never>;
 
 /** Sidebar on the right side of BrowsePage. */
 export class RightTagCategoriesSidebar extends React.Component<RightTagCategoriesSidebarProps, RRightTagCategoriesSidebarState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
+  launchCommandRef: React.RefObject<HTMLInputElement | null> = React.createRef();
 
   constructor(props: RightTagCategoriesSidebarProps) {
     super(props);
@@ -146,7 +145,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
     }
   }
 
-  renderDeleteCategoryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteCategoryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): React.JSX.Element {
     const className = 'tag-category__buttons-delete';
     return (
       <div

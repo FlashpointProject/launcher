@@ -3,12 +3,12 @@ import { deepCopy } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Playlist, PlaylistGame } from 'flashpoint-launcher';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { PlaylistFile } from './PlaylistFile';
 import { MsgEvent } from './SocketServer';
 import { BackState } from './types';
 import { uuid } from './util/uuid';
-import * as path from 'path';
+import * as path from 'node:path';
 import { awaitDialog } from './util/dialog';
 import { onDidUpdatePlaylist } from './util/events';
 
@@ -108,9 +108,8 @@ export async function deletePlaylistGame(state: BackState, playlistId: string, g
   }
 }
 
-export async function importPlaylist(state: BackState, filePath: string, library?: string, event?: MsgEvent) {
+export async function importPlaylist(state: BackState, newPlaylist: Playlist, library?: string, event?: MsgEvent) {
   try {
-    const newPlaylist = await PlaylistFile.readFile(filePath);
     newPlaylist.filePath = path.join(state.config.flashpointPath, state.preferences.playlistFolderPath, `${sanitizeFilename(newPlaylist.title)} - ${(new Date()).getTime()}.json`);
     const existingPlaylist = state.playlists.find(p => p.title === newPlaylist.title || p.id === newPlaylist.id);
     if (existingPlaylist) {

@@ -1,6 +1,9 @@
-import { RootState } from '@renderer/store/store';
+import { AppDispatch, RootState } from '@renderer/store/store';
+import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 
-export function useAppSelector<T>(func: (state: RootState) => T) {
-  return useSelector((state: RootState) => func(state));
-}
+export const useAppSelector = useSelector.withTypes<RootState>();
+export type useAppSelectorType = typeof useAppSelector;
+
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
+export type useAppDispatchType = typeof useAppDispatch;

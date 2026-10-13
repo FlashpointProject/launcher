@@ -1,9 +1,10 @@
 import { LangContext } from '@renderer/util/lang';
-import { LangContainer } from '@shared/lang';
+import { LangContainer } from 'flashpoint-launcher';
+import { InputFieldProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { InputField, InputFieldProps } from './InputField';
+import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 
 /** A function that receives a HTML element (or null). */
@@ -27,18 +28,16 @@ export type TagAliasInputFieldProps = InputFieldProps & {
   inputRef?: RefFunc<InputElement>;
 };
 
-type TagAliasInputFieldState = {
-
-};
+type TagAliasInputFieldState = Record<string, never>;
 
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 export class TagAliasInputField extends React.Component<TagAliasInputFieldProps, TagAliasInputFieldState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  rootRef: React.RefObject<HTMLDivElement> = React.createRef();
-  contentRef: React.RefObject<HTMLDivElement> = React.createRef();
-  inputRef: React.RefObject<InputElement> = React.createRef();
+  rootRef: React.RefObject<HTMLDivElement | null> = React.createRef();
+  contentRef: React.RefObject<HTMLDivElement | null> = React.createRef();
+  inputRef: React.RefObject<InputElement | null> = React.createRef();
 
   constructor(props: TagAliasInputFieldProps) {
     super(props);
@@ -148,7 +147,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     }
   };
 
-  static renderPrimaryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  static renderPrimaryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): React.JSX.Element {
     const className = 'tag-alias__buttons-primary';
     return (
       <div
@@ -160,7 +159,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     );
   }
 
-  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): React.JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div

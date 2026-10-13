@@ -2,8 +2,8 @@
 import * as flashpoint from 'flashpoint-launcher';
 import { ConfigSchema, Game, GameLaunchInfo, GameMiddlewareConfig, GameMiddlewareDefaultConfig, IGameMiddleware } from 'flashpoint-launcher';
 import * as os from 'os';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { downloadFile, getGithubReleaseAsset, getPlatformRegex } from '../util';
 
 // Config Schema used to configure the middleware per game

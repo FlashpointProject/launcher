@@ -1,104 +1,97 @@
-/* eslint-disable @typescript-eslint/indent */
-import { LangContext } from '@renderer/util/lang';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { TagFilter, ViewGame } from 'flashpoint-launcher';
-import * as React from 'react';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL } from '../Util';
+import { getPointer } from '@renderer/context/MenuContext';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import { isGame } from '@shared/utils/misc';
+import { Content, Game } from 'flashpoint-launcher';
+import { RandomGamesProps } from 'flashpoint-launcher-renderer';
+import { useState } from 'react';
+import { getExtremeIconURL, getPlatformIconURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
-import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
-
-type RandomGamesProps = {
-  games: ViewGame[];
-  selectedGameId?: string;
-  /** Generator for game context menu */
-  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
-  onLaunchGame: (gameId: string) => void;
-  onGameSelect: (gameId: string | undefined) => void;
-  rollRandomGames: () => void;
-  extremeTags: string[];
-  /** Tag Filter icons */
-  tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
-  /** Update to clear platform icon cache */
-  logoVersion: number;
-  minimized: boolean;
-  onToggleMinimize: () => void;
-  /** Screenshot Preview Mode */
-  screenshotPreviewMode: ScreenshotPreviewMode;
-  /** Screenshot Preview Delay */
-  screenshotPreviewDelay: number;
-  /** Hide extreme screenshots */
-  hideExtremeScreenshots: boolean;
-};
 
 // A small "grid" of randomly selected games.
 export function RandomGames(props: RandomGamesProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
+  const { openGameContextMenu } = useContextMenu();
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const screenshotPreviewMode = useAppSelector(state => state.preferences.screenshotPreviewMode);
+  const screenshotPreviewDelay = useAppSelector(state => state.preferences.screenshotPreviewDelay);
+  const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const extremeTags = tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+  const [firstLoad, setFirstLoad] = useState(false);
 
-  const onGameSelect = React.useCallback((event: React.MouseEvent, gameId: string | undefined) => {
-    props.onGameSelect(gameId);
-  }, [props.onGameSelect]);
+  if (!firstLoad) {
+    setFirstLoad(true);
+    if (props.games.length === 0) {
+      props.rollRandomGames();
+    }
+  }
 
-  const onLaunchGame = React.useCallback((event: React.MouseEvent, gameId: string) => {
-    props.onLaunchGame(gameId);
-  }, [props.onLaunchGame]);
-
-  const onRerollPicks = React.useCallback(() => {
-    props.rollRandomGames();
-  }, [props.rollRandomGames]);
-
-  const gameItems = React.useMemo(() => {
-    /* Games is a long queue, only render front */
-    return (
-      props.games.slice(0, 6).map(game => (
-        <GameGridItem
-          key={game.id}
-          id={game.id}
-          title={game.title}
-          platforms={game.platforms.map(p => p.trim())}
-          extreme={game ? game.tags.findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
-          extremeIconPath={getExtremeIconURL(props.logoVersion)}
-          tagGroupIconBase64={props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64 || ''}
-          thumbnail={getGameImageURL(game.logoPath)}
-          screenshot={getGameImageURL(game.screenshotPath)}
-          screenshotPreviewMode={props.screenshotPreviewMode}
-          screenshotPreviewDelay={props.screenshotPreviewDelay}
-          hideExtremeScreenshots={props.hideExtremeScreenshots}
-          logoVersion={props.logoVersion}
-          isSelected={props.selectedGameId === game.id}
-          isDragged={false} />
-      ))
-    );
-  }, [props.games, props.selectedGameId, props.logoVersion, props.extremeTags]);
-
-  const onGameContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, gameId: string, logoPath: string, screenshotPath: string) => {
-    return props.onGameContextMenu(gameId, logoPath, screenshotPath);
+  const onGameContextMenu = (event: React.MouseEvent, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => {
+    openGameContextMenu(sourceId, gameId, logoPath, screenshotPath, getPointer(event));
   };
 
-  const render = (
+
+  const onGameSelect = (event: React.MouseEvent, gameId: string | undefined) => {
+    console.log('selecting ' + gameId);
+    props.onGameSelect(gameId);
+  };
+
+  const onGameDeselect = (event: React.MouseEvent, gameId: string | undefined) => {
+    console.log('deselecting ' + gameId);
+    props.onGameDeselect(gameId);
+  };
+
+
+  const onLaunchGame = (event: React.MouseEvent, gameId: string) => {
+    props.onLaunchGame(gameId);
+  };
+
+  const onRerollPicks = () => {
+    props.rollRandomGames();
+  };
+
+  const getContentIcons = (game: Content | Game) => {
+    return isGame(game) ? game.platforms.slice(0, 5).map(p => getPlatformIconURL(p, logoVersion)) : [];
+  };
+
+  const gameItems = props.games.slice(0, 6).map(game => {
+    const extreme = isGame(game) ? game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1 : false;
+
+    return (
+      <GameGridItem
+        game={game}
+        key={game.id}
+        upperIcons={extreme ? [getExtremeIconURL(logoVersion)] : []}
+        lowerIcons={getContentIcons(game)}
+        extreme={game ? game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1 : false}
+        screenshotPreviewMode={screenshotPreviewMode}
+        screenshotPreviewDelay={screenshotPreviewDelay}
+        hideExtremeScreenshots={hideExtremeScreenshots}
+        logoVersion={logoVersion}
+        isSelected={props.selectedGameId === game.id}
+        isDragged={false} />
+    );
+  });
+
+  return (
     <>
       <GameItemContainer
         className='random-games'
+        type='grid'
         onGameContextMenu={onGameContextMenu}
-        onGameSelect={onGameSelect}
-        onGameLaunch={onLaunchGame}
-        findGameDragEventData={findGameDragEventDataGrid}>
+        onContentSelect={onGameSelect}
+        onContentDeselect={onGameDeselect}
+        onContentLaunch={onLaunchGame}
+        selectedGameId={props.selectedGameId}>
         {gameItems}
       </GameItemContainer>
       <SimpleButton
         value={strings.home.rerollPicks}
         onClick={onRerollPicks} />
     </>
-  );
-
-  return (
-    <HomePageBox
-      minimized={props.minimized}
-      title={strings.home.randomPicks}
-      cssKey='random-games'
-      onToggleMinimize={props.onToggleMinimize}>
-        {render}
-    </HomePageBox>
   );
 }

@@ -1,7 +1,6 @@
-import { ConfigBox, ConfigBoxProps } from './ConfigBox';
-import { SimpleButton, SimpleButtonProps } from './SimpleButton';
-
-export type ConfigBoxButtonProps = ConfigBoxProps & SimpleButtonProps;
+import { ConfigBoxButtonProps } from 'flashpoint-launcher-renderer';
+import { ConfigBox } from './ConfigBox';
+import { SimpleButton } from './SimpleButton';
 
 export function ConfigBoxButton(props: ConfigBoxButtonProps) {
   return (

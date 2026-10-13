@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { Barrier } from '@back/util/async';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
 import { TernarySearchTree } from '@back/util/map';
-import { AppConfigData } from '@shared/config/interfaces';
-import { ILogEntry } from '@shared/Log/interface';
-import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
+import { AppConfigData, Contributions, ExtensionContribution, ILogEntry } from 'flashpoint-launcher';
+import * as path from 'node:path';
+import { IExtension } from '../../shared/extensions/interfaces';
 import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
+import { installNodeInterceptor, InterceptorState } from './NodeInterceptor';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
-import * as path from 'path';
 
 export class ExtensionService {
   /** Stores unchanging Extension data */
@@ -21,10 +20,15 @@ export class ExtensionService {
   /** Opens when _extensions is ready to be read from */
   public readonly installedExtensionsReady: Barrier;
 
+  /** We register the module interceptor to a custom require when loading extension, prevents conflicts with bundler */
+  private require: NodeJS.Require;
+
   constructor(
     protected readonly _configData: AppConfigData,
     protected readonly _extensionPath: string,
     protected readonly _isDev: boolean,
+    protected readonly _isElectron: boolean,
+    protected readonly _exePath: string,
   ) {
     this._extensions = [];
     this._extensionData = {};
@@ -37,11 +41,31 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
-    const sysExts = await scanSystemExtensions(this._isDev);
+    const sysExts = await scanSystemExtensions(this._isDev, this._isElectron, this._exePath);
     sysExts.forEach(e => this._extensions.push(e));
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
     this.installedExtensionsReady.open();
+  }
+
+  async scanForNewExtensions(): Promise<IExtension[]> {
+    if (!this.installedExtensionsReady.isOpen()) {
+      // Called before init complete, it's already scanning
+      return [];
+    }
+    const exts = (await scanExtensions(this._configData, this._extensionPath))
+    .filter(ext => this._extensions.findIndex(e => e.id === ext.id) === -1);
+    for (const ext of exts) {
+      this._extensions.push(ext);
+    }
+    return exts;
+  }
+
+  async installInterceptor(state: InterceptorState) {
+    // Eval prevents bundler from intercepting this load. Unsure why it gets upset.
+    const node_module = eval('require')('module');
+    await installNodeInterceptor(state, node_module);
+    this.require = node_module.createRequire(path.resolve(__dirname));
   }
 
   getExtensions(): Promise<IExtension[]> {
@@ -75,6 +99,20 @@ export class ExtensionService {
     });
   }
 
+  /**
+   * Returns a list of all extension contributions of a particular type filtered for enabled extensions
+   *
+   * @param key Type of contribution to get
+   * @param disabledExts Array of disabled extension IDs
+   * @returns All of this contribution type from all enabled and loaded extensions
+   */
+  getEnabledContributions<T extends keyof Contributions>(key: T, disabled: string[]): Promise<ExtensionContribution<T>[]> {
+    return this.getContributions(key)
+    .then((contribs) => {
+      return contribs.filter(c => !disabled.includes(c.extId));
+    });
+  }
+
   /** Build a search tree mapping extensions and their paths */
   public async getExtensionPathIndex(): Promise<TernarySearchTree<string, IExtension>> {
     return this.installedExtensionsReady.wait().then(() => {
@@ -96,9 +134,10 @@ export class ExtensionService {
   /**
    * Load all extensions
    */
-  public async loadAll(): Promise<void | void[]> {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  public async loadAll(disabledExtensions: string[]): Promise<void | void[]> {
     return this.installedExtensionsReady.wait().then(() => {
-      return Promise.all(this._extensions.map(ext => this._loadExtension(ext)));
+      return Promise.all(this._extensions.filter(ext => disabledExtensions.includes(ext.id)).map(ext => this._loadExtension(ext)));
     });
   }
 
@@ -127,6 +166,10 @@ export class ExtensionService {
       return;
     }
 
+    if (!this.require) {
+      throw 'Interceptor has not been registered, cannot load extension yet';
+    }
+
     try {
       // Import extension as module
       const entryPath = getExtensionEntry(ext);
@@ -135,7 +178,8 @@ export class ExtensionService {
         subscriptions: extData.subscriptions
       };
       if (entryPath) {
-        const extModule: ExtensionModule = await import(entryPath);
+        console.log('loading ' + entryPath);
+        const extModule: ExtensionModule = this.require(entryPath);
         if (!extModule.activate) {
           throw new Error('No "activate" export found in extension module!');
         }
@@ -176,6 +220,18 @@ export class ExtensionService {
     }
   }
 
+  public async removeExtension(id: string): Promise<void> {
+    await this.unloadExtension(id);
+    if (this.installedExtensionsReady.isOpen()) {
+      const extIdx = this._extensions.findIndex(e => e.id == id);
+      if (extIdx > -1) {
+        this._extensions.splice(extIdx);
+      } else {
+        log.error('Extensions', `Attempted removal of extension ${id}, but no extension with this ID found`);
+      }
+    }
+  }
+
   private async _unloadExtension(ext: IExtension): Promise<void> {
     const extData = this._extensionData[ext.id];
 
@@ -187,7 +243,7 @@ export class ExtensionService {
     const entryPath = getExtensionEntry(ext);
     if (entryPath) {
       try {
-        const extModule: ExtensionModule = await import(entryPath);
+        const extModule: ExtensionModule = this.require(entryPath);
         if (extModule.deactivate) {
           try {
             await extModule.deactivate.apply(global);

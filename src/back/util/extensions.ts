@@ -1,4 +1,4 @@
-import { IExtensionManifest } from '@shared/extensions/interfaces';
+import { IExtensionManifest } from 'flashpoint-launcher';
 
 export const nullExtensionDescription = Object.freeze(<IExtensionManifest>{
   name: 'Null Extension Description',

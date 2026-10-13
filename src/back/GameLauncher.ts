@@ -1,20 +1,18 @@
-import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
+import { BackOut, ComponentState } from '@shared/back/types';
 import { AppProvider } from '@shared/extensions/interfaces';
-import { ExecMapping, Omit, ProcessState } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
-import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
+import { ExecMapping, Omit } from '@shared/interfaces';
+import { fixSlashes } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as child_process from 'child_process';
-import { ChildProcess } from 'child_process';
-import { EventEmitter } from 'events';
-import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AdditionalApp, AppPathOverride, ComponentStatus, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LangContainer, LaunchInfo, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as minimist from 'minimist';
-import * as path from 'path';
+import minimist from 'minimist';
+import * as path from 'node:path';
 import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { getCwd, isBrowserOpts } from './util/misc';
@@ -101,11 +99,10 @@ export namespace GameLauncher {
           await handleGameDataParams(opts, serverOverride, gameData || undefined);
         }
         const launchInfo: LaunchInfo = {
-          override: opts.override,
           gamePath: gamePath,
           gameArgs: appArgs,
           useWine,
-          env: getEnvironment(opts.fpPath, opts.proxy, opts.envPATH),
+          env: getContentEnvironment(opts.fpPath, opts.proxy, process.platform, true, opts.envPATH),
         };
         const managedProc = opts.runAddApp(launchInfo);
         log.info(logSource, `Launch ${managedProc.name} (PID: ${managedProc.getPid()}) [\n`+
@@ -115,7 +112,7 @@ export namespace GameLauncher {
           if (opts.addApp.waitForExit) {
             resolve();
           } else {
-            if (managedProc.getState() !== ProcessState.RUNNING) { resolve(); }
+            if (managedProc.getState() !== 1) { resolve(); }
             else {
               managedProc.on('exit', () => { resolve(); });
             }
@@ -180,25 +177,9 @@ export namespace GameLauncher {
       await onWillEvent.fire(launchInfo)
       .then(async () => {
         // Handle middleware
-        if (launchInfo.activeConfig) {
-          log.info(logSource, `Using Game Configuration: ${launchInfo.activeConfig.name}`);
-          for (const middlewareConfig of launchInfo.activeConfig.middleware) {
-            // Find middleware in registry
-            const middleware = opts.state.registry.middlewares.get(middlewareConfig.middlewareId);
-            if (!middleware) {
-              throw `Middleware not found (${middlewareConfig.middlewareId})`;
-            }
-            try {
-              launchInfo = await Promise.resolve(middleware.execute(launchInfo, middlewareConfig));
-            } catch (err) {
-              throw `Failed to execute middleware (${middlewareConfig.middlewareId}) - ${err}`;
-            }
-            // @TODO - Validate launch info
-          }
-          log.info(logSource, 'Applied Game Configuration Successfully.');
-        }
         await handleGameDataParams(opts, serverOverride, launchInfo.activeData ? launchInfo.activeData : undefined);
-        const command: string = createCommand(launchInfo.launchInfo);
+
+        const command: string = createLaunchInfoCommand(launchInfo.launchInfo);
         const managedProc = opts.runGame(launchInfo);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                     `    applicationPath: "${launchInfo.launchInfo.gamePath}",\n`+
@@ -236,7 +217,7 @@ export namespace GameLauncher {
 
         // Browser Mode Launch
         if (isBrowserOpts(res)) {
-          const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
+          const env = getContentEnvironment(opts.fpPath, opts.proxy, process.platform, true, opts.envPATH);
           if ('ELECTRON_RUN_AS_NODE' in env) {
             delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
           }
@@ -245,9 +226,9 @@ export namespace GameLauncher {
           browserLaunchArgs.push(`browser_url=${(res.url)}`);
           const gameLaunchInfo: GameLaunchInfo = {
             game: opts.game,
+            isCuration: curation,
             activeData: gameData,
             launchInfo: {
-              override: opts.override,
               gamePath: process.execPath,
               gameArgs: browserLaunchArgs,
               useWine: false,
@@ -255,7 +236,6 @@ export namespace GameLauncher {
               cwd: getCwd(opts.isDev, opts.exePath),
               noshell: true,
             },
-            activeConfig: opts.activeConfig,
           };
           await onWillEvent.fire(gameLaunchInfo)
           .then(() => {
@@ -279,10 +259,10 @@ export namespace GameLauncher {
       }
     }
     // Continue with launching normally
-    const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
+    const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.resolve(opts.fpPath, appPath));
     const gameArgs: string[] = [...appArgs, metadataLaunchCommand];
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-    const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
+    const env = getContentEnvironment(opts.fpPath, opts.proxy, process.platform, true, opts.envPATH);
     try {
       // Double check game exists? Why are we doing this? TODO
       await fpDatabase.findGame(opts.game.id);
@@ -291,15 +271,14 @@ export namespace GameLauncher {
     }
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,
+      isCuration: curation,
       activeData: gameData,
       launchInfo: {
-        override: opts.override,
         gamePath,
         gameArgs,
         useWine,
         env,
       },
-      activeConfig: opts.activeConfig
     };
     await launchCb(gameLaunchInfo);
   }
@@ -353,85 +332,25 @@ export namespace GameLauncher {
     // No Native exec found, return Windows/XML application path
     return filePath;
   }
-
-  /**
-   * Get an object containing the environment variables to use for the game / additional application.
-   *
-   * @param fpPath Path to Flashpoint Data Folder
-   * @param proxy HTTP_PROXY environmental variable to add to env (For Linux / Mac)
-   * @param path Override PATH environmental variable
-   */
-  function getEnvironment(fpPath: string, proxy: string, path?: string): NodeJS.ProcessEnv {
-    let newEnvVars: NodeJS.ProcessEnv = {'FP_PATH': fpPath, 'PATH': path ?? process.env.PATH};
-    // On Linux, we tell native applications to use Flashpoint's proxy using the HTTP_PROXY env var
-    // On Windows, executables are patched to load the FlashpointProxy library
-    // On Linux/Mac, WINE obeys the HTTP_PROXY env var so we can run unpatched Windows executables
-    if (process.platform === 'linux' || process.platform === 'darwin') {
-      // Add proxy env vars and prevent WINE from flooding the logs with debug messages
-      newEnvVars = {
-        ...newEnvVars, 'WINEDEBUG': 'fixme-all',
-        ...(proxy !== '' ? {'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/`} : null)
-      };
-      // If WINE's bin directory exists in FPSoftware, add it to the PATH
-      if (fs.existsSync(`${fpPath}/FPSoftware/Wine/bin`)) {
-        newEnvVars = {
-          ...newEnvVars, 'PATH': `${fpPath}/FPSoftware/Wine/bin:` + process.env.PATH
-        }
-      }
-    }
-    return {
-      // Copy this processes environment variables
-      ...process.env,
-      ...newEnvVars
-    };
-  }
-
-  function createCommand(launchInfo: LaunchInfo): string {
-    // This whole escaping thing is horribly broken. We probably want to switch
-    // to an array representing the argv instead and not have a shell
-    // in between.
-    const { gamePath, gameArgs, useWine } = launchInfo;
-    const args = typeof gameArgs === 'string' ? [gameArgs] : gameArgs;
-    switch (process.platform) {
-      case 'win32':
-        return `"${gamePath}" ${args.join(' ')}`;
-      case 'darwin':
-      case 'linux':
-        if (useWine) {
-          return `wine start /wait /unix "${gamePath}" ${args.join(' ')}`;
-        }
-        return `"${gamePath}" ${args.join(' ')}`;
-      default:
-        throw Error('Unsupported platform');
-    }
-  }
-
-  function logProcessOutput(proc: ChildProcess): void {
-    // Log for debugging purposes
-    // (might be a bad idea to fill the console with junk?)
-    const logInfo = (event: string, args: any[]): void => {
-      log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
-    };
-    const logErr = (event: string, args: any[]): void => {
-      log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
-    };
-    registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
-    registerEventListeners(proc, ['error'], logErr);
-    if (proc.stdout) { proc.stdout.on('data', (data) => { logInfo('stdout', [data.toString('utf8')]); }); }
-    if (proc.stderr) { proc.stderr.on('data', (data) => { logErr('stderr', [data.toString('utf8')]); });  }
-  }
 }
 
-const stringifyArrayOpts = {
-  trimStrings: true,
-};
-
-function registerEventListeners(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
-  for (let i = 0; i < events.length; i++) {
-    const e: string = events[i];
-    emitter.on(e, (...args: any[]) => {
-      callback(e, args);
-    });
+export function createLaunchInfoCommand(launchInfo: LaunchInfo): string {
+  // This whole escaping thing is horribly broken. We probably want to switch
+  // to an array representing the argv instead and not have a shell
+  // in between.
+  const { gamePath, gameArgs, useWine } = launchInfo;
+  const args = typeof gameArgs === 'string' ? [gameArgs] : gameArgs;
+  switch (process.platform) {
+    case 'win32':
+      return `"${gamePath}" ${args.join(' ')}`;
+    case 'darwin':
+    case 'linux':
+      if (useWine) {
+        return `wine start /wait /unix "${gamePath}" ${args.join(' ')}`;
+      }
+      return `"${gamePath}" ${args.join(' ')}`;
+    default:
+      throw Error('Unsupported platform');
   }
 }
 
@@ -538,6 +457,16 @@ function splitQuotes(str: string): string[] {
   return splits;
 }
 
+export async function doGameDataParams(state: BackState, gameData: GameData, changeServer: (state: BackState, server?: string) => Promise<void>) {
+  return handleGameDataParams({
+    fpPath: state.config.flashpointPath,
+    htdocsPath: state.preferences.htdocsFolderPath,
+    dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+    sevenZipPath: state.sevenZipPath,
+    changeServer: (server?: string) => changeServer(state, server),
+  } as any as LaunchBaseOpts, undefined, gameData);
+}
+
 async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: string, gameData?: GameData) {
   if (gameData) {
     const mountParams = minimist(gameData.parameters?.split(' ') ?? []);
@@ -616,7 +545,7 @@ export async function checkAndInstallPlatform(platforms: Platform[], state: Back
         message: 'Downloading Required Components...',
         buttons: []
       };
-      const dialogId = await createNewDialog(state, template);
+      const dialogId = createNewDialog(state, template);
       // Run process to download components
       await new Promise<void>((resolve, reject) => {
         const cwd = path.join(state.config.flashpointPath, 'Manager');
@@ -646,4 +575,39 @@ export async function checkAndInstallPlatform(platforms: Platform[], state: Back
       });
     }
   }
+}
+
+/**
+ * Get an object containing the environment variables to use for the game / additional application.
+ *
+ * @param fpPath Path to Flashpoint Data Folder
+ * @param proxy HTTP_PROXY environmental variable to add to env (For Linux / Mac)
+ * @param path Override PATH environmental variable
+ */
+export function getContentEnvironment(fpPath: string, proxy: string, platform: NodeJS.Platform, inherit?: boolean, path?: string): NodeJS.ProcessEnv {
+  let newEnvVars: NodeJS.ProcessEnv = { 'FP_PATH': fpPath, 'PATH': path ?? process.env.PATH };
+  // On Linux, we tell native applications to use Flashpoint's proxy using the HTTP_PROXY env var
+  // On Windows, executables are patched to load the FlashpointProxy library
+  // On Linux/Mac, WINE obeys the HTTP_PROXY env var so we can run unpatched Windows executables
+  if (platform === 'linux' || platform === 'darwin') {
+    // Add proxy env vars and prevent WINE from flooding the logs with debug messages
+    newEnvVars = {
+      ...newEnvVars, 'WINEDEBUG': 'fixme-all',
+      ...(proxy !== '' ? { 'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/` } : null)
+    };
+    // If WINE's bin directory exists in FPSoftware, add it to the PATH
+    if (inherit && fs.existsSync(`${fpPath}/FPSoftware/Wine/bin`)) {
+      newEnvVars = {
+        ...newEnvVars, 'PATH': `${fpPath}/FPSoftware/Wine/bin:` + process.env.PATH
+      };
+    }
+  }
+  if (inherit) {
+    return {
+      // Copy this processes environment variables
+      ...process.env,
+      ...newEnvVars
+    };
+  }
+  return newEnvVars;
 }

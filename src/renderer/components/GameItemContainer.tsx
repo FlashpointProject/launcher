@@ -1,3 +1,4 @@
+import { findGameDragEventDataGrid, findGameDragEventDataList } from '@renderer/Util';
 import * as React from 'react';
 import { GameDragEventData } from './pages/BrowsePage';
 
@@ -6,10 +7,12 @@ type HTMLDivProps = React.HTMLAttributes<HTMLDivElement>;
 
 export type GameItemContainerProps = HTMLDivProps & {
   /** Reference to the underlying DIV element. */
-  realRef?: JSX.IntrinsicElements['div']['ref'];
-  onGameSelect?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined) => void;
-  onGameLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
-  onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string, logoPath: string, screenshotPath: string) => void;
+  realRef?: React.JSX.IntrinsicElements['div']['ref'];
+  onContentSelect?:   (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  onContentDeselect?: (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  onContentLaunch?:   (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  selectedGameId?:    string;
+  onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, sourceId: string, gameId: string, logoPath: string, screenshotPath: string) => void;
   onGameDragStart?:   (event: React.DragEvent<HTMLDivElement>,  dragEventData: GameDragEventData) => void;
   onGameDragEnd?:     (event: React.DragEvent<HTMLDivElement>) => void;
   onGameDrop?:        (event: React.DragEvent) => void;
@@ -20,7 +23,7 @@ export type GameItemContainerProps = HTMLDivProps & {
    * @param element Element or sub-element of a game.
    * @returns The game's ID (or undefined if no game was found).
    */
-  findGameDragEventData: (element: EventTarget) => GameDragEventData | undefined;
+  type: 'grid' | 'list';
   // TODO: Check if needed for removal
   // Override functions for the...overrides?
   onClick?:       (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -28,92 +31,125 @@ export type GameItemContainerProps = HTMLDivProps & {
   onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void;
   onDragStart?:   (event: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?:     (event: React.DragEvent<HTMLDivElement>) => void;
+  // If given, will handle selection and deselection within the view itself
+  children:       React.ReactNode;
 };
 
 /**
  * A DIV element with additional props that listens for "game item" events that bubbles up.
  * This is more efficient than listening for events on each "game item" individually.
  */
-export class GameItemContainer extends React.Component<GameItemContainerProps> {
-  render() {
-    return (
-      <div
-        { ...filterDivProps(this.props) }
-        ref={this.props.realRef}
-        onClick={this.onClick}
-        onDoubleClick={this.onDoubleClick}
-        onContextMenu={this.onContextMenu}
-        onDragStart={this.onDragStart}
-        onDragEnd={this.onDragEnd}
-        onDrop={this.onDrop}
-        onDragOver={this.onDragOver}>
-        {this.props.children}
-      </div>
-    );
-  }
 
-  onDrop = (event: React.DragEvent) => {
-    if (this.props.onGameDrop) {
-      this.props.onGameDrop(event);
+export function GameItemContainer(props: GameItemContainerProps) {
+  const { realRef, children, type, selectedGameId } = props;
+  const findGameDragEventData = type === 'grid' ? findGameDragEventDataGrid : findGameDragEventDataList;
+  const lastClickTimeRef = React.useRef(0);
+  const clickTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const onDrop = (event: React.DragEvent) => {
+    if (props.onGameDrop) {
+      props.onGameDrop(event);
     }
   };
 
-  onDragOver = (event: React.DragEvent) => {
-    if (this.props.onGameDragOver) {
-      this.props.onGameDragOver(event);
+  const onDragOver = (event: React.DragEvent) => {
+    if (props.onGameDragOver) {
+      props.onGameDragOver(event);
     }
   };
 
-  onClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onClick) { this.props.onClick(event); }
-    if (this.props.onGameSelect) {
-      this.props.onGameSelect(event, this.findGameDragEventData(event.target)?.gameId);
+  const onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const now = Date.now();
+    const timeSinceLastClick = now - lastClickTimeRef.current;
+
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+
+    if (props.onClick) { props.onClick(event); }
+
+    const id = findGameDragEventData(event.target)?.gameId;
+    if (id && id !== selectedGameId && props.onContentSelect) {
+      props.onContentSelect(event, id);
+    }
+
+    // Allow double click 300ms to cancel a deselection
+    clickTimerRef.current = setTimeout(() => {
+      console.log('deselect timeout');
+      // Check if it's been 500ms since last click, if so, deselect
+      if (id && id === selectedGameId && props.onContentDeselect) {
+        console.log('DESELECT');
+        if (timeSinceLastClick >= 500) {
+          props.onContentDeselect(event, id);
+        }
+      }
+    }, 300);
+
+    lastClickTimeRef.current = now;
+  };
+
+  const onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent onDeselect from firing
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+
+    if (props.onDoubleClick) { props.onDoubleClick(event); }
+    if (props.onContentLaunch) {
+      const gameId = findGameDragEventData(event.target)?.gameId;
+      if (gameId !== undefined) { props.onContentLaunch(event, gameId); }
     }
   };
 
-  onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onDoubleClick) { this.props.onDoubleClick(event); }
-    if (this.props.onGameLaunch) {
-      const gameId = this.findGameDragEventData(event.target)?.gameId;
-      if (gameId !== undefined) { this.props.onGameLaunch(event, gameId); }
+  const onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (props.onContextMenu) { props.onContextMenu(event); }
+    if (props.onGameContextMenu) {
+      const dragData = findGameDragEventData(event.target);
+      if (dragData?.gameId !== undefined) { props.onGameContextMenu(event, dragData?.sourceId, dragData?.gameId, dragData?.logoPath, dragData?.screenshotPath); }
     }
   };
 
-  onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onContextMenu) { this.props.onContextMenu(event); }
-    if (this.props.onGameContextMenu) {
-      const dragData = this.findGameDragEventData(event.target);
-      if (dragData?.gameId !== undefined) { this.props.onGameContextMenu(event, dragData?.gameId, dragData?.logoPath, dragData?.screenshotPath); }
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
+    if (props.onDragStart) { props.onDragStart(event); }
+    if (props.onGameDragStart) {
+      const data = findGameDragEventData(event.target);
+      if (data !== undefined) { props.onGameDragStart(event, data); }
     }
   };
 
-  onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
-    if (this.props.onDragStart) { this.props.onDragStart(event); }
-    if (this.props.onGameDragStart) {
-      const data = this.findGameDragEventData(event.target);
-      if (data !== undefined) { this.props.onGameDragStart(event, data); }
+  const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+    if (props.onDragEnd) { props.onDragEnd(event); }
+    if (props.onGameDragEnd) {
+      props.onGameDragEnd(event);
     }
   };
 
-  onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
-    if (this.props.onDragEnd) { this.props.onDragEnd(event); }
-    if (this.props.onGameDragEnd) {
-      this.props.onGameDragEnd(event);
-    }
-  };
-
-  findGameDragEventData(target: EventTarget): GameDragEventData | undefined {
-    return this.props.findGameDragEventData(target);
-  }
+  return (
+    <div
+      { ...filterDivProps(props) }
+      ref={realRef}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDrop={onDrop}
+      onDragOver={onDragOver}>
+      {children}
+    </div>
+  );
 }
 
 // Create a shallow copy of the props object, but without all non-div element props.
-function filterDivProps(props: GameItemContainerProps): JSX.IntrinsicElements['div'] {
+function filterDivProps(props: GameItemContainerProps): React.JSX.IntrinsicElements['div'] {
   const rest: HTMLDivProps & {
     // These need to be explicitly specified: the compiler doesn't infer them correctly.
     realRef?: any;
-    onGameSelect?: any;
-    onGameLaunch?: any;
+    selectedGameId?: string;
+    onContentSelect?: any;
+    onContentDeselect?: any;
+    onContentLaunch?: any;
     onGameContextMenu?: any;
     onGameDragStart?: any;
     onGameDragEnd?: any;
@@ -123,8 +159,10 @@ function filterDivProps(props: GameItemContainerProps): JSX.IntrinsicElements['d
     findGameId?: any;
   } = Object.assign({}, props);
   delete rest.realRef;
-  delete rest.onGameSelect;
-  delete rest.onGameLaunch;
+  delete rest.selectedGameId;
+  delete rest.onContentSelect;
+  delete rest.onContentDeselect;
+  delete rest.onContentLaunch;
   delete rest.onGameContextMenu;
   delete rest.onGameDragStart;
   delete rest.onGameDragEnd;

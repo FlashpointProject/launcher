@@ -1,141 +1,28 @@
+import { axios } from '@back/dns';
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { genContentTree } from '@back/rust';
 import { BackState } from '@back/types';
-import { serveFile } from '@back/util/FileServer';
 import { uuid } from '@back/util/uuid';
 import { fixSlashes } from '@shared/Util';
 import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
-import { AddAppCuration, CurationFpfssInfo, CurationState, CurationWarnings, LoadedCuration } from 'flashpoint-launcher';
+import { getGameDataFilename } from '@shared/utils/misc';
+import { AddAppCuration, CurationState, CurationWarnings, LangContainer, LoadedCuration } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as http from 'http';
-import { Progress } from 'node-7z';
-import * as path from 'path';
+import * as path from 'node:path';
 import { checkAndDownloadGameData, extractFullPromise, fpDatabase } from '..';
+import { getCurationFpfssInfo } from './fpfss';
 import { loadCurationIndexImage } from './parse';
 import { readCurationMeta } from './read';
 import { saveCuration } from './write';
-import { getCurationFpfssInfo } from './fpfss';
-import { axios } from '@back/dns';
-
-const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
 export type GetCurationFileFunc = (folder: string, relativePath: string) => string;
 
 export type UpdateCurationFileFunc = (folder: string, relativePath: string, data: Buffer) => Promise<void>;
 
 export type RemoveCurationFileFunc = (folder: string, relativePath: string) => Promise<void>;
-
-export const onFileServerRequestPostCuration =
-  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, fpfssInfo: CurationFpfssInfo | null, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
-    if (req.method === 'POST') {
-      const chunks: any[] = [];
-      req.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
-      req.on('error', (error) => {
-        log.error('Curate', `Failure in request! ${error.toString()}`);
-        res.writeHead(500);
-        res.end();
-      });
-      req.on('end', async () => {
-        const data = Buffer.concat(chunks);
-        const randomFilePath = path.join(tempCurationsPath, `${uuid()}.7z`);
-        await fs.promises.mkdir(path.dirname(randomFilePath), { recursive: true });
-        await fs.promises.writeFile(randomFilePath, data);
-        await onNewCuration(randomFilePath, null)
-        .then(() => {
-          res.writeHead(200);
-          res.end();
-        })
-        .catch((error) => {
-          log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
-          res.writeHead(500);
-          res.end();
-        })
-        .finally(() => {
-          fs.promises.unlink(randomFilePath);
-        });
-      });
-    } else {
-      res.writeHead(400);
-      res.end();
-    }
-  };
-
-export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetCurationFileFunc, onUpdateCurationFile: UpdateCurationFileFunc, onRemoveCurationFile: RemoveCurationFileFunc) =>
-  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => {
-    const splitPath = pathname.split('/');
-    // Find theme associated with the path (/curation/<folder>/<relativePath>)
-    const folder = splitPath.length > 0 ? splitPath[0] : '';
-    const relativePath = fixSlashes(splitPath.length > 1 ? splitPath.slice(1).join('/') : '');
-
-    // Make sure we're in the content folder
-    if (whitelistedBaseFiles.includes(relativePath) || relativePath.startsWith('content/')) {
-      switch (req.method) {
-        case 'DELETE': {
-          onRemoveCurationFile(folder, relativePath)
-          .then(() => {
-            res.writeHead(200);
-            res.end();
-          })
-          .catch(() => {
-            res.writeHead(500);
-            res.end();
-          });
-          break;
-        }
-        case 'POST':
-        case 'PUT': {
-          const chunks: any[] = [];
-          req.on('data', (chunk) => {
-            chunks.push(chunk);
-          });
-          req.on('end', async () => {
-            const data = Buffer.concat(chunks);
-            await onUpdateCurationFile(folder, relativePath, data);
-            res.writeHead(200);
-            res.end();
-          });
-          break;
-        }
-        case 'GET':
-        default: {
-          const filePath = getCurationFilePath(folder, relativePath);
-          try {
-            const stat = await fs.promises.stat(filePath);
-            if (stat.isDirectory()) {
-              // Return file list as json
-              const folderIndex = await fs.promises.readdir(filePath, { withFileTypes: true });
-              res.write(JSON.stringify({
-                type: 'folderIndex',
-                files: folderIndex.filter(dirent => dirent.isFile()).map(d => d.name),
-                folders: folderIndex.filter(dirent => dirent.isDirectory()).map(d => d.name)
-              }));
-              res.end();
-            } else if (stat.isFile()) {
-              serveFile(req, res, filePath);
-            }
-          } catch (err: any) {
-            if (err.code === 'ENOENT') {
-              res.writeHead(404);
-            } else {
-              res.writeHead(500);
-              log.error('Launcher', `Error stating curation file of ${folder} - ${relativePath}\n${err}`);
-            }
-            res.end();
-          }
-          break;
-        }
-      }
-    } else {
-      res.writeHead(403);
-      res.end();
-    }
-  };
 
 export async function genCurationWarnings(curation: LoadedCuration, fpPath: string, suggestions: GamePropSuggestions, strings: LangContainer['curate'], onWillGenCurationWarnings: ApiEmitter<{ curation: LoadedCuration, warnings: CurationWarnings }>): Promise<CurationWarnings> {
   const warns: CurationWarnings = {
@@ -203,7 +90,7 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
       case 'ilc_nonExistant':
         return 'launchCommand';
       case 'ilc_notHttp':
-          return 'launchCommand';
+        return 'launchCommand';
       default:
         return s;
     }
@@ -221,35 +108,35 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
 }
 
 function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string): string[] {
-	// Keep list of warns for end
-	const warns: string[] = [];
-	// Extract first string from launch command via regex
-	const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
-	if (match) {
-	  // Match 1 - Inside quotes, Match 0 - No Quotes Found
-	  let lc = match[1] || match[0];
-	  // Extract protocol from potential URL
-	  const protocol = lc.match(/(.+?):\/\//);
-	  if (protocol) {
-		// Protocol found, must be URL
-		if (protocol[1] !== 'http') {
-		  // Not using HTTP
-		  warns.push('ilc_notHttp');
-		}
-		const ending = lc.split('/').pop();
-		// If the string ends in file, cut off parameters
-		if (ending && ending.includes('.')) {
-		  lc = lc.split('?')[0];
-		}
-		const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
-		// Push a game to the list if its launch command file is missing
-		if (!fs.existsSync(filePath)) {
-		  warns.push('ilc_nonExistant');
-		}
-	  }
-	}
-	return warns;
+  // Keep list of warns for end
+  const warns: string[] = [];
+  // Extract first string from launch command via regex
+  const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+  if (match) {
+    // Match 1 - Inside quotes, Match 0 - No Quotes Found
+    let lc = match[1] || match[0];
+    // Extract protocol from potential URL
+    const protocol = lc.match(/(.+?):\/\//);
+    if (protocol) {
+      // Protocol found, must be URL
+      if (protocol[1] !== 'http') {
+        // Not using HTTP
+        warns.push('ilc_notHttp');
+      }
+      const ending = lc.split('/').pop();
+      // If the string ends in file, cut off parameters
+      if (ending && ending.includes('.')) {
+        lc = lc.split('?')[0];
+      }
+      const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
+      // Push a game to the list if its launch command file is missing
+      if (!fs.existsSync(filePath)) {
+        warns.push('ilc_nonExistant');
+      }
+    }
   }
+  return warns;
+}
 
 export async function loadCurationFolder(rootPath: string, folderName: string, state: BackState) {
   const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.platformAppPaths);
@@ -267,19 +154,13 @@ export async function loadCurationFolder(rootPath: string, folderName: string, s
     const alreadyImported = (await fpDatabase.findGame(loadedCuration.uuid)) !== null;
     const curation: CurationState = {
       ...loadedCuration,
+      contentRequested: false,
       alreadyImported,
       warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
     };
     // Try and load fpfss data
     curation.fpfssInfo = await getCurationFpfssInfo(path.join(rootPath, folderName));
     state.loadedCurations.push(curation);
-    genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
-      const curationIdx = state.loadedCurations.findIndex((c) => c.folder === folderName);
-      if (curationIdx >= 0) {
-        state.loadedCurations[curationIdx].contents = contentTree;
-        state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folderName, contentTree);
-      }
-    });
   }
 }
 
@@ -381,9 +262,9 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     if (game.activeDataId) {
       await checkAndDownloadGameData(game.activeDataId);
       const activeData = await fpDatabase.findGameDataById(game.activeDataId);
-      if (activeData && activeData.path && !skipDataPack) {
+      if (activeData && activeData.presentOnDisk && !skipDataPack) {
         // Extract data pack into curation folder
-        const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
+        const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, getGameDataFilename(activeData));
         await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
         // Clean up content.json file from extracted data pack
         await fs.unlink(path.join(curPath, 'content.json'))
@@ -425,21 +306,12 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     };
     const curation: CurationState = {
       ...data,
+      contentRequested: false,
       alreadyImported: true,
       warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
     };
     await saveCuration(curPath, curation);
     state.loadedCurations.push(curation);
-
-    // Let contents update without blocking
-    genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
-    .then((contentTree) => {
-      const idx = state.loadedCurations.findIndex(c => c.folder === folder);
-      if (idx > -1) {
-        state.loadedCurations[idx].contents = contentTree;
-        state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
-      }
-    });
 
     // Send back responses
     state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);

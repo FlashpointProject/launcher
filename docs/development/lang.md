@@ -11,7 +11,7 @@ import { LangContext } from '@renderer/util/lang';
 
 function BoringTextBox() {
   // Load the context
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
 
   // Pretend we're loading by returning `Loading` :^)
   return (

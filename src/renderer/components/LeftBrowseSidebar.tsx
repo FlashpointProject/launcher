@@ -1,26 +1,23 @@
-import { memoizeOne } from '@shared/memoize';
-import { Playlist } from 'flashpoint-launcher';
-import * as React from 'react';
-import { WithPreferencesProps } from '../containers/withPreferences';
-import { LangContext } from '../util/lang';
-import { InputElement } from './InputField';
-import { OpenIcon } from './OpenIcon';
-import { PlaylistItemContent } from './PlaylistContent';
-import { PlaylistItem } from './PlaylistItem';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { gameDragDataType } from '@renderer/Util';
+import { Playlist } from 'flashpoint-launcher';
+import { InputElement } from 'flashpoint-launcher-renderer';
+import * as React from 'react';
+import { OpenIcon } from './OpenIcon';
+import { PlaylistItem } from './PlaylistItem';
 
-type OwnProps = {
+export type LeftBrowseSidebarProps = {
   library: string;
   playlists: Playlist[];
   /** ID of the playlist that is selected (empty string if none). */
-  selectedPlaylistID?: string;
   isEditing: boolean;
   isNewPlaylist: boolean;
-  currentPlaylist?: Playlist;
+  currentPlaylist: Playlist | null;
   playlistIconCache: Record<string, string>;
   onDelete: () => void;
   onSave: () => void;
-  onCreate: () => void;
+  onCreate: (event: React.MouseEvent) => void;
   onImport: () => void;
   onDiscard: () => void;
   onEditClick: () => void;
@@ -39,128 +36,17 @@ type OwnProps = {
   onExportPlaylist: (playlistId: string) => void;
 };
 
-export type LeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
+export function LeftBrowseSidebar(props: LeftBrowseSidebarProps) {
+  const allStrings = useLocalization();
+  const strings = allStrings.browse;
+  const browsePageShowExtreme = useAppSelector((state) => state.preferences.browsePageShowExtreme);
+  const useCustomViews = useAppSelector((state) => state.preferences.useCustomViews);
+  const { onShowAllClick, onDescriptionChange, onExtremeToggle, onKeyDown, onSave, onDiscard,
+    onCreate, onImport, onEditClick, onDelete, onDownloadPlaylistContents, onDuplicatePlaylist,
+    onExportPlaylist, onDrop, onItemClick, onSetIcon, onTitleChange, onAuthorChange, onContextMenu,
+    library, playlists, playlistIconCache, currentPlaylist, isEditing, isNewPlaylist } = props;
 
-/** Sidebar on the left side of BrowsePage. */
-export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
-  static contextType = LangContext;
-  declare context: React.ContextType<typeof LangContext>;
-
-  render() {
-    const allStrings = this.context;
-    const strings = this.context.browse;
-    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, selectedPlaylistID, preferencesData } = this.props;
-    const editingDisabled = false; // Left-over from when "Enable Editing" was required to edit playlists
-    const editingExtremeDisabled = !preferencesData.browsePageShowExtreme;
-    return (
-      <div className='browse-left-sidebar'>
-        <div className='playlist-list'>
-          {/* All games */}
-          <div
-            className='playlist-list-fake-item'
-            onClick={onShowAllClick}>
-            <div className='playlist-list-fake-item__inner'>
-              <OpenIcon icon='eye' />
-            </div>
-            <div className='playlist-list-fake-item__inner'>
-              <p className='playlist-list-fake-item__inner__title'>{this.props.preferencesData.useCustomViews ? strings.allGenericEntries : allStrings.libraries[this.props.library + 'Plural'] || 'All ' + this.props.library}</p>
-            </div>
-          </div>
-          {/* List all playlists */}
-          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, editingDisabled, editingExtremeDisabled, isEditing, isEditingNew, selectedPlaylistID)}
-          {/* Create New Playlist */}
-          { editingDisabled ? undefined : (
-            <div
-              className='playlist-list-fake-item-buttons' >
-              <div className='playlist-list-fake-item'
-                onClick={this.props.onCreate} >
-                <div className='playlist-list-fake-item__inner'>
-                  <OpenIcon icon='plus' />
-                </div>
-                <div className='playlist-list-fake-item__inner'>
-                  <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
-                </div>
-              </div>
-              <div className='playlist-list-fake-item'
-                onClick={this.props.onImport} >
-                <div className='playlist-list-fake-item__inner'>
-                  <OpenIcon icon='file' />
-                </div>
-                <div className='playlist-list-fake-item__inner'>
-                  <p className='playlist-list-fake-item__inner__title'>{strings.importPlaylist}</p>
-                </div>
-              </div>
-            </div>
-          ) }
-        </div>
-      </div>
-    );
-  }
-
-  renderPlaylistsMemo = memoizeOne((
-    playlists: Playlist[],
-    playlistIconCache: Record<string, string>,
-    currentPlaylist: Playlist | undefined,
-    editingDisabled: boolean,
-    editingExtremeDisabled: boolean,
-    isEditing: boolean,
-    isEditingNew: boolean,
-    selectedPlaylistID?: string,
-  ) => {
-    const renderItem = (playlist: Playlist, isNew: boolean): void => {
-      const isSelected = isNew || playlist.id === selectedPlaylistID;
-      const p = (isSelected && currentPlaylist) ? currentPlaylist : playlist;
-      const key = isNew ? '?new' : playlist.id;
-      elements.push(
-        <PlaylistItem
-          key={key}
-          playlist={p}
-          selected={isSelected}
-          editing={isSelected && isEditing}
-          playlistIconCache={playlistIconCache}
-          onDrop={this.props.onDrop}
-          onDragOver={this.onPlaylistItemDragOver}
-          onHeadClick={this.props.onItemClick}
-          onSetIcon={this.props.onSetIcon}
-          onTitleChange={this.props.onTitleChange}
-          onAuthorChange={this.props.onAuthorChange}
-          onKeyDown={this.props.onKeyDown}
-          onContextMenu={this.props.onContextMenu} />
-      );
-      if (isSelected) {
-        elements.push(
-          <PlaylistItemContent
-            key={key + '?content'} // Includes "?" because it's an invalid filename character
-            editingDisabled={editingDisabled}
-            editingExtremeDisabled={editingExtremeDisabled}
-            editing={isSelected && isEditing}
-            playlist={p}
-            onDescriptionChange={this.props.onDescriptionChange}
-            onExtremeToggle={this.props.onExtremeToggle}
-            onKeyDown={this.props.onKeyDown}
-            onSave={this.props.onSave}
-            onDiscard={this.props.onDiscard}
-            onEdit={this.props.onEditClick}
-            onDelete={this.props.onDelete}
-            onDownloadPlaylistContents={this.props.onDownloadPlaylistContents}
-            onDuplicatePlaylist={this.props.onDuplicatePlaylist}
-            onExportPlaylist={this.props.onExportPlaylist} />
-        );
-      }
-    };
-
-    const elements: JSX.Element[] = [];
-    for (let i = 0; i < playlists.length; i++) {
-      renderItem(playlists[i], false);
-    }
-    if (isEditingNew) {
-      if (!this.props.currentPlaylist) { throw new Error('Failed to render new playlist. Playlist state is missing.'); }
-      renderItem(this.props.currentPlaylist, true);
-    }
-    return elements;
-  });
-
-  onPlaylistItemDragOver = (event: React.DragEvent): void => {
+  const onPlaylistItemDragOver = (event: React.DragEvent): void => {
     const types = event.dataTransfer.types;
     if (types.length === 1 && types[0] === gameDragDataType) {
       // Show the "You can drop here" cursor while dragging something droppable over this element
@@ -168,4 +54,106 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
       event.preventDefault();
     }
   };
+
+  const playlistRows = playlists
+  .filter(p => browsePageShowExtreme || !p.extreme)
+  .map(p => {
+    const isSelected = currentPlaylist?.id === p.id;
+    return (
+      <PlaylistItem
+        key={p.id}
+        playlist={p}
+        selected={isSelected}
+        editing={isSelected && isEditing}
+        playlistIconCache={playlistIconCache}
+        onDrop={onDrop}
+        onDragOver={onPlaylistItemDragOver}
+        onHeadClick={onItemClick}
+        onSetIcon={onSetIcon}
+        onTitleChange={onTitleChange}
+        onAuthorChange={onAuthorChange}
+        onDescriptionChange={onDescriptionChange}
+        onExtremeToggle={onExtremeToggle}
+        onKeyDown={onKeyDown}
+        onSave={onSave}
+        onDiscard={onDiscard}
+        onEdit={onEditClick}
+        onDelete={onDelete}
+        onDownloadPlaylistContents={onDownloadPlaylistContents}
+        onDuplicatePlaylist={onDuplicatePlaylist}
+        onExportPlaylist={onExportPlaylist}
+        onContextMenu={onContextMenu} />
+    );
+  });
+
+  const newPlaylistItem = (isNewPlaylist && currentPlaylist !== null) ? (
+    <>
+      <PlaylistItem
+        key={'new_playlist'}
+        playlist={currentPlaylist}
+        selected={true}
+        editing={isEditing}
+        playlistIconCache={playlistIconCache}
+        onDrop={onDrop}
+        onDragOver={onPlaylistItemDragOver}
+        onHeadClick={onItemClick}
+        onSetIcon={onSetIcon}
+        onTitleChange={onTitleChange}
+        onAuthorChange={onAuthorChange}
+        onDescriptionChange={onDescriptionChange}
+        onExtremeToggle={onExtremeToggle}
+        onKeyDown={onKeyDown}
+        onSave={onSave}
+        onDiscard={onDiscard}
+        onEdit={onEditClick}
+        onDelete={onDelete}
+        onDownloadPlaylistContents={onDownloadPlaylistContents}
+        onDuplicatePlaylist={onDuplicatePlaylist}
+        onExportPlaylist={onExportPlaylist}
+        onContextMenu={onContextMenu} />
+    </>
+  ) : <></>;
+
+  return (
+    <div className='browse-left-sidebar'>
+      <div className='playlist-list'>
+        {/* All games */}
+        <div
+          className='playlist-list-fake-item'
+          onClick={onShowAllClick}>
+          <div className='playlist-list-fake-item__inner'>
+            <OpenIcon icon='eye' />
+          </div>
+          <div className='playlist-list-fake-item__inner'>
+            <p className='playlist-list-fake-item__inner__title'>{useCustomViews ? strings.allGenericEntries : allStrings.libraries[library + 'Plural'] || 'All ' + library}</p>
+          </div>
+        </div>
+        {/* List all playlists */}
+        {playlistRows}
+        {newPlaylistItem}
+        {/* Create New Playlist */}
+        <div
+          className='playlist-list-fake-item-buttons' >
+          <div className='playlist-list-fake-item'
+            onClick={onCreate} >
+            <div className='playlist-list-fake-item__inner'>
+              <OpenIcon icon='plus' />
+            </div>
+            <div className='playlist-list-fake-item__inner'>
+              <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
+            </div>
+          </div>
+          <div className='playlist-list-fake-item'
+            onClick={onImport} >
+            <div className='playlist-list-fake-item__inner'>
+              <OpenIcon icon='file' />
+            </div>
+            <div className='playlist-list-fake-item__inner'>
+              <p className='playlist-list-fake-item__inner__title'>{strings.importPlaylist}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

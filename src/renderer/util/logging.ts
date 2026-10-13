@@ -15,6 +15,7 @@ export function logFactory(logLevel: LogLevel, socketServer: SocketClient<WebSoc
     return {
       source: source,
       content: content,
+      lineCount: content.split('\n').length,
       timestamp: Date.now(),
       logLevel: logLevel
     };

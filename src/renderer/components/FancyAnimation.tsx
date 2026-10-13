@@ -1,15 +1,14 @@
-import { withPreferences, WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { ReactElement } from 'react';
 
-type OwnProps = {
+type FancyAnimationProps = {
   fancyRender: (() => ReactElement) | ReactElement;
   normalRender: (() => ReactElement) | ReactElement;
 };
 
-type FancyAnimationProps = OwnProps & WithPreferencesProps;
-
-function _FancyAnimation(props: FancyAnimationProps) {
-  if (props.preferencesData.fancyAnimations) {
+export function FancyAnimation(props: FancyAnimationProps) {
+  const fancyAnimationsEnabled = useAppSelector(state => state.preferences.fancyAnimations);
+  if (fancyAnimationsEnabled) {
     if (typeof props.fancyRender == 'function') {
       return props.fancyRender();
     } else {
@@ -23,5 +22,3 @@ function _FancyAnimation(props: FancyAnimationProps) {
     }
   }
 }
-
-export const FancyAnimation = withPreferences(_FancyAnimation);

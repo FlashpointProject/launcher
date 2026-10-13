@@ -1,82 +1,80 @@
-import { BackIn } from '@shared/back/types';
-import { LogLevel } from '@shared/Log/interface';
-import { ConnectedRouter } from 'connected-react-router';
-import { createMemoryHistory } from 'history';
-import * as ReactDOM from 'react-dom';
-import * as remote from '@electron/remote';
+import { MDXProvider } from '@mdx-js/react';
+import { MergeComponents } from '@mdx-js/react/lib';
+import { init } from '@module-federation/enhanced/runtime';
+import store from '@renderer/store/store';
+import { InitRendererData } from '@shared/IPC';
+import { BROWSER_ISDEV, getBrowserBackendHost, IS_BROWSER_BACKEND_REMOTE } from '@shared/version';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { ShortcutProvider } from 'react-keybind';
 import { Provider } from 'react-redux';
-import ConnectedApp from './containers/ConnectedApp';
+import { HashRouter } from 'react-router-dom';
+import { App } from './components/app';
+import { AppLoader } from './components/AppLoader';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
-import { CurationContext } from './context/CurationContext';
-import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
-import { logFactory } from './util/logging';
-import { MessageBoxSyncOptions, ipcRenderer } from 'electron';
-import { CustomIPC } from '@shared/interfaces';
-import store, { history } from '@renderer/store/store';
 
 (async () => {
-  // Replace alert function with a dialog
-  globalThis.alert = function(str) {
-    const options: MessageBoxSyncOptions = {
-      type: 'warning',
-      buttons: ['Ok'],
-      defaultId: 0,
-      cancelId:0,
-      detail:str,
-      message: ''
+  init({
+    name: 'host',
+    remotes: [],
+    shared: {
+      react: {
+        version: '19.1.0',
+        scope: 'default',
+        lib: () => React,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: '19.1.0'
+        }
+      },
+      'react-dom': {
+        version: '19.1.0',
+        scope: 'default',
+        lib: () => ReactDOM,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: '19.1.0'
+        }
+      }
+    }
+  });
+
+  const data: InitRendererData = window.electronAPI ?
+    window.electronAPI.getInitData() :
+    {
+      isDev: BROWSER_ISDEV,
+      host: getBrowserBackendHost(),
+      isBackRemote: IS_BROWSER_BACKEND_REMOTE,
     };
-    remote.dialog.showMessageBoxSync(options);
-  };
-  window.log = {
-    trace: logFactory(LogLevel.TRACE, window.Shared.back),
-    debug: logFactory(LogLevel.DEBUG, window.Shared.back),
-    info:  logFactory(LogLevel.INFO,  window.Shared.back),
-    warn:  logFactory(LogLevel.WARN,  window.Shared.back),
-    error: logFactory(LogLevel.ERROR, window.Shared.back)
-  };
-  // Toggle DevTools when CTRL+SHIFT+I is pressed
-  window.addEventListener('keypress', (event) => {
-    if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
-      window.Shared.toggleDevtools();
-      event.preventDefault();
-    }
-  });
-  // Reload window with CTRL+SHIFT+R
-  window.addEventListener('keypress', (event) => {
-    if (event.ctrlKey && event.shiftKey && event.code === 'KeyR') {
-      ipcRenderer.invoke(CustomIPC.RELOAD_WINDOW);
-      event.preventDefault();
-    }
-  });
 
-  // Wait for the preferences and config to initialize
-  await window.Shared.waitUntilInitialized();
+  const container = document.getElementById('root')!;
+  const root = createRoot(container);
 
-  // Start keepalive routine
-  setInterval(async () => {
-    try {
-      await window.Shared.back.request(BackIn.KEEP_ALIVE);
-    } catch {
-      /** Ignore any bad response */
-    }
-  }, 30000);
+  const components: MergeComponents = (cur) => {
+    return {
+      ...cur,
+      a({ href }) {
+        return <a href={href} target='_blank'/>;
+      }
+    };
+  };
 
   // Render the application
-  ReactDOM.render((
+  root.render(
     <Provider store={store}>
-      <ShortcutProvider>
-        <PreferencesContextProvider>
-          <ContextReducerProvider context={CurationContext}>
-            <ContextReducerProvider context={ProgressContext}>
-              <ConnectedRouter history={history}>
-                <ConnectedApp />
-              </ConnectedRouter>
-            </ContextReducerProvider>
-          </ContextReducerProvider>
-        </PreferencesContextProvider>
-      </ShortcutProvider>
+      <HashRouter>
+        <MDXProvider components={components}>
+          <AppLoader data={data}>
+            <ShortcutProvider>
+              <ContextReducerProvider context={ProgressContext}>
+                <App />
+              </ContextReducerProvider>
+            </ShortcutProvider>
+          </AppLoader>
+        </MDXProvider>
+      </HashRouter>
     </Provider>
-  ), document.getElementById('root'));
+  );
 })();

@@ -8,7 +8,7 @@ export const CONFIG_FILENAME = 'config.json';
 export const EXT_CONFIG_FILENAME = 'extConfig.json';
 
 /** Source to use when logging messages regarding services. */
-export const SERVICES_SOURCE = 'Background Services';
+export const SERVICES_SOURCE = 'Services';
 
 /** Wiki page for AV troubleshooting */
 export const WIKI_AV_TROUBLESHOOTING = 'https://flashpointarchive.org/datahub/Troubleshooting_Antivirus_Interference';

@@ -1,10 +1,9 @@
 import { CheckBox } from '@renderer/components/CheckBox';
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
-import { CurationMeta } from '@shared/curate/types';
-import * as React from 'react';
-import { Dispatch } from 'redux';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { editCurationMeta } from '@renderer/store/curate/slice';
+import { CurationMeta } from '@shared/curate/types';
+import { Dispatch } from 'redux';
 
 export type CurateBoxCheckBoxProps = {
   title: string;
@@ -15,7 +14,7 @@ export type CurateBoxCheckBoxProps = {
 }
 
 export function CurateBoxCheckBox(props: CurateBoxCheckBoxProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const onChange = useOnCheckboxToggle(props.property, props.curationFolder, dispatch);
 
   return (
@@ -29,7 +28,7 @@ export function CurateBoxCheckBox(props: CurateBoxCheckBoxProps) {
 }
 
 function useOnCheckboxToggle(property: keyof CurationMeta, folder: string | undefined, dispatch: Dispatch) {
-  return React.useCallback((checked: boolean) => {
+  return (checked: boolean) => {
     if (folder !== undefined) {
       dispatch(editCurationMeta({
         folder,
@@ -37,5 +36,5 @@ function useOnCheckboxToggle(property: keyof CurationMeta, folder: string | unde
         value: checked,
       }));
     }
-  }, [dispatch, folder]);
+  };
 }

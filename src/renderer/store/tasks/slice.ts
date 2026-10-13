@@ -1,26 +1,37 @@
-import { Task } from '@shared/interfaces';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Task } from 'flashpoint-launcher';
+import { TaskState } from 'flashpoint-launcher-renderer';
 
-const initialState: Task[] = [];
+const initialState: TaskState = {
+  tasks: [],
+  taskBarOpen: false
+};
 
 const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {
-    addTask(state: Task[], { payload }: PayloadAction<Task>) {
-      const taskIdx = state.findIndex(t => t.id === payload.id);
+    setTaskBarOpen(state: TaskState, { payload }: PayloadAction<boolean>) {
+      state.taskBarOpen = payload;
+    },
+    addTask(state: TaskState, { payload }: PayloadAction<Task>) {
+      const taskIdx = state.tasks.findIndex(t => t.id === payload.id);
       if (taskIdx > -1) {
         log.error('Launcher', 'Illegal Action: addTask - ID Collision');
         return;
       }
-      state.push(payload);
+      state.tasks.push(payload);
+      // Open task bar for first task
+      if (state.tasks.length === 1) {
+        state.taskBarOpen = true;
+      }
     },
-    setTask(state: Task[], { payload }: PayloadAction<Partial<Task>>) {
+    setTask(state: TaskState, { payload }: PayloadAction<Partial<Task>>) {
       if (payload.id) {
-        const taskIdx = state.findIndex(t => t.id === payload.id);
+        const taskIdx = state.tasks.findIndex(t => t.id === payload.id);
         if (taskIdx > -1) {
-          state[taskIdx] = {
-            ...state[taskIdx],
+          state.tasks[taskIdx] = {
+            ...state.tasks[taskIdx],
             ...payload,
           };
         }
@@ -30,5 +41,5 @@ const tasksSlice = createSlice({
 });
 
 export const { actions: tasksActions } = tasksSlice;
-export const { addTask, setTask } = tasksSlice.actions;
+export const { addTask, setTask, setTaskBarOpen } = tasksSlice.actions;
 export default tasksSlice.reducer;

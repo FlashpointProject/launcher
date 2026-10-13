@@ -291,3 +291,9 @@ However, Applications can also provide `url` or `command` instead. The full deta
 - **type** - Type of this configuration prop's value (string, boolean or object)
 - **enum** - *(Optional)* - Array of enums to use when you want a Select config box instead of an Input config box.
 - **default** - Default value of this configuration prop
+
+# Frontend Extensions
+
+Recommend installing `@reduxjs/toolkit` for type support of dispatch actions and the selector
+
+TODO

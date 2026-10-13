@@ -2,3 +2,6 @@ out
 dist
 node_modules
 *.fplx
+static/*.js
+static/mf*.json
+static/*mf-types*

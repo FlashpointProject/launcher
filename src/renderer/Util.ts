@@ -1,22 +1,21 @@
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
-import { getFileServerURL } from '@shared/Util';
-import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
-import * as fs from 'fs';
-import * as path from 'path';
-import { GameOrderChangeEvent } from './components/GameOrder';
+import { ViewQuery } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
-import { GameDragEventData } from './components/pages/BrowsePage';
+import { getFileServerURL } from '@shared/Util';
+import { getGameDataFilename } from '@shared/utils/misc';
+import _axios from 'axios';
+import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
+import * as path from 'node:path';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
-import { ViewQuery } from '@shared/library/util';
-import { getGameDataFilename } from '@shared/utils/misc';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import _axios from 'axios';
+import { GameOrderChangeEvent } from './components/GameOrder';
+import { GameDragEventData } from './components/pages/BrowsePage';
+import { createErrorDialog } from './dialog';
+import { markGameBusy, unmarkGameBusy } from './store/main/slice';
+import { AppDispatch } from './store/store';
 
 export const gameDragDataType = 'json/game-drag';
-
-/** How much the maximum/minimum game scale will scale the games up/down */
-export const gameScaleSpan = 0.6;
 
 export function easterEgg(search: string) {
   if (search === '\x44\x61\x72\x6b\x4d\x6f\x65') {
@@ -111,10 +110,10 @@ export function getCurationPostURL(): string {
   return `${getFileServerURL()}/curation`;
 }
 
-export function getGameImagePath(logoPath: string): string {
+export function getGameImagePath(logoPath: string, imageFolderPath: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
-    window.Shared.preferences.data.imageFolderPath,
+    imageFolderPath,
     logoPath
   );
 }
@@ -258,7 +257,7 @@ export function toURL(str: string): URL | undefined {
 
 // @TODO Move this to the back process
 export function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
-  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'FPSoftware'), error => resolve(!error)));
+  return window.Shared.back.request(BackIn.IS_FLASHPOINT_PATH_VALID, flashpointPath);
 }
 
 type RebuildQueryOpts = {
@@ -279,6 +278,16 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
     orderBy: opts.order.orderBy,
     orderReverse: opts.order.orderReverse,
   };
+}
+
+export function getViewNameFpfss(urlPath: string) {
+  if (urlPath.startsWith(Paths.FPFSS)) {
+    console.log(urlPath);
+    const pathSegments = urlPath.split('/').filter(v => !!v);
+    const gameId = pathSegments[pathSegments.length - 1];
+    return '!fpfss-' + gameId;
+  }
+  return undefined;
 }
 
 /**
@@ -316,3 +325,51 @@ export const axios = _axios.create({
     'User-Agent': 'Flashpoint Launcher'
   }
 });
+
+export function openUrlInWindow(url: string) {
+  if (window.electronAPI !== undefined) {
+    // Electron
+    window.electronAPI.openExternal(url);
+  } else {
+    // Browser
+    window.open(url, '_blank');
+  }
+}
+
+export function createDataDownloadJson(data: any, name: string) {
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  createDataDownload(blob, name);
+}
+
+export function createDataDownload(blob: Blob, name: string) {
+// Create download URL
+  const url = URL.createObjectURL(blob);
+
+  // Create temporary download link
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+
+  // Cleanup
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function launchGame(dispatch: AppDispatch, gameId: string, owner: string) {
+  log.debug('Launcher', 'Launching Game - ' + gameId);
+  dispatch(markGameBusy(gameId));
+  await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, owner)
+  .catch(createErrorDialog)
+  .finally(() => {
+    dispatch(unmarkGameBusy(gameId));
+  });
+}
+
+export function setExtensionEnabled(extId: string, enabled: boolean) {
+  window.Shared.back.send(BackIn.SET_EXTENSION_ENABLED, extId, enabled);
+}

@@ -1,13 +1,14 @@
 import { BackState, OpenExternalFunc, ShowMessageBoxBroadcastFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
-import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
-import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
+import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_all, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
+import { create_server, server_add_client, server_broadcast, server_broadcast_except, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 import { createNewDialog } from './util/dialog';
-import { VERBOSE } from '.';
+
+const verbose = false;
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -46,7 +47,7 @@ export class SocketServer {
   retryCounter = 0;
 
   /** Underlying WebSocket server. */
-  server?: ws.Server;
+  server?: ws.WebSocketServer;
   /** Chosen host */
   host: string | undefined = undefined;
   /** Port the server is listening on (-1 if not listening). */
@@ -74,7 +75,7 @@ export class SocketServer {
   public async listen(minPort: number, maxPort: number, host: string | undefined): Promise<void> {
     this.host = host;
     const result = await startServer(this.port !== -1 ? this.port : minPort, this.port !== -1 ? this.port : maxPort, host);
-    result.server.on('connection', this.onConnect.bind(this));
+    result.server.on('connection', this.onConnect);
     this.server = result.server;
     this.port = result.port;
     this.retryCounter = 0; // Reset retries on a good connection
@@ -119,7 +120,10 @@ export class SocketServer {
    * @param state Back State
    * @param client Client to open a message box on.
    */
-  public showMessageBoxBack(state: BackState, client: BackClient): ShowMessageBoxFunc {
+  public showMessageBoxBack(state: BackState, client?: BackClient): ShowMessageBoxFunc {
+    if (client === undefined) {
+      client = state.socketServer.lastClient;
+    }
     return (options) => {
       return createNewDialog(state, options, client);
     };
@@ -163,9 +167,16 @@ export class SocketServer {
    *
    * @param client Client to open an external path at.
    */
-  public openExternal(client: BackClient): OpenExternalFunc {
+  public openExternal(client?: BackClient): OpenExternalFunc {
+    if (client === undefined) {
+      client = this.lastClient;
+    }
     return (url, options) => {
-      return this.request(client, BackOut.OPEN_EXTERNAL, url, options);
+      if (client) {
+        return this.request(client, BackOut.OPEN_EXTERNAL, url, options);
+      } else {
+        throw 'No client to send to';
+      }
     };
   }
 
@@ -204,6 +215,10 @@ export class SocketServer {
 
   public unregister(type: BackIn): void {
     api_unregister(this.api, type);
+  }
+
+  public unregisterAll(): void {
+    api_unregister_all(this.api);
   }
 
   public registerAny(callback: AnyCallback<MsgEvent, BackIn>): void {
@@ -267,12 +282,29 @@ export class SocketServer {
     return server_broadcast(this.clients, res.type, ...res.args);
   }
 
+  public async broadcastExcept<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
+    return server_broadcast_except(client,this.clients, res.type, ...res.args);
+  }
+
   // Event Handlers
 
-  protected onConnect(socket: ws): void {
+  onConnect = (socket: ws) => {
     // Read the first message as a "secret key"
     socket.onmessage = (event) => {
-      if (event.data === this.secret) {
+      if (event.data === 'flashpoint-launcher') {
         const client = server_add_client(this.clients);
         client.socket = socket;
 
@@ -283,9 +315,9 @@ export class SocketServer {
         socket.close();
       }
     };
-  }
+  };
 
-  protected async onMessage(event: ws.MessageEvent): Promise<void> {
+  async onMessage(event: ws.MessageEvent): Promise<void> {
     const [parsed_data, parse_error] = parse_message_data(event.data);
 
     if (parse_error) {
@@ -346,7 +378,7 @@ export class SocketServer {
     const start = performance.now();
     const [inc, out] = await api_handle_message(this.api, data, msg_event);
     const end = performance.now();
-    if (VERBOSE.enabled && 'type' in data && data.type !== BackIn.KEEP_ALIVE) {
+    if (verbose && 'type' in data && data.type !== BackIn.KEEP_ALIVE) {
       console.log(`${Math.floor(end - start)}ms - "${BackIn[data.type]}"`);
     }
 
@@ -383,7 +415,7 @@ export class SocketServer {
 
 type StartServerResult = {
   /** WebSocket server (undefined if it failed to listen). */
-  server: ws.Server;
+  server: ws.WebSocketServer;
   /** Port it is listening on (-1 if it failed to listen). */
   port: number;
 }
@@ -398,7 +430,7 @@ type StartServerResult = {
 function startServer(minPort: number, maxPort: number, host: string | undefined): Promise<StartServerResult> {
   return new Promise((resolve, reject) => {
     let port: number = minPort - 1;
-    let server: ws.Server | undefined;
+    let server: ws.WebSocketServer | undefined;
     tryListen();
 
     // --- Functions ---
@@ -409,7 +441,7 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
 
       if (port++ < maxPort) {
-        server = new ws.Server({ host, port });
+        server = new ws.WebSocketServer({ host, port });
         server.on('error', onError);
         server.on('listening', onListening);
       } else {

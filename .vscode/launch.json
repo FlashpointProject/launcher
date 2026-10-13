@@ -2,37 +2,28 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Electron: Main",
+      "name": "Debug Backend (Web)",
       "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "autoAttachChildProcesses": true,
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-      "windows": {
-        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-      },
-      "args" : [
-        "--remote-debugging-port=9223",
-        "."
-      ],
-      "outputCapture": "std"
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"]
     },
     {
-      "name": "Electron: Renderer",
+      "name": "Debug Frontend (Web)",
       "type": "chrome",
-      "request": "attach",
-      "port": 9223,
-      "webRoot": "${workspaceFolder}",
-      "timeout": 30000
+      "request": "launch",
+      "url": "http://localhost:3000/flashpoint/renderer",
+      "webRoot": "${workspaceFolder}/src/renderer"
     }
   ],
   "compounds": [
     {
-        "name": "Electron: All",
-        "configurations": [
-            "Electron: Main",
-            "Electron: Renderer"
-        ]
+      "name": "Debug Full Stack (Web)",
+      "configurations": [
+        "Debug Backend (Web)",
+        "Debug Frontend (Web)"
+      ]
     }
   ]
 }

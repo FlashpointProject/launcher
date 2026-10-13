@@ -1,4 +1,4 @@
-import { BaseSocket, SocketRequestData, SocketResponseData, isErrorResponse, SocketTemplate } from './types';
+import { BaseSocket, isErrorResponse, SocketRequestData, SocketResponseData, SocketTemplate } from './types';
 
 // Base types of generics
 type T_BASE = number
@@ -148,4 +148,22 @@ export function server_broadcast<
   ...args: Parameters<SocketTemplate<T, U>[TYPE]>
 ) {
   server.clients.map(client => server_send(client, type, ...args));
+}
+
+export function server_broadcast_except<
+  T extends T_BASE,
+  U extends U_BASE<T>,
+  SOCKET extends BaseSocket,
+  TYPE extends keyof SocketTemplate<T, U>
+>(
+  ignoredClient: SocketServerClient<T, U, SOCKET>,
+  server: SocketServerData<T, U, SOCKET>,
+  type: TYPE,
+  ...args: Parameters<SocketTemplate<T, U>[TYPE]>
+) {
+  for (const client of server.clients) {
+    if (client.id !== ignoredClient.id) {
+      server_send(client, type, ...args);
+    }
+  }
 }

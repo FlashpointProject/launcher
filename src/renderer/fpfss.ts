@@ -1,14 +1,17 @@
 import { FpfssUser } from '@shared/back/types';
-import * as remote from '@electron/remote';
-import { uuid } from '@shared/utils/uuid';
-import { DialogState } from 'flashpoint-launcher';
-import * as mainActions from '@renderer/store/main/slice';
-import { axios } from './Util';
+import { DialogState, DialogStateTemplate, GameMetadataSource } from 'flashpoint-launcher';
+import { createNewDialog } from './dialog';
+import { cancelDialog } from './store/main/slice';
+import { AppDispatch } from './store/store';
+import { axios, openUrlInWindow } from './Util';
 
-export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
-  const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
+export async function fpfssLogin(dispatch: AppDispatch, source: GameMetadataSource): Promise<FpfssUser> {
   // Get device auth token from FPFSS
-  const tokenUrl = `${fpfssBaseUrl}/auth/device`;
+  const fpfssUrl = source.fpfssUrl;
+  if (!fpfssUrl) {
+    throw 'No fpfss support for this source';
+  }
+  const tokenUrl = `${fpfssUrl}/auth/device`;
   const data = {
     'client_id': 'flashpoint-launcher',
     'scope': 'identity game:read game:edit submission:read submission:read-files index:read',
@@ -28,22 +31,21 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
     'interval': res.data['interval']
   };
 
-  const pollUrl = `${fpfssBaseUrl}/auth/token`;
-  const profileUrl = `${fpfssBaseUrl}/api/profile`;
-  await remote.shell.openExternal(token.verification_uri_complete);
-  remote.clipboard.writeText(token.verification_uri_complete);
+  const pollUrl = `${fpfssUrl}/auth/token`;
+  const profileUrl = `${fpfssUrl}/api/profile`;
+  openUrlInWindow(token.verification_uri_complete);
+  navigator.clipboard.writeText(token.verification_uri_complete);
 
-  const dialog: DialogState = {
+  const dialog: DialogStateTemplate = {
     largeMessage: true,
     message: 'Please login in your browser to continue. If the link does not automatically open in your browser, paste it from your clipboard.',
     buttons: ['Cancel'],
-    id: uuid()
   };
 
-  createDialog(dialog);
+  const dialogId = createNewDialog(dispatch, dialog);
 
   // Start loop until an end state occurs
-  return new Promise<FpfssUser | null>((resolve, reject) => {
+  return new Promise<FpfssUser>((resolve, reject) => {
     const pollData = {
       'device_code': token.device_code,
       'client_id': 'flashpoint-launcher',
@@ -69,7 +71,8 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
               userId: profileRes.data['UserID'],
               avatarUrl: profileRes.data['AvatarURL'],
               roles: profileRes.data['Roles'],
-              accessToken: res.data['access_token']
+              accessToken: res.data['access_token'],
+              sourceId: source.id,
             };
             clearInterval(interval);
             resolve(user);
@@ -87,11 +90,11 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
               break;
             case 'access_denied':
               clearInterval(interval);
-              resolve(null);
+              reject('Access Denied');
               break;
             case 'expired_token':
               clearInterval(interval);
-              resolve(null);
+              reject('Expired Token');
               break;
           }
         }
@@ -103,18 +106,18 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
       });
     }, token.interval * 1000);
     // Listen for dialog response
-    window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+    window.Shared.dialogResEvent.once(dialogId, (d: DialogState, res: number) => {
       clearInterval(interval);
       reject('User Cancelled');
     });
   })
   .finally(() => {
-    cancelDialog(dialog.id);
+    dispatch(cancelDialog(dialogId));
   });
 }
 
 /**
- * 
+ *
  * @param extId The extension ID
  * @returns The consent status for the extension
  */
@@ -122,20 +125,20 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
 export function getFpfssConsentExt(extId: string): boolean | undefined {
   const consentData = localStorage.getItem('fpfss:extension_consent');
   if (!consentData) {
-      return undefined;
+    return undefined;
   }
 
   try {
-      const consentMap = consentData ? JSON.parse(consentData) : {};
-      return consentMap[extId];
+    const consentMap = consentData ? JSON.parse(consentData) : {};
+    return consentMap[extId];
   } catch (error) {
-      console.error('Failed to parse consent data:', error);
-      return undefined;
+    console.error('Failed to parse consent data:', error);
+    return undefined;
   }
 }
 
 /**
-* 
+*
 * @param extId The extension ID
 * @param status The consent status
 */
@@ -156,7 +159,7 @@ export function saveFpfssConsentExt(extId: string, status: boolean): void {
 export function clearFpfssConsentExt(extId: string): void {
   const consentData = localStorage.getItem('fpfss:extension_consent');
   if (!consentData) { return; }
-  
+
   try {
     const consentMap = JSON.parse(consentData);
     delete consentMap[extId];

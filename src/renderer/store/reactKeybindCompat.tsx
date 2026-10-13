@@ -9,5 +9,5 @@ export function withShortcut<Props extends WithShortcutProps>(Component: Compone
   return function WrappedComponent(props: Omit<Props, keyof WithShortcutProps>) {
     const shortcut = useShortcut();
     return <Component {...(props as Props)} shortcut={shortcut} />;
-  }
+  };
 }

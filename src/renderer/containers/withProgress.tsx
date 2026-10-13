@@ -1,6 +1,5 @@
-import * as React from 'react';
-import { useCallback, useMemo } from 'react';
 import { Subtract } from '@shared/interfaces';
+import * as React from 'react';
 
 export type ProgressData = {
   /** Percent done. */
@@ -48,18 +47,17 @@ export function withProgress<T extends WithProgressProps>(Component: React.Compo
     const [secondaryText, setSecondaryText] = React.useState<string | undefined>();
 
     // Increment items, produce new percentDone and state
-    const incItems = useCallback(() => {
+    const incItems = () => {
       setItemCount('increment');
-    }, [setItemCount]);
+    };
 
     // Set progress as done, unless specified as false
-    const setIsDoneCallback = useCallback((isDone = true) => {
+    const setIsDoneCallback = (isDone = true) => {
       setIsDone(isDone);
-    }, [setIsDone]);
+    };
 
     // Reset the progress
-    const newProgress = useCallback((usePercentDone: boolean) => {
-      console.log('NEW');
+    const newProgress = (usePercentDone: boolean) => {
       setItemCount('clear');
       setTotalItems(0);
       setPercentDone(0);
@@ -67,7 +65,7 @@ export function withProgress<T extends WithProgressProps>(Component: React.Compo
       setIsDone(false);
       setText(undefined);
       setSecondaryText(undefined);
-    }, [setTotalItems, setPercentDone, setIsDone, setText, setSecondaryText]);
+    };
 
     React.useEffect(() => {
       if (totalItems > 0) {
@@ -76,22 +74,20 @@ export function withProgress<T extends WithProgressProps>(Component: React.Compo
     }, [itemCount, totalItems]);
 
     // Prop for child component
-    const progressData: ProgressData = useMemo(() => {
-      return {
-        percentDone: percentDone,
-        usePercentDone: usePercentDone,
-        isDone: isDone,
-        text: text,
-        secondaryText: secondaryText,
-        incItems: incItems,
-        setTotalItems: setTotalItems,
-        newProgress: newProgress,
-        setPercentDone: setPercentDone,
-        setIsDone: setIsDoneCallback,
-        setText: setText,
-        setSecondaryText: setSecondaryText
-      };
-    }, [itemCount, totalItems, percentDone, isDone, text, secondaryText]);
+    const progressData: ProgressData = {
+      percentDone: percentDone,
+      usePercentDone: usePercentDone,
+      isDone: isDone,
+      text: text,
+      secondaryText: secondaryText,
+      incItems: incItems,
+      setTotalItems: setTotalItems,
+      newProgress: newProgress,
+      setPercentDone: setPercentDone,
+      setIsDone: setIsDoneCallback,
+      setText: setText,
+      setSecondaryText: setSecondaryText
+    };
 
     return (
       <Component {...props as T}

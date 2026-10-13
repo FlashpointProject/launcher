@@ -15,48 +15,43 @@ export type TagListItemProps = ListRowProps & {
 export function TagListItem(props: TagListItemProps) {
   const { tag, isSelected, index, style } = props;
   // Pick class names
-  const className = React.useMemo(() => {
-    let className = 'tag-list-item';
-    if (index % 2 === 0) { className += ' tag-list-item--even';     }
-    if (isSelected)      { className += ' tag-list-item--selected'; }
-    return className;
-  }, [index, isSelected]);
+  let className = 'tag-list-item';
+  if (index % 2 === 0) { className += ' tag-list-item--even';     }
+  if (isSelected)      { className += ' tag-list-item--selected'; }
+
+  const category = props.tagCategories.find(c => c.name == tag.category);
+  const attributes: any = {};
+  attributes[TagListItem.idAttribute] = tag.id;
+
   // Memoize render
-  return React.useMemo(() => {
-    const category = props.tagCategories.find(c => c.name == tag.category);
-    // Set element attributes
-    const attributes: any = {};
-    attributes[TagListItem.idAttribute] = tag.id;
-    // Render
-    return (
-      <li
-        style={style}
-        className={className}
-        { ...attributes }>
-        <OpenIcon
-          className='tag-list-icon'
-          icon='tag'
-          color={category ? category.color : '#FFFFFF'} />
-        <div className='tag-list-item__right'>
-          <div
-            className='tag-list-item__field tag-list-item__field--name'
-            title={tag.name || 'BROKEN TAG - ID ' + tag.id}>
-            {tag.name || 'BROKEN TAG - ID ' + tag.id}
-          </div>
-          <div
-            className='tag-list-item__field tag-list-item__field--aliases'
-            title={tag.aliases.join('; ')}>
-            {tag.aliases.join('; ')}
-          </div>
-          <div
-            className='tag-list-item__field tag-list-item__field--category'
-            title={category ? category.name : 'NONE'}>
-            {category ? category.name : 'NONE'}
-          </div>
+  return (
+    <li
+      style={style}
+      className={className}
+      { ...attributes }>
+      <OpenIcon
+        className='tag-list-icon'
+        icon='tag'
+        color={category ? category.color : '#FFFFFF'} />
+      <div className='tag-list-item__right'>
+        <div
+          className='tag-list-item__field tag-list-item__field--name'
+          title={tag.name || 'BROKEN TAG - ID ' + tag.id}>
+          {tag.name || 'BROKEN TAG - ID ' + tag.id}
         </div>
-      </li>
-    );
-  }, [style, className, tag]);
+        <div
+          className='tag-list-item__field tag-list-item__field--aliases'
+          title={tag.aliases.join('; ')}>
+          {tag.aliases.join('; ')}
+        </div>
+        <div
+          className='tag-list-item__field tag-list-item__field--category'
+          title={category ? category.name : 'NONE'}>
+          {category ? category.name : 'NONE'}
+        </div>
+      </div>
+    </li>
+  );
 }
 
 export namespace TagListItem {

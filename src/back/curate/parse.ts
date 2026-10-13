@@ -4,11 +4,11 @@ import { AddAppCuration, CurationMeta } from '@shared/curate/types';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { Platform, Tag } from 'flashpoint-launcher';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fpDatabase } from '..';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
-import { fpDatabase } from '..';
 
 const { str } = Coerce;
 
@@ -182,7 +182,6 @@ async function getPlatformsFromStr(platformsStr: string): Promise<Platform[]> {
         platform = await fpDatabase.createPlatform(trimmedName);
       }
       if (platform !== null) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if (platforms.findIndex(t => t.id === platform!.id) === -1) {
           platforms.push(platform);
         }
@@ -210,7 +209,6 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
           tag = await fpDatabase.createTag(trimmedName, category);
         }
         if (tag !== null) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           if (tags.findIndex(t => t.id === tag!.id) === -1) {
             tags.push(tag);
           }

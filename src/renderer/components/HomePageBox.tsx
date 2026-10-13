@@ -1,12 +1,6 @@
 import * as React from 'react';
 import { OpenIcon } from './OpenIcon';
-
-export type HomePageBoxProps = {
-  minimized: boolean;
-  cssKey: string;
-  title: string;
-  onToggleMinimize: () => void;
-}
+import { HomePageBoxProps } from 'flashpoint-launcher-renderer';
 
 export function HomePageBox(props: React.PropsWithChildren<HomePageBoxProps>) {
   return (
