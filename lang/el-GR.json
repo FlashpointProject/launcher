@@ -10,7 +10,7 @@
     "hideExtremeScreenshotsDesc": "Κρύβει τα στιγμιότυπα οθόνης του ακραίου περιεχομένου με ετικέτες, μπορεί να αναιρεθεί με ένα κλικ στο πλαίσιο της εικόνας.",
     "fancyAnimations": "Εντυπωσιακά Κινούμενα Σχέδια",
     "fancyAnimationsDesc": "Ενεργοποίηση εντυπωσιακών κινουμένων σχεδίων στον εκτελεστή.",
-    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButton": "Απόκρυψη Κουμπιού Νέας Εμφάνισης",
     "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Όριο Αναζήτησης",
     "searchLimitDesc": "Περιορισμός του αριθμού των αποτελεσμάτων που επιστρέφονται σε οποιαδήποτε αναζήτηση",
