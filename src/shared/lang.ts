@@ -598,6 +598,7 @@ const langTemplate = {
     'duplicateMetaOnly',
     'duplicateMetaAndImages',
     'copyGameUUID',
+    'copyAdditionalApplicationUUID',
     'exportMetaOnly',
     'exportMetaAndImages',
     'exportMetaEdit',
