@@ -585,7 +585,7 @@
     "duplicateMetaOnly": "创建副本（仅元数据）",
     "duplicateMetaAndImages": "创建副本（元数据与图像）",
     "copyGameUUID": "复制游戏 UUID",
-    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
+    "copyAdditionalApplicationUUID": "复制附加应用 UUID",
     "exportMetaOnly": "导出（仅元数据）",
     "exportMetaAndImages": "导出（元数据与图像）",
     "exportMetaEdit": "导出元数据变更",
