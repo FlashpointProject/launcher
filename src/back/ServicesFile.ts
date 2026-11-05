@@ -23,7 +23,7 @@ export namespace ServicesFile {
    */
   export function readFile(jsonFolder: string, config: AppConfigData, onError?: (error: string) => void): Promise<ServiceFileData> {
     return new Promise((resolve, reject) => {
-      readJsonFile(path.join(jsonFolder, filePath), fileEncoding)
+      readJsonFile(path.join(jsonFolder, filePath), { encoding: fileEncoding })
       .then(json => resolve(parseServiceFileData(json, config, onError)))
       .catch(reject);
     });

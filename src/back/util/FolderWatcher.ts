@@ -122,7 +122,7 @@ export class FolderWatcher extends WrappedEventEmitter {
         });
         // Watch folder for changes
         this._watcher = fs.watch(
-          this._folderPath, { persistent: false },
+          this._folderPath, { persistent: false, encoding: 'utf-8' },
           eventAggregator(this.onWatcherChange.bind(this), { time: 25 })
         );
         fixFsWatcher(this._watcher); // (Fix a bug with node/electron)
@@ -205,20 +205,20 @@ export class FolderWatcher extends WrappedEventEmitter {
    * @param eventType Watcher Event Type
    * @param filename File that was affected
    */
-  protected onWatcherChange(eventType: string, filename: string): void {
+  protected onWatcherChange(eventType: string, filename: string | null): void {
+    if (!filename) { return; }
     // Update filenames array
     if (eventType === 'rename') {
       const index = this._filenames.indexOf(filename);
-      if (index === -1) { // (New file or existing file was renamed to this)
+      if (index === -1) {
         this.addFile(filename);
-      } else { // (Existing file was renamed from this)
+      } else {
         this.removeFile(filename);
       }
-    } else { // (Change)
+    } else {
       this.emit('change', filename, this._pathOffset);
     }
   }
-
   /**
    * Call this when a file has been added to the watched folder.
    *

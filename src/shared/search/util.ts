@@ -21,6 +21,7 @@ export function getDefaultGameSearch(): GameSearch {
       platforms: false,
       gameData: false,
       addApps: false,
+      extData: false,
     },
     limit: 999999999,
     slim: false,
@@ -100,7 +101,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   }
 
-  const exactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+  const exactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: Exclude<keyof FieldFilter, 'ext'>) => {
     const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
     const andToggle = advFilter.andToggles[key as keyof AdvancedFilterAndToggles];
     const val = getWhitelistedKeys(record);
@@ -114,7 +115,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   };
 
-  const nonExactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+  const nonExactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: Exclude<keyof FieldFilter, 'ext'>) => {
     const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
     const andToggle = advFilter.andToggles[key as keyof AdvancedFilterAndToggles];
     const val = getWhitelistedKeys(record);
@@ -137,7 +138,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   };
 
-  const exactBlacklistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+  const exactBlacklistFunc = (key: keyof AdvancedFilter, fieldKey: Exclude<keyof FieldFilter, 'ext'>) => {
     const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
     const val = getBlacklistedKeys(record);
     if (val.length > 0) {
@@ -148,7 +149,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   };
 
-  const nonExactBlacklistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+  const nonExactBlacklistFunc = (key: keyof AdvancedFilter, fieldKey: Exclude<keyof FieldFilter, 'ext'>) => {
     const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
     const val = getBlacklistedKeys(record);
     if (val.length > 0) {

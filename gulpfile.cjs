@@ -5,14 +5,11 @@ const builder = require('electron-builder');
 const tar = require('tar-fs');
 const zlib = require('zlib');
 const { parallel, series } = require('gulp');
-const { installExtensions, buildExtensions, watchExtensions } = require('./gulpfile.extensions');
-const { execute } = require('./gulpfile.util');
+const { installExtensions, buildExtensions, watchExtensions } = require('./gulpfile.extensions.cjs');
+const { execute } = require('./gulpfile.util.cjs');
 const { execSync } = require('child_process');
-const { promisify } = require('util');
 const esbuild = require('esbuild');
-
-// Promisify the pipeline function
-const pipeline = promisify(require('stream').pipeline);
+const { pipeline } = require('stream/promises');
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json', { encoding: 'utf-8' }));
 
@@ -78,11 +75,11 @@ const extraOptions = {
     target: [
       {
         target: 'nsis-web',
-        arch: ['x64', 'ia32'],
+        arch: ['x64'],
       },
       {
         target: '7z',
-        arch: ['x64', 'ia32'],
+        arch: ['x64'],
       },
     ],
     icon: './icons/icon.ico',
@@ -110,7 +107,7 @@ const publishInfo = [
 
 /* - Cross Arch Deps - */
 
-function installCrossDeps(done) {
+async function installCrossDeps() {
   const crossCompiling = (process.env.PACK_ARCH !== undefined && process.env.PACK_ARCH !== process.arch)
     || (process.env.PACK_PLATFORM !== undefined && process.env.PACK_PLATFORM != process.platform);
   // If the flashpoint-archive package has node_modules, it's probably NPM linked
@@ -130,7 +127,6 @@ function installCrossDeps(done) {
         console.log(`Updated: ${file}`);
       }
     }
-    done();
     return;
   }
 
@@ -146,7 +142,6 @@ function installCrossDeps(done) {
   const packageName = Object.keys(fpa.optionalDependencies).find(p => p.includes(`${platform}-${arch}`));
   if (!packageName) {
     console.log('No package found for this platform and arch combination, skipping...');
-    done();
     return;
   }
   // List installed deps for fparchive
@@ -164,7 +159,6 @@ function installCrossDeps(done) {
     const existingInfo = JSON.parse(fs.readFileSync(packageLocation + '/package.json', { encoding: 'utf-8' }));
     if (existingInfo.version === fpa.version) {
       // Already exists, up to date
-      done();
       return;
     } else {
       console.log(`Removed old version (${existingInfo.version})`);
@@ -179,17 +173,14 @@ function installCrossDeps(done) {
   execSync(`npm pack ${packageName}@${fpa.version}`);
   console.log('Unpacking ' + packageFilename);
   // Extract and move all files to new folder
-  extractTarball(packageFilename, './package-extract')
-  .then(() => {
-    fs.removeSync(packageFilename);
-    fs.mkdirSync(`./node_modules/${packageName}`, { recursive: true });
-    for (const file of fs.readdirSync('./package-extract/package/')) {
-      fs.moveSync('./package-extract/package/' + file, packageLocation + '/' + file);
-    }
-    fs.removeSync('./package-extract');
-    console.log(`Installed ${packageName}@${fpa.version}`);
-    done();
-  });
+  await extractTarball(packageFilename, './package-extract');
+  fs.removeSync(packageFilename);
+  fs.mkdirSync(`./node_modules/${packageName}`, { recursive: true });
+  for (const file of fs.readdirSync('./package-extract/package/')) {
+    fs.moveSync('./package-extract/package/' + file, packageLocation + '/' + file);
+  }
+  fs.removeSync('./package-extract');
+  console.log(`Installed ${packageName}@${fpa.version}`);
 }
 
 
@@ -244,13 +235,13 @@ function buildStatic() {
   .pipe(gulp.dest(config.static.dest));
 }
 
-function configVersion(done) {
-  fs.writeFile('.version', config.buildVersion, done);
+async function configVersion() {
+  await fs.writeFile('.version', config.buildVersion);
 }
 
 /* ----- Version ---- */
 
-function createVersionFile(done) {
+async function createVersionFile() {
   // Get the current date
   const currentDate = new Date();
 
@@ -275,28 +266,14 @@ export const FPA_VERSION = '${fpaVersion}';
 `;
 
   // Write to src/shared/version.ts
-  fs.writeFile('src/shared/version.ts', data, (err) => {
-    if (err) {
-      throw `Error writing to version.ts: ${err}`;
-    } else {
-      console.log(`Build ver: "${formattedDate} (${gitCommitHash})"`);
-      done();
-    }
-  });
+  await fs.writeFile('src/shared/version.ts', data);
+  console.log(`Build ver: "${formattedDate} (${gitCommitHash})"`);
 }
 
 /* ------ Pack ------ */
 
 function nexusPack(done) {
   const files = ['./build'];
-  // Forcefully include ia32 library since nexus builds ia32
-  if (process.platform === 'win32') {
-    files.push({
-      from: '../../node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
-      to: './node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
-      filter: ['**/*']
-    });
-  }
   builder
   .build({
     targets: builder.Platform.WINDOWS.createTarget(),
@@ -318,7 +295,7 @@ function nexusPack(done) {
           target: [
             {
               target: 'zip',
-              arch: 'ia32',
+              arch: 'x64',
             }
           ],
           icon: './icons/icon.ico',
@@ -340,7 +317,6 @@ function pack(done) {
   const extraOpts = config.publish ? extraOptions : {};
   builder
   .build({
-    ia32: process.env.PACK_ARCH === 'ia32' || undefined,
     x64: process.env.PACK_ARCH === 'x64' || undefined,
     config: Object.assign(
       {
@@ -384,10 +360,9 @@ function pack(done) {
 
 /* ------ Clean ------ */
 
-function clean(done) {
-  fs.remove('./dist', () => {
-    fs.remove('./build', done);
-  });
+async function clean() {
+  await fs.remove('./dist');
+  await fs.remove('./build');
 }
 
 /* ------ Util ------ */

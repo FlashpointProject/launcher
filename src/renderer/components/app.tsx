@@ -19,7 +19,7 @@ import { debounce } from '@shared/utils/debounce';
 import { newGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { isAxiosError } from 'axios';
-import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
+import { ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
   CurationFpfssInfo,
   DialogState,
@@ -32,6 +32,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import { v4 as uuid } from 'uuid';
 import { ConnectedFooter } from '../containers/ConnectedFooter';
 import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
 import Header from '../containers/HeaderContainer';
@@ -55,7 +56,6 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import uuid = require('uuid');
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
@@ -1198,7 +1198,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.copyShortcutURL,
           enabled: true,
           click: () => {
-            clipboard.writeText(`flashpoint://run/${gameId}`);
+            navigator.clipboard.writeText(`flashpoint://run/${gameId}`);
           }
         },
         {
@@ -1206,7 +1206,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.copyGameUUID,
           enabled: true,
           click: () => {
-            clipboard.writeText(gameId);
+            navigator.clipboard.writeText(gameId);
           }
         },
         {
@@ -1429,7 +1429,7 @@ export class App extends React.Component<AppProps> {
   };
 
   copyCrashLog = () => {
-    clipboard.writeText(this.props.main.mainOutput || '');
+    navigator.clipboard.writeText(this.props.main.mainOutput || '');
   };
 
   render() {
@@ -1469,7 +1469,6 @@ export class App extends React.Component<AppProps> {
       gameLibrary: currentView.id,
       themeList: this.props.main.themeList,
       languages: this.props.main.langList,
-      updateInfo: this.props.main.updateInfo,
       extensions: this.props.main.extensions,
       devScripts: this.props.main.devScripts,
       contextButtons: this.props.main.contextButtons,

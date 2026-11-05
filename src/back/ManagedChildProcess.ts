@@ -84,7 +84,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   /** Get the process ID (or -1 if the process is not running). */
   public getPid(): number {
-    return this.process ? this.process.pid : -1;
+    return this.process?.pid ?? -1;
   }
 
   /** Get the state of the process. */
@@ -155,7 +155,9 @@ export class ManagedChildProcess extends EventEmitter {
   public async kill(): Promise<void> {
     if (this.process) {
       this.setState(ProcessState.KILLING);
-      await this.treeKill(this.process.pid);
+      if (this.process?.pid) {
+        await this.treeKill(this.process.pid);
+      }
     }
   }
 
@@ -174,7 +176,9 @@ export class ManagedChildProcess extends EventEmitter {
         this.spawn();
       });
       // Kill process
-      await this.treeKill(this.process.pid);
+      if (this.process?.pid) {
+        await this.treeKill(this.process.pid);
+      }
       this.process = undefined;
     } else {
       this.spawn();

@@ -20,7 +20,7 @@ export namespace PreferencesFile {
    */
   export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): AppPreferencesData {
     // Try to get the data from the file
-    const data: AppPreferencesData | undefined = readJsonFileSync(filePath, fileEncoding);
+    const data: AppPreferencesData | undefined = readJsonFileSync(filePath, { encoding: fileEncoding });
     if (!data) {
       throw 'Error reading Preferences file!';
     }
@@ -82,7 +82,7 @@ export namespace PreferencesFile {
     } catch (err) {
       log.debug('Launcher', 'Failed to load default prefs override, ignoring: ' + err);
     }
-    const json = await readJsonFile(filePath, fileEncoding);
+    const json = await readJsonFile(filePath, { encoding: fileEncoding });
     return overwritePreferenceData(defaultPrefs, json, onError);
   }
 

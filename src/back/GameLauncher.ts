@@ -2,13 +2,11 @@ import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
 import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
+import { fixSlashes } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as child_process from 'child_process';
-import { ChildProcess } from 'child_process';
-import { EventEmitter } from 'events';
 import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
@@ -404,34 +402,6 @@ export namespace GameLauncher {
       default:
         throw Error('Unsupported platform');
     }
-  }
-
-  function logProcessOutput(proc: ChildProcess): void {
-    // Log for debugging purposes
-    // (might be a bad idea to fill the console with junk?)
-    const logInfo = (event: string, args: any[]): void => {
-      log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
-    };
-    const logErr = (event: string, args: any[]): void => {
-      log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
-    };
-    registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
-    registerEventListeners(proc, ['error'], logErr);
-    if (proc.stdout) { proc.stdout.on('data', (data) => { logInfo('stdout', [data.toString('utf8')]); }); }
-    if (proc.stderr) { proc.stderr.on('data', (data) => { logErr('stderr', [data.toString('utf8')]); });  }
-  }
-}
-
-const stringifyArrayOpts = {
-  trimStrings: true,
-};
-
-function registerEventListeners(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
-  for (let i = 0; i < events.length; i++) {
-    const e: string = events[i];
-    emitter.on(e, (...args: any[]) => {
-      callback(e, args);
-    });
   }
 }
 

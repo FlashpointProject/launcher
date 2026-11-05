@@ -1,3 +1,5 @@
+import { RequestState } from '@renderer/store/search/slice';
+import { Paths } from '@shared/Paths';
 import { ITheme } from '@shared/ThemeFile';
 import { ComponentStatus, FpfssUser, GameOfTheDay } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
@@ -5,14 +7,14 @@ import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
-import { UpdateInfo } from 'electron-updater';
 import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { Paths } from '@shared/Paths';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
+import { DownloadsPage } from './components/pages/Downloads';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
+import { LoadingPage } from './components/pages/LoadingPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
@@ -22,9 +24,6 @@ import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
-import { RequestState } from '@renderer/store/search/slice';
-import { LoadingPage } from './components/pages/LoadingPage';
-import { DownloadsPage } from './components/pages/Downloads';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -56,7 +55,6 @@ export type AppRouterProps = {
   gameLibrary: string;
   themeList: ITheme[];
   languages: LangFile[];
-  updateInfo: UpdateInfo | undefined,
   extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
   contextButtons: ExtensionContribution<'contextButtons'>[],

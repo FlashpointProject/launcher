@@ -8,7 +8,7 @@ import { APP_TITLE } from '@shared/constants';
 import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
-import { BrowserWindow, IpcMainEvent, WebContents, app, dialog, ipcMain, session, shell } from 'electron';
+import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
 import { REACT_DEVELOPER_TOOLS, installExtension } from 'electron-extension-installer';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
@@ -388,7 +388,7 @@ export function main(init: Init): void {
     }
   }
 
-  function onAppWillQuit(event: Event): void {
+  function onAppWillQuit(event: Electron.Event): void {
     if (!init.args['connect-remote'] && !state.isQuitting && state.socket.client.socket) { // (Local back)
       state.socket.send(BackIn.QUIT);
       event.preventDefault();
@@ -398,13 +398,15 @@ export function main(init: Init): void {
   function onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
-    webContents.on('will-navigate', onNewPage);
-    webContents.on('new-window', onNewPage);
-
-    function onNewPage(event: Electron.Event, navigationUrl: string): void {
+    webContents.on('will-navigate', (event, navigationUrl) => {
       event.preventDefault();
       shell.openExternal(navigationUrl);
-    }
+    });
+
+    webContents.setWindowOpenHandler(({ url }) => {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    });
   }
 
   function onAppActivate(): void {
@@ -501,11 +503,11 @@ export function main(init: Init): void {
       window.maximize();
     }
     // Relay window's maximize/unmaximize events to the renderer (as a single event with a flag)
-    window.on('maximize', (event: BrowserWindowEvent) => {
-      event.sender.send(WindowIPC.WINDOW_MAXIMIZE, true);
+    window.on('maximize', () => {
+      window.webContents.send(WindowIPC.WINDOW_MAXIMIZE, true);
     });
-    window.on('unmaximize', (event: BrowserWindowEvent) => {
-      event.sender.send(WindowIPC.WINDOW_MAXIMIZE, false);
+    window.on('unmaximize', () => {
+      window.webContents.send(WindowIPC.WINDOW_MAXIMIZE, false);
     });
     // Replay window's move event to the renderer
     window.on('move', () => {
@@ -605,13 +607,4 @@ export function main(init: Init): void {
   }
 
   function noop() { /* Do nothing. */ }
-}
-
-/**
- * Type of the event emitted by BrowserWindow for the "maximize" and "unmaximize" events.
- * This type is not defined by Electron, so I guess I have to do it here instead.
- */
-type BrowserWindowEvent = {
-  preventDefault: () => void;
-  sender: WebContents;
 }

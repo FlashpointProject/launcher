@@ -64,6 +64,7 @@ import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
+import { Downloader } from './Downloader';
 import { ExtConfigFile } from './ExtConfigFile';
 import { escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
@@ -79,6 +80,7 @@ import {
   refreshCurationContent
 } from './curate/util';
 import { saveCuration } from './curate/write';
+import { axios } from './dns';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
@@ -121,8 +123,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { axios } from './dns';
-import { Downloader } from './Downloader';
 
 /**
  * Register all request callbacks to the socket server.
@@ -221,7 +221,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Fetch GOTD file
     const gotdUrl = state.config.gotdUrl;
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
-    const gotdDownload = new Promise((resolve, reject) => {
+    const gotdDownload = new Promise<void>((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
       console.log('downloading gotd');
       axios.get(gotdUrl, { responseType: 'stream' })
@@ -1131,7 +1131,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (gameData) {
       await downloadGameDataRes(state, gameData)
       .catch((err) => {
-        throw 'Failed to download';
+        throw `Failed to download: ${err}`;
       });
     } else {
       log.error('Launcher', `Game Data not found (ID=${gameDataId})`);

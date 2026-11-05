@@ -1,8 +1,8 @@
-import * as path from 'path';
 import { ExecMapping } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
+import * as path from 'path';
 
 const { str } = Coerce;
 
@@ -22,7 +22,7 @@ const filePath = 'execs.json';
  */
 export function loadExecMappingsFile(jsonFolder: string, onError?: (error: string) => void): Promise<ExecMapping[]> {
   return new Promise((resolve, reject) => {
-    readJsonFile(path.join(jsonFolder, filePath), 'utf8')
+    readJsonFile(path.join(jsonFolder, filePath), { encoding: 'utf8' })
     .then((json) => { resolve(parseExecMappingsFile(json, onError).execs); })
     .catch(reject);
   });

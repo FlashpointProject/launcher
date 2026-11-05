@@ -1,4 +1,4 @@
-import * as fastXmlParser from 'fast-xml-parser';
+import { XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -21,6 +21,17 @@ type Legacy_GamePlatformPath = {
   path: string;
   library: string;
 }
+
+const xmlParser = new XMLParser({
+  ignoreAttributes: true,
+  parseAttributeValue: false,
+  parseTagValue: true,
+  removeNSPrefix: true,
+  numberParseOptions: {
+    hex: false,
+    leadingZeros: false
+  }
+});
 
 export class Legacy_PlatformFileIterator {
   platformsPath: string;
@@ -75,14 +86,7 @@ export class Legacy_PlatformFileIterator {
         this.done = true;
       }
       const content = await readFile(platformInfo.path);
-      const data: any | undefined = fastXmlParser.parse(content.toString(), {
-        ignoreAttributes: true,
-        ignoreNameSpace: true,
-        parseNodeValue: true,
-        parseAttributeValue: false,
-        parseTrueNumberOnly: true,
-        // @TODO Look into which settings are most appropriate
-      });
+      const data: any | undefined = xmlParser.parse(content.toString());
       if (!LaunchBox.formatPlatformFileData(data)) { throw new Error(`Failed to parse XML file: ${platformInfo.path}`); }
 
       const gamePlatform: Legacy_GamePlatform = {
@@ -155,14 +159,7 @@ export namespace Legacy_GameManager {
     await Promise.all(platforms.map(async (platform) => {
       try {
         const content = await readFile(platform.filePath);
-        const data: any | undefined = fastXmlParser.parse(content.toString(), {
-          ignoreAttributes: true,
-          ignoreNameSpace: true,
-          parseNodeValue: true,
-          parseAttributeValue: false,
-          parseTrueNumberOnly: true,
-          // @TODO Look into which settings are most appropriate
-        });
+        const data: any | undefined = xmlParser.parse(content.toString());
         if (!LaunchBox.formatPlatformFileData(data)) { throw new Error(`Failed to parse XML file: ${platform.filePath}`); }
 
         // Populate platform

@@ -21,7 +21,7 @@ import {
 } from '@back/util/misc';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { BackOut, FpfssUser } from '@shared/back/types';
+import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
@@ -36,12 +36,12 @@ import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
+import * as stream from 'stream';
+import { v4 as uuid } from 'uuid';
 import { fpDatabase, loadCurationArchive } from '..';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
-import * as uuid from 'uuid';
-import * as stream from 'stream';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception

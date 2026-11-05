@@ -1,3 +1,7 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { BackIn } from '@shared/back/types';
+import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { updatePreferencesData } from '@shared/preferences/util';
 import {
   AddAppCurationMeta,
   ContentTree,
@@ -7,11 +11,7 @@ import {
   Platform,
   Tag
 } from 'flashpoint-launcher';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BackIn } from '@shared/back/types';
-import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
-import uuid = require('uuid');
-import { updatePreferencesData } from '@shared/preferences/util';
+import { v4 as uuid } from 'uuid';
 
 export type CurateGroup = {
   name: string;

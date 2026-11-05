@@ -1,8 +1,8 @@
-import { FpfssUser } from '@shared/back/types';
 import * as remote from '@electron/remote';
+import * as mainActions from '@renderer/store/main/slice';
+import { FpfssUser } from '@shared/back/types';
 import { uuid } from '@shared/utils/uuid';
 import { DialogState } from 'flashpoint-launcher';
-import * as mainActions from '@renderer/store/main/slice';
 import { axios } from './Util';
 
 export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
@@ -31,7 +31,7 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   const pollUrl = `${fpfssBaseUrl}/auth/token`;
   const profileUrl = `${fpfssBaseUrl}/api/profile`;
   await remote.shell.openExternal(token.verification_uri_complete);
-  remote.clipboard.writeText(token.verification_uri_complete);
+  navigator.clipboard.writeText(token.verification_uri_complete);
 
   const dialog: DialogState = {
     largeMessage: true,

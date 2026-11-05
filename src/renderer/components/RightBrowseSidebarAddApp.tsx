@@ -1,13 +1,13 @@
+import * as remote from '@electron/remote';
 import { LangContainer } from '@shared/lang';
+import { Menu, MenuItemConstructorOptions } from 'electron';
+import { AdditionalApp } from 'flashpoint-launcher';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { AdditionalApp } from 'flashpoint-launcher';
-import * as remote from '@electron/remote';
-import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
@@ -139,7 +139,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     const template: MenuItemConstructorOptions[] = [
       {
         label: this.context.menu.copyAdditionalApplicationUUID,
-        click: () => { clipboard.writeText(this.props.addApp.id); },
+        click: () => { navigator.clipboard.writeText(this.props.addApp.id); },
         enabled: true
       }
     ];

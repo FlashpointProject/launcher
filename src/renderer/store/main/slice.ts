@@ -10,7 +10,6 @@ import { createLangContainer, LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import * as axiosImport from 'axios';
 import { ipcRenderer } from 'electron';
-import { UpdateInfo } from 'electron-updater';
 import { DialogField, DialogState, DownloaderState, DownloaderStatus, DownloadTask, DownloadWorkerState, Game, GameData, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
@@ -86,8 +85,6 @@ export type MainState = {
   lang: LangContainer;
   /** Current list of available language files. */
   langList: LangFile[];
-  /** Info of the update, if one was found */
-  updateInfo: UpdateInfo | undefined;
   /** If the "Meta Edit Popup" is open. */
   metaEditExporterOpen: boolean;
   /** ID of the game used in the "Meta Edit Popup". */
@@ -181,7 +178,6 @@ const initialState: MainState = {
   lang: createLangContainer(),
   langList: [],
   wasNewGameClicked: false,
-  updateInfo: undefined,
   metaEditExporterOpen: false,
   metaEditExporterGameId: '',
   extensions: [],
@@ -218,7 +214,7 @@ const initialState: MainState = {
 export const requestKeyset = createAsyncThunk(
   'search/requestKeyset',
   async (payload: ResolveDialogActionData, { getState, dispatch }) => {
-    
+
     const state = getState() as { main: MainState };
     const dialogIdx = state.main.openDialogs.findIndex(d => d.id === payload.id);
     if (dialogIdx > -1) {

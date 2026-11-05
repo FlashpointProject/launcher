@@ -6,7 +6,7 @@ import * as fs from 'fs';
 export namespace ExtConfigFile {
   export function readFile(filePath: string): Promise<AppExtConfigData> {
     return new Promise((resolve, reject) => {
-      readJsonFile(filePath, 'utf8')
+      readJsonFile(filePath, { encoding: 'utf8' })
       .then(json => resolve(parse(json)))
       .catch(reject);
     });

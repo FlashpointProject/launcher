@@ -1,12 +1,16 @@
 import * as flashpoint from 'flashpoint-launcher';
-import * as path from 'path';
 import * as fs from 'fs';
-import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
-import { AssetFile } from './types';
-import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import * as path from 'path';
 import { RuffleWebEmbedMiddleware } from './middleware/embed';
+import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import { AssetFile } from './types';
+import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
 
 export async function activate(context: flashpoint.ExtensionContext): Promise<void> {
+  // Temporarily disable ext until we can properly do prompts and avoid auto-updates
+  flashpoint.log.info('Ruffle extension is disabled until a future update.');
+  return;
+
   // const registerSub = (d: flashpoint.Disposable) => { flashpoint.registerDisposable(context.subscriptions, d); };
   const baseDataPath = path.resolve(flashpoint.config.flashpointPath, 'Data', 'Ruffle');
   const ruffleWebLatestDir = path.join(baseDataPath, 'webhosted', 'latest');
@@ -21,8 +25,8 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 
   const firstLaunch = !flashpoint.getExtConfigValue('com.ruffle.first-launch-complete');
   if (firstLaunch) {
-    const firstRunDialog = 
-`
+    const firstRunDialog =
+      `
 
 <div style={{ textAlign: 'center', cursor: 'pointer' }} onClick={e => {
     const remote = require('@electron/remote');
@@ -72,16 +76,16 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 
     if (launchInfo.launchInfo.override === 'ruffle') {
       flashpoint.log.info('Using Standalone Ruffle for overriden game...');
-        const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
-        defaultConfig.config.graphics = flashpoint.getExtConfigValue('com.ruffle.graphics-mode');
-        standaloneMiddleware.execute(launchInfo, {
-          middlewareId: '',
-          name: '',
-          enabled: true,
-          version: defaultConfig.version,
-          config: defaultConfig.config,
-        });
-        return;
+      const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
+      defaultConfig.config.graphics = flashpoint.getExtConfigValue('com.ruffle.graphics-mode');
+      standaloneMiddleware.execute(launchInfo, {
+        middlewareId: '',
+        name: '',
+        enabled: true,
+        version: defaultConfig.version,
+        config: defaultConfig.config,
+      });
+      return;
     }
 
     if (supportedEnabled || curation) {
@@ -109,7 +113,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
         return;
       }
     }
-    
+
     if (unsupportedEnabled && !curation) {
       // Get last launch arg to check if swf
       let isFlash = false;
@@ -134,13 +138,13 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
         });
       }
     }
-  }
+  };
 
   flashpoint.games.onWillLaunchCurationGame((l) => handleGameLaunch(l, true));
   flashpoint.games.onWillLaunchGame((l) => handleGameLaunch(l, false));
 
   // Check for Standalone updates
-  const logVoid = () => {};
+  const logVoid = () => { };
   const logDev = (message: string) => {
     flashpoint.log.debug(message);
   };

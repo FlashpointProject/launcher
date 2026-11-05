@@ -70,6 +70,9 @@ export function GameDataInfo(props: GameDataInfoProps) {
                 window.Shared.back.request(BackIn.DOWNLOAD_GAME_DATA, props.data.id)
                 .then(() => {
                   props.update();
+                })
+                .catch((err) => {
+                  alert(err);
                 });
               }}
               value='Download'/>

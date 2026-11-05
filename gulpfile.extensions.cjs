@@ -2,7 +2,7 @@
 
 const glob = require('glob');
 const path = require('path');
-const { execute } = require('./gulpfile.util');
+const { execute } = require('./gulpfile.util.cjs');
 const { parallel } = require('gulp');
 const extensionsPath = path.resolve('extensions');
 const fs = require('fs');

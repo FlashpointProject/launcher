@@ -1,15 +1,13 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { deepCopy } from '@shared/Util';
-import { AdvancedFilter, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
 import {
   ElementPosition
 } from '@fparchive/flashpoint-archive';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { number } from 'zod';
-import { stat } from 'fs';
+import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
+import { deepCopy } from '@shared/Util';
+import { AdvancedFilter, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
 import { RootState } from '../store';
 
 export const GENERAL_VIEW_ID = '!general!';
@@ -72,7 +70,7 @@ type SearchDropdownDataSet = {
   tags: Tag[] | null;
   developers: string[] | null;
   publishers: string[] | null;
-  series: string[]| null;
+  series: string[] | null;
 }
 
 type SearchGridScrollAction = {
@@ -233,11 +231,13 @@ export const requestKeyset = createAsyncThunk(
     if (view && payload.searchId === view.data.searchId) {
       const data = await window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, view.searchFilter);
       // Dispatch an action to handle the keyset data
-      dispatch(addData({ view: payload.view, data: {
-        searchId: payload.searchId,
-        keyset: data.keyset,
-        total: data.total,
-      } }));
+      dispatch(addData({
+        view: payload.view, data: {
+          searchId: payload.searchId,
+          keyset: data.keyset,
+          total: data.total,
+        }
+      }));
     }
   }
 );
@@ -504,12 +504,12 @@ const searchSlice = createSlice({
         const end = start + count;
         for (let i = start; i < end; i++) {
           // Make sure page exists and is waiting
-          if (i > 0 && view.data.pages[i] === RequestState.WAITING && view.data.keyset[i-1]) {
+          if (i > 0 && view.data.pages[i] === RequestState.WAITING && view.data.keyset[i - 1]) {
             // Form the new request
             view.data.pages[i] = RequestState.REQUESTED;
             const searchFilter: SearchQuery = {
               ...view.searchFilter,
-              offset: view.data.keyset[i-1],
+              offset: view.data.keyset[i - 1],
               page: i,
             };
             console.log(`Requested page ${i}`);

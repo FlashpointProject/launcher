@@ -141,13 +141,15 @@ export async function startLogger(init: Init): Promise<void> {
   function onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
-    webContents.on('will-navigate', onNewPage);
-    webContents.on('new-window', onNewPage);
-
-    function onNewPage(event: Electron.Event, navigationUrl: string): void {
+    webContents.on('will-navigate', (event, navigationUrl) => {
       event.preventDefault();
       shell.openExternal(navigationUrl);
-    }
+    });
+
+    webContents.setWindowOpenHandler(({ url }) => {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    });
   }
 
   function onAppActivate(): void {

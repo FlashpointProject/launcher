@@ -1,6 +1,6 @@
 import { GameData, PartialGameData } from '@fparchive/flashpoint-archive';
 import { ArchiveState } from '@shared/back/types';
-import { CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { CURATIONS_FOLDER_TEMP, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { AddAppCuration, CurationMeta } from '@shared/curate/types';
@@ -234,7 +234,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   .then(async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of curationState.contentToMove) {
-      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
+      await fs.copy(pair[0], pair[1], { preserveTimestamps: true });
       // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
     logMessage('Content Copied', curation.folder);

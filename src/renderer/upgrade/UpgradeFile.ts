@@ -1,9 +1,9 @@
-import * as path from 'path';
 import { readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
-import { UpgradeStageState } from '../interfaces';
 import { uuid } from '@shared/utils/uuid';
+import * as path from 'path';
+import { UpgradeStageState } from '../interfaces';
 import { UpgradeStage } from './types';
 
 const { str } = Coerce;
@@ -20,7 +20,7 @@ export namespace UpgradeFile {
    */
   export function readFile(jsonFolder: string, onError?: (error: string) => void): Promise<UpgradeStage[]> {
     return new Promise((resolve, reject) => {
-      readJsonFile(path.join(jsonFolder, filePath), fileEncoding)
+      readJsonFile(path.join(jsonFolder, filePath), { encoding: fileEncoding })
       .then(json => resolve(parseFile(json, onError)))
       .catch(reject);
     });

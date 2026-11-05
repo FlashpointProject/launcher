@@ -1,15 +1,17 @@
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
+import { LangContext } from '@renderer/util/lang';
 import { ArchiveState, BackIn, BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
+import { mapRuffleSupportString } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { AdditionalApp, Game, GameData, GameLaunchOverride, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { Menu, MenuItemConstructorOptions } from 'electron';
+import { AdditionalApp, Game, GameData, GameLaunchOverride, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { axios, getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
@@ -23,9 +25,6 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
-import { LangContext } from '@renderer/util/lang';
-import { mapRuffleSupportString } from '@shared/utils/misc';
-import { Playlist } from 'flashpoint-launcher';
 
 type OwnProps = {
   logoVersion: number;
@@ -1080,7 +1079,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 <>
                   <SimpleButton
                     value={allStrings.menu.copyGameUUID}
-                    onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
+                    onClick={() => this.props.currentGame && navigator.clipboard.writeText(this.props.currentGame.id)} />
                 </>
               )}
               { this.state.gameDataBrowserOpen && (
@@ -1234,12 +1233,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (currentGame) {
       template.push({
         label: this.context.menu.viewThumbnailInFolder,
-        click: () => { remote.shell.showItemInFolder(getGameImagePath(LOGOS, currentGame.id).replace(/\//g, '\\')); },
+        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.logoPath).replace(/\//g, '\\')); },
         enabled: true
       });
       template.push({
         label: this.context.menu.viewScreenshotInFolder,
-        click: () => { remote.shell.showItemInFolder(getGameImagePath(SCREENSHOTS, currentGame.id).replace(/\//g, '\\')); },
+        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.screenshotPath).replace(/\//g, '\\')); },
         enabled: true
       });
     }
@@ -1251,7 +1250,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   setImageFactory = (folder: typeof LOGOS | typeof SCREENSHOTS) => async (data: ArrayBuffer) => {
     if (this.props.currentGame) {
-      const res = await axios.post(`${getGameImageURL(folder, this.props.currentGame.id)}`, data);
+      const imagePath = folder === 'Logos' ? this.props.currentGame.logoPath : this.props.currentGame.screenshotPath;
+      const res = await axios.post(`${getGameImageURL(imagePath)}`, data);
       if (res.status !== 200) {
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
       }

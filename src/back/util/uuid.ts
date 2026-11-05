@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import * as guid from 'uuid/v4';
+import { v4 as guid } from 'uuid';
 
 /**
  * Wrapper function over uuid's v4 method that attempts to source
@@ -7,13 +7,5 @@ import * as guid from 'uuid/v4';
  * Node.JS.
  */
 export function uuid() {
-  return guid({ random: bufferToNumbers(randomBytes(16)) });
-}
-
-function bufferToNumbers(buffer: Buffer): number[] {
-  const array: number[] = [];
-  for (let i = 0; i < buffer.length; i++) {
-    array[i] = buffer[i];
-  }
-  return array;
+  return guid({ random: randomBytes(16) });
 }

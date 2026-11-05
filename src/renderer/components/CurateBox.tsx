@@ -7,27 +7,6 @@ import {
   DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
-import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
-import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/types';
-import { GamePropSuggestions } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
-import { sizeToString } from '@shared/Util';
-import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
-import * as path from 'path';
-import * as React from 'react';
-import { Dispatch } from 'redux';
-import { BoxList } from './BoxList';
-import { CurateBoxAddApp } from './CurateBoxAddApp';
-import { CurateBoxRow } from './CurateBoxRow';
-import { CurateBoxWarnings } from './CurateBoxWarnings';
-import { InputElement, InputField } from './InputField';
-import { OpenIcon } from './OpenIcon';
-import { SimpleButton } from './SimpleButton';
-import { useDispatch } from 'react-redux';
 import {
   AddAppType,
   addPlatform,
@@ -37,7 +16,28 @@ import {
   removeTag,
   setPrimaryPlatform, toggleContentNodeView
 } from '@renderer/store/curate/slice';
+import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
+import { LangContext } from '@renderer/util/lang';
+import { BackIn, CurationImageEnum } from '@shared/back/types';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
+import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { sizeToString } from '@shared/Util';
 import { mapRuffleSupportString } from '@shared/utils/misc';
+import { MenuItemConstructorOptions } from 'electron';
+import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import * as path from 'path';
+import * as React from 'react';
+import { useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
+import { BoxList } from './BoxList';
+import { CurateBoxAddApp } from './CurateBoxAddApp';
+import { CurateBoxRow } from './CurateBoxRow';
+import { CurateBoxWarnings } from './CurateBoxWarnings';
+import { InputElement, InputField } from './InputField';
+import { OpenIcon } from './OpenIcon';
+import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
   curation: CurationState;
@@ -231,13 +231,13 @@ export function CurateBox(props: CurateBoxProps) {
   const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => () => {
     const contextButtons: MenuItemConstructorOptions[] = [{
       label: strings.curate.contextCopyName,
-      click: () => clipboard.writeText(node.name)
+      click: () => navigator.clipboard.writeText(node.name)
     }, {
       label: strings.curate.contextCopyPath,
-      click: () => clipboard.writeText(tree.join(path.sep))
+      click: () => navigator.clipboard.writeText(tree.join(path.sep))
     }, {
       label: strings.curate.contextCopyAsURL,
-      click: () => clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
+      click: () => navigator.clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
     }, {
       type: 'separator'
     }];

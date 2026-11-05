@@ -1,15 +1,15 @@
+import { PartialGameData } from '@fparchive/flashpoint-archive';
+import { DownloadDetails } from '@shared/back/types';
 import { downloadFile } from '@shared/Util';
-import * as crypto from 'node:crypto';
+import { getGameDataFilename } from '@shared/utils/misc';
 import { GameData, GameDataSource } from 'flashpoint-launcher';
 import * as fs from 'fs';
+import * as crypto from 'node:crypto';
 import * as path from 'path';
 import { fpDatabase } from '.';
-import { DownloadDetails } from '@shared/back/types';
-import { PartialGameData } from '@fparchive/flashpoint-archive';
-import { onDidInstallGameData } from './util/events';
-import { getGameDataFilename } from '@shared/utils/misc';
 import { axios } from './dns';
 import { EventQueue } from './util/EventQueue';
+import { onDidInstallGameData } from './util/events';
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: GameDataSource[], abortSignal: AbortSignal,
   onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, databaseQueue?: EventQueue): Promise<void> {
@@ -23,6 +23,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
       const fullUrl = new URL(filename, source.arguments[0]).href;
       try {
         const tempPath = path.join(dataPacksFolderPath, `${filename}.temp`);
+        log.info('Launcher', 'Downloading game data to ' + tempPath);
         await downloadFile(axios, fullUrl, tempPath, abortSignal, onProgress, onDetails);
         // Check hash of download
         const hash = crypto.createHash('sha256');

@@ -11,8 +11,6 @@ export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
 
-type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEncoding | undefined;
-
 /**
  * Read and parse a JSON file asynchronously.
  * Wrapper around "fs.readFile()" plus "JSON.parse()".
@@ -20,8 +18,9 @@ type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEnc
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
-export async function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
-  return JSON.parse(await fs.promises.readFile(path, options) as string);
+export async function readJsonFile(path: string, options: fs.ReadFileOptions = { encoding: 'utf-8' }): Promise<any> {
+  const data = await fs.promises.readFile(path, options);
+  return JSON.parse(data.toString());
 }
 
 /**
@@ -32,8 +31,8 @@ export async function readJsonFile(path: string, options?: ReadFileOptions): Pro
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
-export function readJsonFileSync(path: string, options?: ReadFileOptions): any {
-  return JSON.parse(fs.readFileSync(path, options) as string);
+export function readJsonFileSync(path: string, options: fs.ReadFileOptions = { encoding: 'utf-8' }): any {
+  return JSON.parse(fs.readFileSync(path, options).toString());
 }
 
 /**
@@ -423,7 +422,7 @@ export async function downloadFile(axios: axiosImport.AxiosInstance, url: string
       signal: abortSignal
     });
     let progress = 0;
-    const contentLength = res.headers['content-length'];
+    const contentLength = Number(res.headers['content-length'] ?? 0);
     onDetails && onDetails({ downloadSize: contentLength });
     const progressThrottle = onProgress && throttle(onProgress, 200);
     const fileStream = fs.createWriteStream(filePath);
@@ -594,6 +593,8 @@ export function mapFpfssGameToLocal(data: any): Game {
       };
     }) || [],
     ruffleSupport: fg.ruffle_support || '',
+    logoPath: '',
+    screenshotPath: '',
   };
   return game;
 }

@@ -1,14 +1,14 @@
 import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
+import { str } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { uuid } from './util/uuid';
-import { str } from '@shared/utils/Coerce';
 
 export namespace PlaylistFile {
   export function readFile(filePath: string, onError?: (error: string) => void): Promise<Playlist> {
     return new Promise((resolve, reject) => {
-      readJsonFile(filePath, 'utf8')
+      readJsonFile(filePath, { encoding: 'utf8' })
       .then(json => {
         const playlist = parse(json, onError);
         // Remove any broken game entries

@@ -6,7 +6,6 @@ import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { shallowStrictEquals } from '@shared/Util';
-import { clipboard } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
@@ -245,7 +244,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
       }
     }
     // Copy with each URL on a new line
-    clipboard.writeText(urls.join('\n'));
+    navigator.clipboard.writeText(urls.join('\n'));
   };
 
   onOpenLogsWindowClick = async (): Promise<void> => {
@@ -256,7 +255,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     window.Shared.back.request(BackIn.FETCH_DIAGNOSTICS)
     .then((diagnostics) => {
       this.setState({ fetchedDiagnostics: true });
-      clipboard.writeText(diagnostics);
+      navigator.clipboard.writeText(diagnostics);
     });
   };
 
@@ -277,7 +276,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
         this.setState({ uploaded: true, uploading: false });
         if (data) {
           // Write log URL to clipboard
-          clipboard.writeText(data);
+          navigator.clipboard.writeText(data);
         }
       });
     } else {

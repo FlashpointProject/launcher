@@ -6,7 +6,7 @@ import * as fs from 'fs';
 export namespace ConfigFile {
   export function readFile(filePath: string, onError?: (error: string) => void): Promise<AppConfigData> {
     return new Promise((resolve, reject) => {
-      readJsonFile(filePath, 'utf8')
+      readJsonFile(filePath, { encoding: 'utf8' })
       .then(json => resolve(parse(json, onError)))
       .catch(reject);
     });

@@ -13,7 +13,7 @@ jobs:
     name: Build and Deploy
     runs-on: ubuntu-latest
     container:
-      image: electronuserland/builder:18-wine
+      image: electronuserland/builder:24-wine
         
     steps:
     - uses: actions/checkout@v3
@@ -35,7 +35,7 @@ jobs:
     - name: Build
       env:
         NODE_ENV: "production"
-        PACK_ARCH: "ia32"
+        PACK_ARCH: "x64"
         PACK_PLATFORM: "win32"
       run: npm run build
     - name: Create wine prefix folder
