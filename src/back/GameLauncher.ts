@@ -557,6 +557,44 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
         const tempPath = path.join(opts.fpPath, '.temp', 'extract');
         await fs.ensureDir(tempPath);
         const destPath = path.join(opts.fpPath, opts.htdocsPath);
+
+        // If the game data isn't on disk, try and retrieve from archived data
+        if (!fs.existsSync(gameDataPath)) {
+          // Check archive data
+          const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(opts.fpPath, gameDataPath)));
+          try {
+            const stream = await opts.state.archiveData.readFileStream(ultPath);
+            if (stream === null) {
+              // No data in zip file?
+            } else {
+              // Save zip to data folder
+              const writer = fs.createWriteStream(gameDataPath);
+
+              // Pipe the stream to the file
+              stream.pipe(writer);
+
+              // Wait for finish
+              await new Promise<void>((resolve, reject) => {
+                writer.on('finish', () => {
+                  resolve();
+                });
+                writer.on('error', (err) => {
+                  reject(err);
+                });
+                stream.on('error', (err) => {
+                  writer.destroy();
+                  reject(err);
+                });
+              });
+            }
+          } catch (e: any) {
+            if (e.code !== 'ENOENT') {
+              log.error('Launcher', `Failed to extract game data from archive: ${e}`);
+            }
+          }
+        }
+
+        // If the game data exists, do it from disk
         log.debug('Launcher', `Extracting game data from "${gameDataPath}" to "${tempPath}"`);
         await extractFullPromise([gameDataPath, tempPath, { $bin: opts.sevenZipPath }])
         .catch((err) => {
@@ -564,6 +602,7 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
           log.error('Launcher', `Failed to extract game data: ${err}`);
           throw err;
         });
+
         const contentFolder = path.join(tempPath, 'content');
         // Move contents of contentFolder to destPath
         log.debug('Launcher', `Moving extracted game data from "${contentFolder}" to "${destPath}"`);

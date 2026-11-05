@@ -112,6 +112,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     state.socketServer.broadcast(BackOut.FOCUS_WINDOW);
   };
 
+  const extArchiveData: typeof flashpoint.archiveData = {
+    readFile: (filePath) => {
+      return state.archiveData.readFile(filePath);
+    },
+    readFileStream: (filePath) => {
+      return state.archiveData.readFileStream(filePath);
+    },
+    getZipDataOffset: (filePath) => {
+      return state.archiveData.getZipDataOffset(filePath);
+    }
+  };
+
   // Log Namespace
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
@@ -660,6 +672,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     focusWindow: focusWindow,
 
     // Namespaces
+    archiveData: extArchiveData,
     log: extLog,
     commands: extCommands,
     curations: extCurations,
