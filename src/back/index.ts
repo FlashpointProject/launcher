@@ -41,7 +41,7 @@ import { CONFIG_FILENAME, DISCORD_LINK, EXT_CONFIG_FILENAME, PREFERENCES_FILENAM
 import { saveCurationFpfssInfo } from './curate/fpfss';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
-import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
+import { onFileServerRequestCurationFile, onFileServerRequestPostCuration } from './curate/util';
 import { axios } from './dns';
 import { downloadGameData } from './download';
 import { Downloader } from './Downloader';
@@ -224,7 +224,7 @@ async function main() {
   state.fileServer.registerRequestHandler('exticons', onFileServerRequestExtIcons);
   state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
   state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
-  state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile, path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING)));
+  state.fileServer.registerRequestHandler('curations', (p, u, req, res) => onFileServerRequestCurationFile(p, u, req, res, getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile, path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING)));
   state.fileServer.registerRequestHandler('curation', (p, u, req, res) => onFileServerRequestPostCuration(p, u, req, res, path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP), loadCurationArchive));
 
   // Database manipulation
@@ -319,10 +319,10 @@ async function prepForInit(message: any): Promise<void> {
   {
     const basePath = state.isDev ? process.cwd() : path.dirname(state.exePath);
     switch (process.platform) {
-      case 'darwin': state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/mac', '7za'); break;
-      case 'win32':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/win', process.arch, '7za'); break;
-      case 'linux':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/linux', process.arch, '7za'); break;
-      default:       state.sevenZipPath = '7za'; break;
+      case 'darwin': state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/mac', '7zz'); break;
+      case 'win32':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/win', process.arch, '7z'); break;
+      case 'linux':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/linux', process.arch, '7zz'); break;
+      default:       state.sevenZipPath = '7zz'; break;
     }
   }
 

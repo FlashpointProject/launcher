@@ -553,8 +553,6 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [curate.selected]);
 
-  console.log('ruffle: ' + curation?.game.ruffleSupport);
-
   return (
     <div className='curate-page'>
       {leftSidebar}

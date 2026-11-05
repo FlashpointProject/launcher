@@ -47,18 +47,18 @@ export const onFileServerRequestPostCuration =
         await fs.promises.mkdir(path.dirname(randomFilePath), { recursive: true });
         await fs.promises.writeFile(randomFilePath, data);
         await onNewCuration(randomFilePath, null)
-        .then(() => {
-          res.writeHead(200);
-          res.end();
-        })
-        .catch((error) => {
-          log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
-          res.writeHead(500);
-          res.end();
-        })
-        .finally(() => {
-          fs.promises.unlink(randomFilePath);
-        });
+          .then(() => {
+            res.writeHead(200);
+            res.end();
+          })
+          .catch((error) => {
+            log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+            res.writeHead(500);
+            res.end();
+          })
+          .finally(() => {
+            fs.promises.unlink(randomFilePath);
+          });
       });
     } else {
       res.writeHead(400);
@@ -66,8 +66,8 @@ export const onFileServerRequestPostCuration =
     }
   };
 
-export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetCurationFileFunc, onUpdateCurationFile: UpdateCurationFileFunc, onRemoveCurationFile: RemoveCurationFileFunc, curationsRootPath: string) =>
-  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => {
+export const onFileServerRequestCurationFile =
+  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, getCurationFilePath: GetCurationFileFunc, onUpdateCurationFile: UpdateCurationFileFunc, onRemoveCurationFile: RemoveCurationFileFunc, curationsRootPath: string) => {
     const splitPath = pathname.split('/');
     // Find theme associated with the path (/curation/<folder>/<relativePath>)
     const folder = splitPath.length > 0 ? splitPath[0] : '';
@@ -87,14 +87,14 @@ export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetC
       switch (req.method) {
         case 'DELETE': {
           onRemoveCurationFile(folder, relativePath)
-          .then(() => {
-            res.writeHead(200);
-            res.end();
-          })
-          .catch(() => {
-            res.writeHead(500);
-            res.end();
-          });
+            .then(() => {
+              res.writeHead(200);
+              res.end();
+            })
+            .catch(() => {
+              res.writeHead(500);
+              res.end();
+            });
           break;
         }
         case 'POST':
@@ -235,14 +235,14 @@ function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string)
   // Extract first string from launch command via regex
   const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
   if (match) {
-  // Match 1 - Inside quotes, Match 0 - No Quotes Found
+    // Match 1 - Inside quotes, Match 0 - No Quotes Found
     let lc = match[1] || match[0];
     // Extract protocol from potential URL
     const protocol = lc.match(/(.+?):\/\//);
     if (protocol) {
-    // Protocol found, must be URL
+      // Protocol found, must be URL
       if (protocol[1] !== 'http') {
-      // Not using HTTP
+        // Not using HTTP
         warns.push('ilc_notHttp');
       }
       const ending = lc.split('/').pop();
@@ -368,55 +368,55 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       // Copy images (download from remote if does not exist)
       const logoPath = path.join(imagesRoot, game.logoPath);
       await fs.access(logoPath, fs.constants.F_OK)
-      .then(() => {
-      // Copy existing image
-        return fs.copyFile(logoPath, path.join(curPath, 'logo.png'));
-      })
-      .catch(async () => {
-      // Download fresh image
-        const destPath = path.join(curPath, 'logo.png');
-        const url = new URL(game.logoPath, state.preferences.onDemandBaseUrl);
-        const baseHost = new URL(state.preferences.onDemandBaseUrl).host;
-        if (url.host !== baseHost) {
-          throw new Error(`Image URL host mismatch: ${url.host}`);
-        }
-        const writer = fs.createWriteStream(destPath);
-        await axios.get(url.href, {
-          responseType: 'stream',
-        }).then((response) => {
-          return new Promise<void>((resolve, reject) => {
-            response.data.pipe(writer);
-            writer.on('error', reject);
-            writer.on('close', resolve);
+        .then(() => {
+          // Copy existing image
+          return fs.copyFile(logoPath, path.join(curPath, 'logo.png'));
+        })
+        .catch(async () => {
+          // Download fresh image
+          const destPath = path.join(curPath, 'logo.png');
+          const url = new URL(game.logoPath, state.preferences.onDemandBaseUrl);
+          const baseHost = new URL(state.preferences.onDemandBaseUrl).host;
+          if (url.host !== baseHost) {
+            throw new Error(`Image URL host mismatch: ${url.host}`);
+          }
+          const writer = fs.createWriteStream(destPath);
+          await axios.get(url.href, {
+            responseType: 'stream',
+          }).then((response) => {
+            return new Promise<void>((resolve, reject) => {
+              response.data.pipe(writer);
+              writer.on('error', reject);
+              writer.on('close', resolve);
+            });
           });
         });
-      });
 
       const screenshotPath = path.join(imagesRoot, game.screenshotPath);
       await fs.access(screenshotPath, fs.constants.F_OK)
-      .then(() => {
-      // Copy existing image
-        return fs.copyFile(screenshotPath, path.join(curPath, 'ss.png'));
-      })
-      .catch(async () => {
-      // Download fresh image
-        const destPath = path.join(curPath, 'ss.png');
-        const url = new URL(game.screenshotPath, state.preferences.onDemandBaseUrl);
-        const baseHost = new URL(state.preferences.onDemandBaseUrl).host;
-        if (url.host !== baseHost) {
-          throw new Error(`Image URL host mismatch: ${url.host}`);
-        }
-        const writer = fs.createWriteStream(destPath);
-        await axios.get(url.href, {
-          responseType: 'stream',
-        }).then((response) => {
-          return new Promise<void>((resolve, reject) => {
-            response.data.pipe(writer);
-            writer.on('error', reject);
-            writer.on('close', resolve);
+        .then(() => {
+          // Copy existing image
+          return fs.copyFile(screenshotPath, path.join(curPath, 'ss.png'));
+        })
+        .catch(async () => {
+          // Download fresh image
+          const destPath = path.join(curPath, 'ss.png');
+          const url = new URL(game.screenshotPath, state.preferences.onDemandBaseUrl);
+          const baseHost = new URL(state.preferences.onDemandBaseUrl).host;
+          if (url.host !== baseHost) {
+            throw new Error(`Image URL host mismatch: ${url.host}`);
+          }
+          const writer = fs.createWriteStream(destPath);
+          await axios.get(url.href, {
+            responseType: 'stream',
+          }).then((response) => {
+            return new Promise<void>((resolve, reject) => {
+              response.data.pipe(writer);
+              writer.on('error', reject);
+              writer.on('close', resolve);
+            });
           });
         });
-      });
 
       // Extract active data pack if exists
       if (game.activeDataId) {
@@ -431,16 +431,16 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
         await checkAndDownloadGameData(game.activeDataId);
         const activeData = await fpDatabase.findGameDataById(game.activeDataId);
         if (activeData && activeData.path && !skipDataPack) {
-        // Extract data pack into curation folder
+          // Extract data pack into curation folder
           const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
           await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
           // Clean up content.json file from extracted data pack
           await fs.unlink(path.join(curPath, 'content.json'))
-          .catch(() => { /** Probably doesn't exist */ });
+            .catch(() => { /** Probably doesn't exist */ });
           log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
         }
         if (activeData) {
-        // Update curation meta fields with saved
+          // Update curation meta fields with saved
           (game as any).applicationPath = activeData.applicationPath;
           (game as any).launchCommand = activeData.launchCommand;
           (game as any).mountParameters = activeData.parameters || '';
@@ -491,13 +491,13 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
 
       // Let contents update without blocking
       genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
-      .then((contentTree) => {
-        const idx = state.loadedCurations.findIndex(c => c.folder === folder);
-        if (idx > -1) {
-          state.loadedCurations[idx].contents = contentTree;
-          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
-        }
-      });
+        .then((contentTree) => {
+          const idx = state.loadedCurations.findIndex(c => c.folder === folder);
+          if (idx > -1) {
+            state.loadedCurations[idx].contents = contentTree;
+            state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+          }
+        });
 
       // Send back responses
       state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
