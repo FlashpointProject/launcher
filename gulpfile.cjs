@@ -74,10 +74,6 @@ const extraOptions = {
   win: {
     target: [
       {
-        target: 'nsis-web',
-        arch: ['x64'],
-      },
-      {
         target: '7z',
         arch: ['x64'],
       },
@@ -93,7 +89,7 @@ const extraOptions = {
     },
   },
   linux: {
-    target: ['deb', '7z'],
+    target: ['7z'],
     category: 'games',
   },
 };
