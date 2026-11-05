@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Dupliceren (Metadata alleen)",
     "duplicateMetaAndImages": "Dupliceren (Metadata && Afbeeldingen)",
     "copyGameUUID": "Kopieer Spel-ID (UUID)",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Exporteren (Metadata alleen)",
     "exportMetaAndImages": "Exporteren (Metadata && Afbeeldingen)",
     "exportMetaEdit": "Exporteren van Metadata wijziging",
