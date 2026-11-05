@@ -224,7 +224,7 @@ async function main() {
   state.fileServer.registerRequestHandler('exticons', onFileServerRequestExtIcons);
   state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
   state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
-  state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile));
+  state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile, path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING)));
   state.fileServer.registerRequestHandler('curation', (p, u, req, res) => onFileServerRequestPostCuration(p, u, req, res, path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP), loadCurationArchive));
 
   // Database manipulation
@@ -1195,12 +1195,14 @@ function onFileServerRequestExtData(pathname: string, url: URL, req: http.Incomi
     if (ext) {
       // Only serve from <extPath>/static/
       const staticPath = path.join(ext.extensionPath, 'static');
-      const filePath = path.join(staticPath, relativePath);
-      if (filePath.startsWith(staticPath)) {
-        serveFile(req, res, filePath);
-      } else {
-        log.warn('Launcher', `Illegal file request: "${filePath}"`);
+      const filePath = path.resolve(staticPath, relativePath);
+      if (!filePath.startsWith(staticPath + path.sep) && filePath !== staticPath) {
+        log.warn('Launcher', `Illegal file request (extdata): "${filePath}"`);
+        res.writeHead(403);
+        res.end();
+        return;
       }
+      serveFile(req, res, filePath);
     }
   });
 }
@@ -1209,12 +1211,14 @@ function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.Incom
   state.extensionsService.getExtension(pathname)
   .then((ext) => {
     if (ext && ext.manifest.icon) {
-      const filePath = path.join(ext.extensionPath, ext.manifest.icon);
-      if (filePath.startsWith(ext.extensionPath)) {
-        serveFile(req, res, filePath);
-      } else {
-        log.warn('Launcher', `Illegal file request: "${filePath}"`);
+      const filePath = path.resolve(ext.extensionPath, ext.manifest.icon);
+      if (!filePath.startsWith(ext.extensionPath + path.sep) && filePath !== ext.extensionPath) {
+        log.warn('Launcher', `Illegal file request (ext icons): "${filePath}"`);
+        res.writeHead(403);
+        res.end();
+        return;
       }
+      serveFile(req, res, filePath);
     }
   });
 }
@@ -1226,138 +1230,144 @@ function onFileServerRequestThemes(pathname: string, url: URL, req: http.Incomin
   const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
   const theme = state.registry.themes.get(themeId);
   if (theme) {
-    const filePath = path.join(theme.basePath, theme.themePath, relativePath);
-    // Don't allow files outside of theme path
-    const relative = path.relative(theme.basePath, filePath);
-    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-      serveFile(req, res, filePath);
-    } else {
-      log.warn('Launcher', `Illegal file request: "${filePath}"`);
+    const basePath = path.resolve(theme.basePath, theme.themePath);
+    const filePath = path.resolve(basePath, relativePath);
+    if (!filePath.startsWith(basePath + path.sep) && filePath !== basePath) {
+      log.warn('Launcher', `Illegal file request (themes): "${filePath}"`);
+      res.writeHead(403);
+      res.end();
+      return;
     }
+    serveFile(req, res, filePath);
   }
 }
 
 async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const splitPath = pathname.split('/');
   const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-  const filePath = path.join(imageFolder, pathname);
-  if (filePath.startsWith(imageFolder)) {
-    if (req.method === 'POST') {
-      const fileName = path.basename(pathname);
-      if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const chunks: any[] = [];
-        req.on('data', (chunk) => {
-          chunks.push(chunk);
-        })
-        .on('end', async () => {
-          const data = Buffer.concat(chunks);
-          await fs.promises.writeFile(filePath, data);
-          res.writeHead(200);
-          res.end();
-        })
-        .on('error', async (err) => {
-          log.error('Launcher', `Error writing Game image - ${err}`);
-          res.writeHead(500);
-          res.end();
-        });
-        return;
-      }
-      res.writeHead(400);
-      res.end();
-    }
-    else if (req.method === 'GET' || req.method === 'HEAD') {
-      req.on('error', (err) => {
-        log.error('Launcher', `Error serving Game image - ${err}`);
+  const filePath = path.resolve(imageFolder, pathname);
+  if (!filePath.startsWith(imageFolder + path.sep) && filePath !== imageFolder) {
+    log.warn('Launcher', `Illegal file request (images): "${filePath}"`);
+    res.writeHead(403);
+    res.end();
+    return;
+  }
+
+  if (req.method === 'POST') {
+    const fileName = path.basename(pathname);
+    if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
+      await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+      const chunks: any[] = [];
+      req.on('data', (chunk) => {
+        chunks.push(chunk);
+      })
+      .on('end', async () => {
+        const data = Buffer.concat(chunks);
+        await fs.promises.writeFile(filePath, data);
+        res.writeHead(200);
+        res.end();
+      })
+      .on('error', async (err) => {
+        log.error('Launcher', `Error writing Game image - ${err}`);
         res.writeHead(500);
         res.end();
       });
-      fs.stat(filePath)
-      .then((stats) => {
-        // Respond with file
-        res.writeHead(200, {
-          'Content-Type': mime.getType(path.extname(filePath)) || '',
-          'Content-Length': stats.size,
+      return;
+    }
+    res.writeHead(400);
+    res.end();
+  }
+  else if (req.method === 'GET' || req.method === 'HEAD') {
+    req.on('error', (err) => {
+      log.error('Launcher', `Error serving Game image - ${err}`);
+      res.writeHead(500);
+      res.end();
+    });
+    fs.stat(filePath)
+    .then((stats) => {
+      // Respond with file
+      res.writeHead(200, {
+        'Content-Type': mime.getType(path.extname(filePath)) || '',
+        'Content-Length': stats.size,
+      });
+      if (req.method === 'GET') {
+        const stream = fs.createReadStream(filePath);
+        stream.on('error', error => {
+          console.warn(`File server failed to stream file. ${error}`);
+          stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+          if (!res.writableEnded) { res.end(); }
         });
-        if (req.method === 'GET') {
-          const stream = fs.createReadStream(filePath);
-          stream.on('error', error => {
-            console.warn(`File server failed to stream file. ${error}`);
-            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-            if (!res.writableEnded) { res.end(); }
-          });
-          stream.pipe(res);
-        } else {
-          res.end();
+        stream.pipe(res);
+      } else {
+        res.end();
+      }
+    })
+    .catch(async (err) => {
+      if (err.code !== 'ENOENT') {
+        // Can't read file
+        res.writeHead(404);
+        res.end();
+      } else {
+        // File missing, try archive next
+        const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(state.config.flashpointPath, filePath)));
+        console.log(ultPath);
+        try {
+          const stream = await state.archiveData.readFileStream(ultPath);
+          if (stream !== null) {
+            stream.on('error', error => {
+              console.warn(`File server failed to stream archived data file. ${error}`);
+              stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+              if (!res.writableEnded) { res.end(); }
+            });
+            stream.pipe(res);
+            return;
+          } else {
+            res.writeHead(204);
+            res.end();
+            return;
+          }
+        } catch (e: any) {
+          if (e.code !== 'ENOENT') {
+            log.error('Launcher', `Error reading file from archive data: ${e}`);
+            res.writeHead(500);
+            res.end();
+            return;
+          }
         }
-      })
-      .catch(async (err) => {
-        if (err.code !== 'ENOENT') {
-          // Can't read file
+
+        if (!state.preferences.onDemandImages) {
+          // Not downloading new files
           res.writeHead(404);
           res.end();
         } else {
-          // File missing, try archive next
-          const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(state.config.flashpointPath, filePath)));
-          console.log(ultPath);
-          try {
-            const stream = await state.archiveData.readFileStream(ultPath);
-            if (stream !== null) {
-              stream.on('error', error => {
-                console.warn(`File server failed to stream archived data file. ${error}`);
-                stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-                if (!res.writableEnded) { res.end(); }
-              });
-              stream.pipe(res);
-              return;
-            } else {
-              res.writeHead(204);
-              res.end();
-              return;
-            }
-          } catch (e: any) {
-            if (e.code !== 'ENOENT') {
-              log.error('Launcher', `Error reading file from archive data: ${e}`);
-              res.writeHead(500);
-              res.end();
-              return;
-            }
+          // Remove any older duplicate requests
+          const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
+          if (index >= 0) {
+            const item = state.fileServerDownloads.queue[index];
+            item.res.writeHead(404);
+            item.res.end();
+            state.fileServerDownloads.queue.splice(index, 1);
           }
 
-          if (!state.preferences.onDemandImages) {
-            // Not downloading new files
-            res.writeHead(404);
-            res.end();
-          } else {
-            // Remove any older duplicate requests
-            const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
-            if (index >= 0) {
-              const item = state.fileServerDownloads.queue[index];
-              item.res.writeHead(404);
-              item.res.end();
-              state.fileServerDownloads.queue.splice(index, 1);
-            }
-
-            // Add to download queue
-            const item: ImageDownloadItem = {
-              subPath: pathname,
-              req: req,
-              res: res,
-              cancelled: false,
-            };
-            state.fileServerDownloads.queue.push(item);
-            req.once('close', () => { item.cancelled = true; });
-            updateFileServerDownloadQueue()
-            .catch((err) => {
-              log.error('Launcher', 'Somethign really broke in updateFileServerDownloadQueue: ' + err);
-            });
-          }
+          // Add to download queue
+          const item: ImageDownloadItem = {
+            subPath: pathname,
+            req: req,
+            res: res,
+            cancelled: false,
+          };
+          state.fileServerDownloads.queue.push(item);
+          req.once('close', () => { item.cancelled = true; });
+          updateFileServerDownloadQueue()
+          .catch((err) => {
+            log.error('Launcher', 'Somethign really broke in updateFileServerDownloadQueue: ' + err);
+          });
         }
-      });
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
+      }
+    });
+  } else {
+    res.writeHead(404);
+    res.end();
   }
 }
 
@@ -1366,41 +1376,45 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
   const logoFolder = logoSet && logoSet.files.includes(pathname)
     ? logoSet.fullPath
     : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
-  const filePath = path.join(logoFolder, pathname);
-  if (filePath.startsWith(logoFolder)) {
-    fs.access(filePath, fs.constants.F_OK, async (err) => {
-      if (err) {
-        // Maybe we're on a case sensitive platform?
-        try {
-          const folder = path.dirname(filePath);
-          const filename = path.basename(filePath);
-          if (filePath.startsWith(logoFolder)) {
-            const files = await fs.readdir(folder);
-            for (const file of files) {
-              if (file.toLowerCase() == filename.toLowerCase()) {
-                serveFile(req, res, path.join(folder, file));
-                return;
-              }
+  const filePath = path.resolve(logoFolder, pathname);
+  if (!filePath.startsWith(logoFolder + path.sep) && filePath !== logoFolder) {
+    log.warn('Launcher', `Illegal file request (logos): "${filePath}"`);
+    res.writeHead(403);
+    res.end();
+    return;
+  }
+  fs.access(filePath, fs.constants.F_OK, async (err) => {
+    if (err) {
+      // Maybe we're on a case sensitive platform?
+      try {
+        const folder = path.dirname(filePath);
+        const filename = path.basename(filePath);
+        if (filePath.startsWith(logoFolder)) {
+          const files = await fs.readdir(folder);
+          for (const file of files) {
+            if (file.toLowerCase() == filename.toLowerCase()) {
+              serveFile(req, res, path.join(folder, file));
+              return;
             }
           }
-        } catch { /** Let error drop to return default image instead */ }
-        // File doesn't exist, serve default image
-        const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
-        const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
-        if (replacementFilePath.startsWith(basePath)) {
-          fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
-            if (err) {
-              serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
-            } else {
-              serveFile(req, res, replacementFilePath);
-            }
-          });
         }
-      } else {
-        serveFile(req, res, filePath);
+      } catch { /** Let error drop to return default image instead */ }
+      // File doesn't exist, serve default image
+      const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
+      const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
+      if (replacementFilePath.startsWith(basePath)) {
+        fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
+          if (err) {
+            serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
+          } else {
+            serveFile(req, res, replacementFilePath);
+          }
+        });
       }
-    });
-  }
+    } else {
+      serveFile(req, res, filePath);
+    }
+  });
 }
 
 /**
@@ -1480,22 +1494,40 @@ async function updateFileServerDownloadQueue() {
 
     if (item.cancelled) { continue; }
 
+    // Start download
+    const baseUrl = state.preferences.onDemandBaseUrl.endsWith('/')
+      ? state.preferences.onDemandBaseUrl
+      : state.preferences.onDemandBaseUrl + '/';
+
+    const fullUrl = new URL(item.subPath, baseUrl);
+
+    if (fullUrl.host !== new URL(baseUrl).host) {
+      log.warn('Launcher', `Illegal download URL host: "${fullUrl.href}"`);
+      item.res.writeHead(403);
+      removeFileServerDownloadItem(item);
+      continue;
+    }
+
     state.fileServerDownloads.current.push(item);
 
-    // Start download
-    let url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
     // Add compressed modifier if enabled
     if (state.preferences.onDemandImagesCompressed) {
-      url += '?type=jpg';
+      fullUrl.searchParams.set('type', 'jpg');
     }
+
     // Use arraybuffer since it's small memory footprint anyway
-    await axios.get(url, { responseType: 'arraybuffer' })
+    await axios.get(fullUrl.href, { responseType: 'arraybuffer' })
     .then(async (res) => {
       // Save response to image file
       const imageData = res.data;
 
       const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-      const filePath = path.join(imageFolder, item.subPath);
+      const filePath = path.resolve(imageFolder, item.subPath);
+      if (!filePath.startsWith(imageFolder + path.sep)) {
+        log.error('Launcher', `Illegal download save path: "${filePath}"`);
+        item.res.writeHead(403);
+        return;
+      }
 
       await fs.ensureDir(path.dirname(filePath));
       await fs.promises.writeFile(filePath, imageData, 'binary');

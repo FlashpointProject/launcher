@@ -20,11 +20,14 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
     // GameData real, find an available source
     for (const source of sources) {
       const filename = getGameDataFilename(gameData);
-      const fullUrl = new URL(filename, source.arguments[0]).href;
+      const fullUrl = new URL(filename, source.arguments[0]);
+      if (fullUrl.host !== new URL(source.arguments[0]).host) {
+        throw new Error(`Filename URL escapes source host: ${fullUrl.href}`);
+      }
       try {
         const tempPath = path.join(dataPacksFolderPath, `${filename}.temp`);
         log.info('Launcher', 'Downloading game data to ' + tempPath);
-        await downloadFile(axios, fullUrl, tempPath, abortSignal, onProgress, onDetails);
+        await downloadFile(axios, fullUrl.href, tempPath, abortSignal, onProgress, onDetails);
         // Check hash of download
         const hash = crypto.createHash('sha256');
         hash.setEncoding('hex');

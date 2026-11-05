@@ -9,6 +9,7 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { createErrorProxy } from '@shared/Util';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, ipcMain, IpcMainEvent, session, shell } from 'electron';
+import { dialog } from 'electron/main';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -141,13 +142,46 @@ export async function startLogger(init: Init): Promise<void> {
   function onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
+    const openExternalSafe = async (url: string) => {
+      // Only allow http/https
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        log.warn('Launcher', `Blocked invalid URL: "${url}"`);
+        return;
+      }
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        log.warn('Launcher', `Blocked non-http URL: "${url}"`);
+        return;
+      }
+
+      const isInsecure = parsed.protocol === 'http:';
+      const { response } = await dialog.showMessageBox({
+        type: isInsecure ? 'warning' : 'question',
+        buttons: ['Open', 'Cancel'],
+        defaultId: 1,
+        cancelId: 1,
+        title: isInsecure ? 'Open Insecure External Link' : 'Open External Link',
+        message: isInsecure
+          ? 'This link uses an insecure connection (HTTP). Open in your browser anyway?'
+          : 'Open this URL in your browser?',
+        detail: url,
+      });
+
+      if (response === 0) {
+        shell.openExternal(url);
+      }
+    };
+
     webContents.on('will-navigate', (event, navigationUrl) => {
       event.preventDefault();
-      shell.openExternal(navigationUrl);
+      openExternalSafe(navigationUrl);
     });
 
     webContents.setWindowOpenHandler(({ url }) => {
-      shell.openExternal(url);
+      openExternalSafe(url);
       return { action: 'deny' };
     });
   }

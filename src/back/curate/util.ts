@@ -1,3 +1,4 @@
+import { axios } from '@back/dns';
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { genContentTree } from '@back/rust';
 import { BackState } from '@back/types';
@@ -15,11 +16,10 @@ import * as http from 'http';
 import { Progress } from 'node-7z';
 import * as path from 'path';
 import { checkAndDownloadGameData, extractFullPromise, fpDatabase } from '..';
+import { getCurationFpfssInfo } from './fpfss';
 import { loadCurationIndexImage } from './parse';
 import { readCurationMeta } from './read';
 import { saveCuration } from './write';
-import { getCurationFpfssInfo } from './fpfss';
-import { axios } from '@back/dns';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
@@ -66,12 +66,21 @@ export const onFileServerRequestPostCuration =
     }
   };
 
-export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetCurationFileFunc, onUpdateCurationFile: UpdateCurationFileFunc, onRemoveCurationFile: RemoveCurationFileFunc) =>
+export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetCurationFileFunc, onUpdateCurationFile: UpdateCurationFileFunc, onRemoveCurationFile: RemoveCurationFileFunc, curationsRootPath: string) =>
   async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => {
     const splitPath = pathname.split('/');
     // Find theme associated with the path (/curation/<folder>/<relativePath>)
     const folder = splitPath.length > 0 ? splitPath[0] : '';
     const relativePath = fixSlashes(splitPath.length > 1 ? splitPath.slice(1).join('/') : '');
+
+    const curationRoot = path.resolve(curationsRootPath, folder);
+    const resolvedPath = path.resolve(curationRoot, relativePath);
+
+    if (!resolvedPath.startsWith(curationRoot + path.sep) && resolvedPath !== curationRoot) {
+      res.writeHead(403);
+      res.end();
+      return;
+    }
 
     // Make sure we're in the content folder
     if (whitelistedBaseFiles.includes(relativePath) || relativePath.startsWith('content/')) {
@@ -203,7 +212,7 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
       case 'ilc_nonExistant':
         return 'launchCommand';
       case 'ilc_notHttp':
-          return 'launchCommand';
+        return 'launchCommand';
       default:
         return s;
     }
@@ -221,37 +230,41 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
 }
 
 function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string): string[] {
-	// Keep list of warns for end
-	const warns: string[] = [];
-	// Extract first string from launch command via regex
-	const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
-	if (match) {
-	  // Match 1 - Inside quotes, Match 0 - No Quotes Found
-	  let lc = match[1] || match[0];
-	  // Extract protocol from potential URL
-	  const protocol = lc.match(/(.+?):\/\//);
-	  if (protocol) {
-		// Protocol found, must be URL
-		if (protocol[1] !== 'http') {
-		  // Not using HTTP
-		  warns.push('ilc_notHttp');
-		}
-		const ending = lc.split('/').pop();
-		// If the string ends in file, cut off parameters
-		if (ending && ending.includes('.')) {
-		  lc = lc.split('?')[0];
-		}
-		const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
-		// Push a game to the list if its launch command file is missing
-		if (!fs.existsSync(filePath)) {
-		  warns.push('ilc_nonExistant');
-		}
-	  }
-	}
-	return warns;
+  // Keep list of warns for end
+  const warns: string[] = [];
+  // Extract first string from launch command via regex
+  const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+  if (match) {
+  // Match 1 - Inside quotes, Match 0 - No Quotes Found
+    let lc = match[1] || match[0];
+    // Extract protocol from potential URL
+    const protocol = lc.match(/(.+?):\/\//);
+    if (protocol) {
+    // Protocol found, must be URL
+      if (protocol[1] !== 'http') {
+      // Not using HTTP
+        warns.push('ilc_notHttp');
+      }
+      const ending = lc.split('/').pop();
+      // If the string ends in file, cut off parameters
+      if (ending && ending.includes('.')) {
+        lc = lc.split('?')[0];
+      }
+      const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
+      // Push a game to the list if its launch command file is missing
+      if (!fs.existsSync(filePath)) {
+        warns.push('ilc_nonExistant');
+      }
+    }
   }
+  return warns;
+}
 
 export async function loadCurationFolder(rootPath: string, folderName: string, state: BackState) {
+  const resolvedFolder = path.resolve(rootPath, folderName);
+  if (!resolvedFolder.startsWith(path.resolve(rootPath) + path.sep)) {
+    throw new Error('Invalid folder name');
+  }
   const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.platformAppPaths);
   if (parsedMeta) {
     const loadedCuration: LoadedCuration = {
@@ -288,6 +301,10 @@ export async function duplicateCuration(srcFolder: string, state: BackState): Pr
   // Copy curation to a new folder
   const rootPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
   const srcPath = path.join(rootPath, srcFolder);
+  const resolvedSrc = path.resolve(srcPath);
+  if (!resolvedSrc.startsWith(path.resolve(rootPath) + path.sep)) {
+    throw new Error('Invalid source folder');
+  }
   await fs.promises.access(srcPath, fs.constants.R_OK);
   const destFolder = uuid();
   const destPath = path.join(rootPath, destFolder);
@@ -300,10 +317,9 @@ export async function duplicateCuration(srcFolder: string, state: BackState): Pr
     state.loadedCurations[curationIdx].game.title = state.loadedCurations[curationIdx].game.title ? state.loadedCurations[curationIdx].game.title + ' - Copy' : '? - Copy';
     // Give it a unique UUID
     state.loadedCurations[curationIdx].uuid = uuid();
+    // Notify frontend of new curation
+    state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [state.loadedCurations[curationIdx]]);
   }
-
-  // Notify frontend of new curation
-  state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [state.loadedCurations[curationIdx]]);
 
   return destFolder;
 }
@@ -334,165 +350,173 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
           progress: 0.1
         });
       }
-      
+
       const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
       await fs.promises.mkdir(curPath, { recursive: true });
-    const contentFolder = path.join(curPath, 'content');
-    await fs.promises.mkdir(contentFolder, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
 
-    if (taskId) {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-        id: taskId,
-        status: 'Copying existing data...',
-        progress: 0.3
-      });
-    }
-
-    const imagesRoot = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-    // Copy images (download from remote if does not exist)
-    const logoPath = path.join(imagesRoot, game.logoPath);
-    await fs.access(logoPath, fs.constants.F_OK)
-    .then(() => {
-      // Copy existing image
-      return fs.copyFile(logoPath, path.join(curPath, 'logo.png'));
-    })
-    .catch(async () => {
-      // Download fresh image
-      const destPath = path.join(curPath, 'logo.png');
-      const url = new URL(game.logoPath, state.preferences.onDemandBaseUrl);
-      const writer = fs.createWriteStream(destPath);
-      await axios.get(url.href, {
-        responseType: 'stream',
-      }).then((response) => {
-        return new Promise<void>((resolve, reject) => {
-          response.data.pipe(writer);
-          writer.on('error', reject);
-          writer.on('close', resolve);
-        });
-      });
-    });
-
-    const screenshotPath = path.join(imagesRoot, game.screenshotPath);
-    await fs.access(screenshotPath, fs.constants.F_OK)
-    .then(() => {
-      // Copy existing image
-      return fs.copyFile(screenshotPath, path.join(curPath, 'ss.png'));
-    })
-    .catch(async () => {
-      // Download fresh image
-      const destPath = path.join(curPath, 'ss.png');
-      const url = new URL(game.screenshotPath, state.preferences.onDemandBaseUrl);
-      const writer = fs.createWriteStream(destPath);
-      await axios.get(url.href, {
-        responseType: 'stream',
-      }).then((response) => {
-        return new Promise<void>((resolve, reject) => {
-          response.data.pipe(writer);
-          writer.on('error', reject);
-          writer.on('close', resolve);
-        });
-      });
-    });
-
-    // Extract active data pack if exists
-    if (game.activeDataId) {
       if (taskId) {
         state.socketServer.broadcast(BackOut.UPDATE_TASK, {
           id: taskId,
-          status: 'Extracting data pack...',
-          progress: 0.5
+          status: 'Copying existing data...',
+          progress: 0.3
         });
       }
-      
-      await checkAndDownloadGameData(game.activeDataId);
-      const activeData = await fpDatabase.findGameDataById(game.activeDataId);
-      if (activeData && activeData.path && !skipDataPack) {
+
+      const imagesRoot = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+      // Copy images (download from remote if does not exist)
+      const logoPath = path.join(imagesRoot, game.logoPath);
+      await fs.access(logoPath, fs.constants.F_OK)
+      .then(() => {
+      // Copy existing image
+        return fs.copyFile(logoPath, path.join(curPath, 'logo.png'));
+      })
+      .catch(async () => {
+      // Download fresh image
+        const destPath = path.join(curPath, 'logo.png');
+        const url = new URL(game.logoPath, state.preferences.onDemandBaseUrl);
+        const baseHost = new URL(state.preferences.onDemandBaseUrl).host;
+        if (url.host !== baseHost) {
+          throw new Error(`Image URL host mismatch: ${url.host}`);
+        }
+        const writer = fs.createWriteStream(destPath);
+        await axios.get(url.href, {
+          responseType: 'stream',
+        }).then((response) => {
+          return new Promise<void>((resolve, reject) => {
+            response.data.pipe(writer);
+            writer.on('error', reject);
+            writer.on('close', resolve);
+          });
+        });
+      });
+
+      const screenshotPath = path.join(imagesRoot, game.screenshotPath);
+      await fs.access(screenshotPath, fs.constants.F_OK)
+      .then(() => {
+      // Copy existing image
+        return fs.copyFile(screenshotPath, path.join(curPath, 'ss.png'));
+      })
+      .catch(async () => {
+      // Download fresh image
+        const destPath = path.join(curPath, 'ss.png');
+        const url = new URL(game.screenshotPath, state.preferences.onDemandBaseUrl);
+        const baseHost = new URL(state.preferences.onDemandBaseUrl).host;
+        if (url.host !== baseHost) {
+          throw new Error(`Image URL host mismatch: ${url.host}`);
+        }
+        const writer = fs.createWriteStream(destPath);
+        await axios.get(url.href, {
+          responseType: 'stream',
+        }).then((response) => {
+          return new Promise<void>((resolve, reject) => {
+            response.data.pipe(writer);
+            writer.on('error', reject);
+            writer.on('close', resolve);
+          });
+        });
+      });
+
+      // Extract active data pack if exists
+      if (game.activeDataId) {
+        if (taskId) {
+          state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+            id: taskId,
+            status: 'Extracting data pack...',
+            progress: 0.5
+          });
+        }
+
+        await checkAndDownloadGameData(game.activeDataId);
+        const activeData = await fpDatabase.findGameDataById(game.activeDataId);
+        if (activeData && activeData.path && !skipDataPack) {
         // Extract data pack into curation folder
-        const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
-        await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
-        // Clean up content.json file from extracted data pack
-        await fs.unlink(path.join(curPath, 'content.json'))
-        .catch(() => { /** Probably doesn't exist */ });
-        log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
-      }
-      if (activeData) {
+          const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
+          await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
+          // Clean up content.json file from extracted data pack
+          await fs.unlink(path.join(curPath, 'content.json'))
+          .catch(() => { /** Probably doesn't exist */ });
+          log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
+        }
+        if (activeData) {
         // Update curation meta fields with saved
-        (game as any).applicationPath = activeData.applicationPath;
-        (game as any).launchCommand = activeData.launchCommand;
-        (game as any).mountParameters = activeData.parameters || '';
+          (game as any).applicationPath = activeData.applicationPath;
+          (game as any).launchCommand = activeData.launchCommand;
+          (game as any).mountParameters = activeData.parameters || '';
+        }
+      } else {
+        (game as any).applicationPath = game.legacyApplicationPath;
+        (game as any).launchCommand = game.legacyLaunchCommand;
+        log.debug('Launcher', 'Make Curation From Game - Game has no active data');
       }
-    } else {
-      (game as any).applicationPath = game.legacyApplicationPath;
-      (game as any).launchCommand = game.legacyLaunchCommand;
-      log.debug('Launcher', 'Make Curation From Game - Game has no active data');
-    }
 
-    const data: LoadedCuration = {
-      folder,
-      uuid: game.id,
-      group: '',
-      fpfssInfo: null,
-      game: {
-        ...game,
-        tags: game.detailedTags,
-        platforms: game.detailedPlatforms,
-      },
-      addApps: game.addApps ? game.addApps.map<AddAppCuration>(a => {
-        return {
-          key: uuid(),
-          heading: a.name,
-          applicationPath: a.applicationPath,
-          launchCommand: a.launchCommand
-        };
-      }) : [],
-      thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
-      screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
-    };
-    const curation: CurationState = {
-      ...data,
-      alreadyImported: true,
-      warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-    };
-    
-    if (taskId) {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-        id: taskId,
-        status: 'Finalizing curation...',
-        progress: 0.9
-      });
-    }
-    
-    await saveCuration(curPath, curation);
-    state.loadedCurations.push(curation);
+      const data: LoadedCuration = {
+        folder,
+        uuid: game.id,
+        group: '',
+        fpfssInfo: null,
+        game: {
+          ...game,
+          tags: game.detailedTags,
+          platforms: game.detailedPlatforms,
+        },
+        addApps: game.addApps ? game.addApps.map<AddAppCuration>(a => {
+          return {
+            key: uuid(),
+            heading: a.name,
+            applicationPath: a.applicationPath,
+            launchCommand: a.launchCommand
+          };
+        }) : [],
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+      };
+      const curation: CurationState = {
+        ...data,
+        alreadyImported: true,
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
+      };
 
-    // Let contents update without blocking
-    genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
-    .then((contentTree) => {
-      const idx = state.loadedCurations.findIndex(c => c.folder === folder);
-      if (idx > -1) {
-        state.loadedCurations[idx].contents = contentTree;
-        state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
+          status: 'Finalizing curation...',
+          progress: 0.9
+        });
       }
-    });
 
-    // Send back responses
-    state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
-    
-    // Mark curation task as finished
-    if (taskId) {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-        id: taskId,
-        status: '',
-        progress: 1,
-        finished: true
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+
+      // Let contents update without blocking
+      genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      .then((contentTree) => {
+        const idx = state.loadedCurations.findIndex(c => c.folder === folder);
+        if (idx > -1) {
+          state.loadedCurations[idx].contents = contentTree;
+          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+        }
       });
+
+      // Send back responses
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+
+      // Mark curation task as finished
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
+          status: '',
+          progress: 1,
+          finished: true
+        });
+      }
+
+      return curation.folder;
     }
-    
-    return curation.folder;
-  }
   } catch (error) {
     log.error('Launcher', `Make Curation From Game failed: ${error instanceof Error ? error.message : String(error)}`);
-    
+
     if (taskId) {
       state.socketServer.broadcast(BackOut.UPDATE_TASK, {
         id: taskId,

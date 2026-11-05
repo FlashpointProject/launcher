@@ -5,11 +5,15 @@ import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { WithTasksProps } from '@renderer/containers/withTasks';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import * as curateActions from '@renderer/store/curate/slice';
+import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
+import { setTask } from '@renderer/store/tasks/slice';
 import { axios, getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
-import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { CustomIPC, Task } from '@shared/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -19,17 +23,13 @@ import { ipcRenderer } from 'electron';
 import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
+import { useDispatch } from 'react-redux';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { useDispatch } from 'react-redux';
-import * as curateActions from '@renderer/store/curate/slice';
-import { setTask } from '@renderer/store/tasks/slice';
-import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
 type OwnProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
@@ -63,8 +63,16 @@ export function CuratePage(props: CuratePageProps) {
 
   const onOpenSubmissionPage = () => {
     if (curation?.fpfssInfo) {
-      const subPage = `${props.preferencesData.fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
-      remote.shell.openExternal(subPage);
+      const safeId = encodeURIComponent(curation.fpfssInfo.id);
+      const base = new URL(props.preferencesData.fpfssBaseUrl);
+      const subPage = new URL(`/web/submission/${safeId}`, base);
+
+      if (subPage.host !== base.host) {
+        log.warn('Launcher', `Illegal submission URL: "${subPage.href}"`);
+        return;
+      }
+
+      remote.shell.openExternal(subPage.href);
     }
   };
 

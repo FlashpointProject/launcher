@@ -398,13 +398,46 @@ export function main(init: Init): void {
   function onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
+    const openExternalSafe = async (url: string) => {
+      // Only allow http/https
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        log.warn('Launcher', `Blocked invalid URL: "${url}"`);
+        return;
+      }
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        log.warn('Launcher', `Blocked non-http URL: "${url}"`);
+        return;
+      }
+
+      const isInsecure = parsed.protocol === 'http:';
+      const { response } = await dialog.showMessageBox({
+        type: isInsecure ? 'warning' : 'question',
+        buttons: ['Open', 'Cancel'],
+        defaultId: 1,
+        cancelId: 1,
+        title: isInsecure ? 'Open Insecure External Link' : 'Open External Link',
+        message: isInsecure
+          ? 'This link uses an insecure connection (HTTP). Open in your browser anyway?'
+          : 'Open this URL in your browser?',
+        detail: url,
+      });
+
+      if (response === 0) {
+        shell.openExternal(url);
+      }
+    };
+
     webContents.on('will-navigate', (event, navigationUrl) => {
       event.preventDefault();
-      shell.openExternal(navigationUrl);
+      openExternalSafe(navigationUrl);
     });
 
     webContents.setWindowOpenHandler(({ url }) => {
-      shell.openExternal(url);
+      openExternalSafe(url);
       return { action: 'deny' };
     });
   }

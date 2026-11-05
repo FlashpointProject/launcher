@@ -523,7 +523,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       clearTimeout(this.listSelectionTimeout);
       this.listSelectionTimeout = undefined;
     }
-    
+
     await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, override);
   };
 
