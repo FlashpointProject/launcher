@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Dublare (numai informațiile jocurilor)",
     "duplicateMetaAndImages": "Dublare (informațiile jocurilor și imagini)",
     "copyGameUUID": "Copiază ID-ul jocului",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Exportare (numai date Meta)",
     "exportMetaAndImages": "Exportați (informațiile jocurilor și imaginile)",
     "exportMetaEdit": "Exportați modificări ale informațiilor jocurilor",
