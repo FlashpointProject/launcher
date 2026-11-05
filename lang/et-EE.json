@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Dubleeri (Vaid Meta)",
     "duplicateMetaAndImages": "Dubleeri (Meta && Pildid)",
     "copyGameUUID": "Kopeeri Mängu UUID",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Ekspordi (Vaid Meta)",
     "exportMetaAndImages": "Ekspordi (Meta && Pildid)",
     "exportMetaEdit": "Ekspordi Meta Muudatus",
