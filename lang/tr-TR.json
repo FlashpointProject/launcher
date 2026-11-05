@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Kopyala (Sadece Meta)",
     "duplicateMetaAndImages": "Kopyala (Meta & Resimler)",
     "copyGameUUID": "Oyun UUID'sini Kopyala",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Dışa Aktar (Sadece Meta)",
     "exportMetaAndImages": "Dışa Aktar (Meta & Resimler)",
     "exportMetaEdit": "Meta Düzenlemesini Dışa Aktar",
