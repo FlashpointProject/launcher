@@ -350,7 +350,7 @@ function pack(done) {
           ...extraOpts.linux
         },
       },
-    publish: config.publish ? "onTagOrDraft" : "never",
+    publish: config.publish ? "always" : "never",
   })
   .then(() => {
     console.log('Pack - Done!');
