@@ -322,14 +322,31 @@ function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }
 
-export async function makeCurationFromGame(state: BackState, gameId: string, skipDataPack?: boolean): Promise<string | undefined> {
-  const game = await fpDatabase.findGame(gameId);
-  const folder = uuid();
-  if (game) {
-    const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
-    await fs.promises.mkdir(curPath, { recursive: true });
+export async function makeCurationFromGame(state: BackState, gameId: string, skipDataPack?: boolean, taskId?: string): Promise<string | undefined> {
+  try {
+    const game = await fpDatabase.findGame(gameId);
+    const folder = uuid();
+    if (game) {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
+          status: 'Preparing curation...',
+          progress: 0.1
+        });
+      }
+      
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
     const contentFolder = path.join(curPath, 'content');
     await fs.promises.mkdir(contentFolder, { recursive: true });
+
+    if (taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+        id: taskId,
+        status: 'Copying existing data...',
+        progress: 0.3
+      });
+    }
 
     const imagesRoot = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
     // Copy images (download from remote if does not exist)
@@ -379,6 +396,14 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
 
     // Extract active data pack if exists
     if (game.activeDataId) {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
+          status: 'Extracting data pack...',
+          progress: 0.5
+        });
+      }
+      
       await checkAndDownloadGameData(game.activeDataId);
       const activeData = await fpDatabase.findGameDataById(game.activeDataId);
       if (activeData && activeData.path && !skipDataPack) {
@@ -428,6 +453,15 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       alreadyImported: true,
       warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
     };
+    
+    if (taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+        id: taskId,
+        status: 'Finalizing curation...',
+        progress: 0.9
+      });
+    }
+    
     await saveCuration(curPath, curation);
     state.loadedCurations.push(curation);
 
@@ -443,7 +477,31 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
 
     // Send back responses
     state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    
+    // Mark curation task as finished
+    if (taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+        id: taskId,
+        status: '',
+        progress: 1,
+        finished: true
+      });
+    }
+    
     return curation.folder;
+  }
+  } catch (error) {
+    log.error('Launcher', `Make Curation From Game failed: ${error instanceof Error ? error.message : String(error)}`);
+    
+    if (taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+        id: taskId,
+        status: 'Failed to create curation',
+        finished: true,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+    throw error;
   }
 }
 

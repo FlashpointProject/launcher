@@ -2354,8 +2354,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.CURATE_FROM_GAME, async (event, gameId) => {
-    return makeCurationFromGame(state, gameId);
+  state.socketServer.register(BackIn.CURATE_FROM_GAME, async (event, gameId, taskId) => {
+    return makeCurationFromGame(state, gameId, false, taskId);
   });
 
   state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {

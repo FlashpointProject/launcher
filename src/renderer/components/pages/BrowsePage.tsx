@@ -86,6 +86,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   gameGridOrListRef: HTMLDivElement | null = null;
   gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
 
+  /** Timeouts for delayed selection/deselection to allow double-clicks */
+  private gridSelectionTimeout?: NodeJS.Timeout;
+  private listSelectionTimeout?: NodeJS.Timeout;
+  
+  /** Timestamp of last game launch to prevent immediate deselection after launch */
+  private lastGameLaunchTime: number = 0;
+
   /** Time it takes before the current "quick search" string to reset after a change was made (in milliseconds). */
   static readonly quickSearchTimeout: number = 1500;
 
@@ -103,6 +110,16 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   componentDidUpdate(prevProps: Readonly<BrowsePageProps>, prevState: Readonly<BrowsePageState>, snapshot?: any) {
     if (prevProps.currentView.id !== this.props.currentView.id) {
       this.loadView();
+    }
+  }
+
+  componentWillUnmount() {
+    // Clear any pending selection timeouts
+    if (this.gridSelectionTimeout) {
+      clearTimeout(this.gridSelectionTimeout);
+    }
+    if (this.listSelectionTimeout) {
+      clearTimeout(this.listSelectionTimeout);
     }
   }
 
@@ -405,20 +422,45 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onGridGameSelect = async (gameId?: string, col?: number, row?: number): Promise<void> => {
     const { currentView } = this.props;
-    if (currentView.selectedGame?.id !== gameId && gameId) {
-      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
-      if (game) {
-        if (col !== undefined && row !== undefined) {
-          this.props.searchActions.setGridScroll({
+    
+    // Clear any pending selection timeout
+    if (this.gridSelectionTimeout) {
+      clearTimeout(this.gridSelectionTimeout);
+      this.gridSelectionTimeout = undefined;
+    }
+
+    if (gameId) {
+      if (currentView.selectedGame?.id !== gameId) {
+        // Select a different game
+        const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
+        if (game) {
+          if (col !== undefined && row !== undefined) {
+            this.props.searchActions.setGridScroll({
+              view: currentView.id,
+              col,
+              row
+            });
+          }
+          this.props.searchActions.selectGame({
             view: currentView.id,
-            col,
-            row
+            game,
           });
         }
-        this.props.searchActions.selectGame({
-          view: currentView.id,
-          game,
-        });
+      } else {
+        // This prevents tripple-clicks from deselecting the game
+        const timeSinceLastLaunch = Date.now() - this.lastGameLaunchTime;
+        if (timeSinceLastLaunch < 500) {
+          return;
+        }
+        
+        // Deselect the same game that's already selected
+        this.gridSelectionTimeout = setTimeout(() => {
+          this.props.searchActions.selectGame({
+            view: currentView.id,
+            game: undefined
+          });
+          this.gridSelectionTimeout = undefined;
+        }, 250);
       }
     }
   }
@@ -426,24 +468,62 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onListGameSelect = async (gameId?: string, row?: number): Promise<void> => {
     const { currentView } = this.props;
-    if (currentView.selectedGame?.id !== gameId && gameId) {
-      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
-      if (game) {
-        if (row !== undefined) {
-          this.props.searchActions.setListScroll({
+    
+    // Clear any pending selection timeout
+    if (this.listSelectionTimeout) {
+      clearTimeout(this.listSelectionTimeout);
+      this.listSelectionTimeout = undefined;
+    }
+
+    if (gameId) {
+      if (currentView.selectedGame?.id !== gameId) {
+        // Select a different game
+        const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
+        if (game) {
+          if (row !== undefined) {
+            this.props.searchActions.setListScroll({
+              view: currentView.id,
+              row
+            });
+          }
+          this.props.searchActions.selectGame({
             view: currentView.id,
-            row
+            game,
           });
         }
-        this.props.searchActions.selectGame({
-          view: currentView.id,
-          game,
-        });
+      } else {
+        // This prevents tripple-clicks from deselecting the game
+        const timeSinceLastLaunch = Date.now() - this.lastGameLaunchTime;
+        if (timeSinceLastLaunch < 500) {
+          return;
+        }
+        
+        // Deselect the same game that's already selected
+        this.listSelectionTimeout = setTimeout(() => {
+          this.props.searchActions.selectGame({
+            view: currentView.id,
+            game: undefined,
+          });
+          this.listSelectionTimeout = undefined;
+        }, 250);
       }
     }
   };
 
   onGameLaunch = async (gameId: string, override: GameLaunchOverride): Promise<void> => {
+    // Record the launch time to prevent immediate deselection
+    this.lastGameLaunchTime = Date.now();
+    
+    // Clear any pending deselection timeouts since we're launching the game
+    if (this.gridSelectionTimeout) {
+      clearTimeout(this.gridSelectionTimeout);
+      this.gridSelectionTimeout = undefined;
+    }
+    if (this.listSelectionTimeout) {
+      clearTimeout(this.listSelectionTimeout);
+      this.listSelectionTimeout = undefined;
+    }
+    
     await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, override);
   };
 

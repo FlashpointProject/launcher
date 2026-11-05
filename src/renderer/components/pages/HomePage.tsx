@@ -471,7 +471,7 @@ export function HomePage(props: HomePageProps) {
           </div>
           { props.main.metadataUpdate.ready && props.main.metadataUpdate.total > 0 && (
             <div className='update-metadata-last'>
-              {formatString(strings.updatedGamesReady, (props.main.metadataUpdate.total + 1).toString())}
+              {formatString(strings.updatedGamesReady, (props.main.metadataUpdate.total).toString())}
             </div>
           )}
           <div className='update-metadata-last'>

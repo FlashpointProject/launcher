@@ -679,7 +679,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
   // Split the items into 2 halves - Selected and not selected, then merge
 
   const filteredItems = React.useMemo(() => {
-    const lowerSearch = search.toLowerCase().replace(' ', '');
+    const lowerSearch = search.toLowerCase().replace(/\s+/g, '');
     const selectedItems = storedItems.filter((item) => item.value in selected);
     selectedItems.sort((a, b) => {
       if (selected[a.value] === 'whitelist' && selected[b.value] === 'blacklist') {
@@ -693,7 +693,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
 
     return [
       ...selectedItems,
-      ...storedItems.filter((item) => !(item.value in selected) && item.orderVal.toLowerCase().includes(lowerSearch)),
+      ...storedItems.filter((item) => !(item.value in selected) && item.orderVal.toLowerCase().replace(/\s+/g, '').includes(lowerSearch)),
     ];
   }, [search, storedItems]);
 

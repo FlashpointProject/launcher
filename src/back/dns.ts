@@ -3,6 +3,7 @@ import * as dns from 'node:dns';
 import * as dnsPacket from 'dns-packet';
 import _axios from 'axios';
 import { Agent } from 'node:https';
+import { VERSION } from '@shared/version';
 
 let id = 0;
 
@@ -88,6 +89,7 @@ const agent = new Agent({
 
 export const axios = _axios.create({
   headers: {
-    'User-Agent': 'Flashpoint Launcher'
+    'User-Agent': 'Flashpoint Launcher/' + VERSION,
+    'x-launcher-version': VERSION
   }
 })
