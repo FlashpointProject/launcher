@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Duplikát (csak Meta)",
     "duplicateMetaAndImages": "Duplikátum (Meta &&Képek)",
     "copyGameUUID": "Játék UUID másolása",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Exportálás (csak a Meta)",
     "exportMetaAndImages": "Exportálás (Meta&&Képek)",
     "exportMetaEdit": "Meta módosítás exportálása",
