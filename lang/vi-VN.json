@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Tạo bản sao (chỉ lấy thông tin)",
     "duplicateMetaAndImages": "Tạo bản sao (thông tin && hình)",
     "copyGameUUID": "Chép UUID của trò chơi",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Xuất (chỉ thông tin)",
     "exportMetaAndImages": "Xuất (thông tin && hình)",
     "exportMetaEdit": "Xuất sửa đổi thông tin",
