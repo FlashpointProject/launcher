@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Checkout submodules
       shell: bash
       run: |
@@ -25,10 +25,10 @@ jobs:
         git submodule sync --recursive
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
     - name: Use Node.js 26.x
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v7
       with:
         node-version: 26.x
-    - uses: actions/cache@v3
+    - uses: actions/cache@v6
       id: cache
       with:
         path: | 
