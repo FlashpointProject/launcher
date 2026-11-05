@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Iduplicate (Meta)",
     "duplicateMetaAndImages": "Iduplicate (Meta at mga Larawan)",
     "copyGameUUID": "I-kopya ang Game UUID",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Iexport (Meta)",
     "exportMetaAndImages": "Iexport (Meta at mga Larawan)",
     "exportMetaEdit": "I-Export ang mga Meta Edits",
