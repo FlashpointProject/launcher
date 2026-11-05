@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Duplikovat (pouze metadata)",
     "duplicateMetaAndImages": "Duplikovat (metadata a obrázky)",
     "copyGameUUID": "Zkopírovat UUID hry",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Exportovat (pouze metadata)",
     "exportMetaAndImages": "Exportovat (metadata a obrázky)",
     "exportMetaEdit": "Exportovat úpravy metadat",
