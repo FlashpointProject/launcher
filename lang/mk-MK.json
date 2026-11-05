@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Дуплицирај(Meta само)",
     "duplicateMetaAndImages": "Дуплицирај (Meta && Слики)",
     "copyGameUUID": "Копирај UUID на играта",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Изведувај(Meta само)",
     "exportMetaAndImages": "Изведувај(Meta && Слики)",
     "exportMetaEdit": "Изведувај Meta Edit",
