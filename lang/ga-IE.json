@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Cóipáil (Meitéascóip amháin)",
     "duplicateMetaAndImages": "Cóipáil (Meitéascóip & íomhánna)",
     "copyGameUUID": "Cóip UUID an Chluiche",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Easpórtáil (Meitéascóip amháin)",
     "exportMetaAndImages": "Easpórtáil (Meitéascóip & íomhánna)",
     "exportMetaEdit": "Easpórtáil Meta Eagrán",
