@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Διπλότυπο (Μεταδεδομένα μόνον)",
     "duplicateMetaAndImages": "Διπλότυπο (Μεταδεδομένα && Εικόνες)",
     "copyGameUUID": "Αντιγραφή Καθολικά Μοναδικού Αναγνωστικού Παιχνιδιού",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Εξαγωγή (Μεταδεδομένα μόνον)",
     "exportMetaAndImages": "Εξαγωγή (Μεταδεδομένα && Εικόνες)",
     "exportMetaEdit": "Εξαγωγή Μετεπεξεργασίας",
