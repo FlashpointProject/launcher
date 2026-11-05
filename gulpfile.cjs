@@ -102,6 +102,7 @@ const publishInfo = [
   {
     provider: 'github',
     vPrefixedTagName: false,
+    releaseType: 'draft',
   },
 ];
 
@@ -318,7 +319,7 @@ function pack(done) {
   builder
   .build({
     x64: process.env.PACK_ARCH === 'x64' || undefined,
-    config: Object.assign(
+    config: 
       {
         appId: 'com.bluemaxima.flashpoint-launcher',
         productName: 'Flashpoint',
@@ -346,9 +347,10 @@ function pack(done) {
           target: 'dir',
         },
       },
-      extraOpts
-    ),
-  })
+      extraOpts,
+      publish: config.publish ? "onTagOrDraft" : "never",
+    },
+  )
   .then(() => {
     console.log('Pack - Done!');
   })
