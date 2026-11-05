@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Duplikatu (Nur Meta-n)",
     "duplicateMetaAndImages": "Duplikatu (Meta-n kaj Bildojn)",
     "copyGameUUID": "Kopiu Luda UUID-n",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Eksportu (nur Meta-n)",
     "exportMetaAndImages": "Eksportu (Meta-n kaj Bildojn)",
     "exportMetaEdit": "Eksportu Meta-redakton",
