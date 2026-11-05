@@ -6,6 +6,8 @@ import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { AdditionalApp } from 'flashpoint-launcher';
+import * as remote from '@electron/remote';
+import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
@@ -38,7 +40,9 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     return (
       <div className='browse-right-sidebar__additional-application'>
         {/* Title & Launch Button */}
-        <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
+        <div
+          className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'
+          onContextMenu={this.onContextMenu}>
           <InputField
             text={addApp.name}
             placeholder={strings.noName}
@@ -130,6 +134,18 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     }
   };
 
+  onContextMenu = (event: React.MouseEvent): void => {
+    event.preventDefault();
+    const template: MenuItemConstructorOptions[] = [
+      {
+        label: this.context.menu.copyAdditionalApplicationUUID,
+        click: () => { clipboard.writeText(this.props.addApp.id); },
+        enabled: true
+      }
+    ];
+    openContextMenu(template);
+  };
+
   /**
    * Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy).
    *
@@ -158,4 +174,10 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
       }
     };
   }
+}
+
+function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
+  const menu = remote.Menu.buildFromTemplate(template);
+  menu.popup({ window: remote.getCurrentWindow() });
+  return menu;
 }
