@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Duplicar (Apenas Metadados)",
     "duplicateMetaAndImages": "Duplicar (Metadados && Imagens)",
     "copyGameUUID": "Copiar UUID do Jogo",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Exportar (Apenas Metadados)",
     "exportMetaAndImages": "Exportar (Metadados && Imagens)",
     "exportMetaEdit": "Exportar Edição de Metadados",
