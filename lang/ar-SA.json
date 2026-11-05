@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "استنساخ (البيانات الوصفية فقط)",
     "duplicateMetaAndImages": "استنساخ (البيانات الوصفية && الصور)",
     "copyGameUUID": "نسخ معرّف اللعبة",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "إخراج (البيانات الوصفية فقط)",
     "exportMetaAndImages": "إخراج (البيانات الوصفية && الصور)",
     "exportMetaEdit": "استخرج التعديل للبيانات الوصفية",
