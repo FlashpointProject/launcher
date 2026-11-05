@@ -18,6 +18,7 @@ import * as WebSocket from 'ws';
 import * as Util from './Util';
 import { Init } from './types';
 
+const APPLICATION_DATA = path.join(Util.getMainFolderPath(), 'ApplicationData');
 const TIMEOUT_DELAY = 60_000;
 
 const ALLOWED_HOSTS = [
@@ -94,6 +95,16 @@ export function main(init: Init): void {
   // -- Functions --
 
   async function startup(opts: LaunchOptions) {
+    // Portable mode - Switch behavior only if the directory doesn't exist at the default location,
+    // which is only on fresh installs or if the user manually added an ApplicationData folder
+    if (!fs.existsSync(path.join(app.getPath('appData'), app.getName())) || fs.existsSync(APPLICATION_DATA)) {
+      if (process.platform === 'win32' || process.platform === 'linux') {
+        app.setPath('userData', APPLICATION_DATA);
+        app.setPath('crashDumps', path.join(APPLICATION_DATA, 'Crash Dumps'));
+        app.setAppLogsPath(path.join(APPLICATION_DATA, 'Logs'));
+      }
+    }
+
     app.disableHardwareAcceleration();
 
     // Single process
