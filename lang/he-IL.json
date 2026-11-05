@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "משוכפל(רק במטא)",
     "duplicateMetaAndImages": "משוכפל(מטא ותמונות)",
     "copyGameUUID": "העתק את מזהה המשחק",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "ייצא(רק מטא)",
     "exportMetaAndImages": "יצא(מטא ותמונות)",
     "exportMetaEdit": "ייצא עריכת מטא",
