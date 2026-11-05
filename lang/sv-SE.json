@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Duplicera (endast metadata)",
     "duplicateMetaAndImages": "Duplicera (metadata && bilder)",
     "copyGameUUID": "Kopiera spel-UUID",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Exportera (endast metadata)",
     "exportMetaAndImages": "Exportera (metadata && bilder)",
     "exportMetaEdit": "Exportera Meta-redigering",
