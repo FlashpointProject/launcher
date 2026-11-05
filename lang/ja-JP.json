@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "複製（メタのみ）",
     "duplicateMetaAndImages": "複製（メタ&&画像）",
     "copyGameUUID": "ゲームUUIDをコピー",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "エクスポート(Metaのみ)",
     "exportMetaAndImages": "エクスポート(MetaとImages)",
     "exportMetaEdit": "メタ編集をエクスポート",
