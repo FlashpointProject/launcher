@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Dupliker (Kun Meta)",
     "duplicateMetaAndImages": "Dupliker (Meta && Billeder)",
     "copyGameUUID": "Kopiér Spil- UUID",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Eksport (Kun Meta)",
     "exportMetaAndImages": "Eksport (Meta && Billeder)",
     "exportMetaEdit": "Eksporter Meta Rediger",
