@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
     "copyGameUUID": "Копіювати UUID Гри",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Експорт (лише мета)",
     "exportMetaAndImages": "Export (Meta && Images)",
     "exportMetaEdit": "Експорт мета-редагування",
