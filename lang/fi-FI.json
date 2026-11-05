@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Kopioi (Vain metatiedot)",
     "duplicateMetaAndImages": "Kopioi (Meta ja kuvat)",
     "copyGameUUID": "Kopioi Pelin UUID",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Vie (Ainoastaan metatiedot)",
     "exportMetaAndImages": "Vie (Meta & kuvat)",
     "exportMetaEdit": "Vie Meta Muokkaus",
