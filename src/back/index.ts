@@ -336,6 +336,7 @@ async function prepForInit(message: any): Promise<void> {
     send({ quit: true, errorMessage: 'Invalid config.json!' });
     return;
   }
+  state.config.flashpointPath = path.resolve(state.configFolder, state.config.flashpointPath);
 
   console.log('Back - Loaded Config');
 
