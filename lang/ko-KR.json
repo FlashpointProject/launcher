@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "복사 (메타만)",
     "duplicateMetaAndImages": "복사 (메타 & 이미지)",
     "copyGameUUID": "게임 UUID 복사",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "내보내기 (메타만)",
     "exportMetaAndImages": "내보내기 (메타 & 이미지)",
     "exportMetaEdit": "Export Meta Edit",
