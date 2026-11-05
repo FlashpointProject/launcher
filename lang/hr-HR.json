@@ -585,6 +585,7 @@
     "duplicateMetaOnly": "Udvostruči (samo metapodatke)",
     "duplicateMetaAndImages": "Udvostruči (metapodatke i slike)",
     "copyGameUUID": "Kopiraj UUID igre",
+    "copyAdditionalApplicationUUID": "Copy Additional App UUID",
     "exportMetaOnly": "Izvezi (samo metapodatke)",
     "exportMetaAndImages": "Izvezi (metapodatke i slike)",
     "exportMetaEdit": "Izvezi uređene metapodatke",
