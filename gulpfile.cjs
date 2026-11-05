@@ -338,19 +338,20 @@ function pack(done) {
         win: {
           target: 'dir',
           icon: './icons/icon.ico',
+          ...extraOpts.win
         },
         mac: {
           target: 'dir',
           icon: './icons/icon.icns',
+          ...extraOpts.mac
         },
         linux: {
           target: 'dir',
+          ...extraOpts.linux
         },
       },
-      extraOpts,
-      publish: config.publish ? "onTagOrDraft" : "never",
-    },
-  )
+    publish: config.publish ? "onTagOrDraft" : "never",
+  })
   .then(() => {
     console.log('Pack - Done!');
   })
