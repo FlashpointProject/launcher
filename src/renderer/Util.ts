@@ -1,18 +1,18 @@
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
+import { ViewQuery } from '@shared/library/util';
+import { Paths } from '@shared/Paths';
 import { getFileServerURL } from '@shared/Util';
+import { getGameDataFilename } from '@shared/utils/misc';
+import { VERSION } from '@shared/version';
+import _axios from 'axios';
 import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { GameOrderChangeEvent } from './components/GameOrder';
-import { Paths } from '@shared/Paths';
-import { GameDragEventData } from './components/pages/BrowsePage';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
-import { ViewQuery } from '@shared/library/util';
-import { getGameDataFilename } from '@shared/utils/misc';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import _axios from 'axios';
-import { VERSION } from '@shared/version';
+import { GameOrderChangeEvent } from './components/GameOrder';
+import { GameDragEventData } from './components/pages/BrowsePage';
 
 export const gameDragDataType = 'json/game-drag';
 

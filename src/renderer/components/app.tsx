@@ -1198,7 +1198,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.copyShortcutURL,
           enabled: true,
           click: () => {
-            navigator.clipboard.writeText(`flashpoint://run/${gameId}`);
+            remote.clipboard.writeText(`flashpoint://run/${gameId}`);
           }
         },
         {
@@ -1206,7 +1206,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.copyGameUUID,
           enabled: true,
           click: () => {
-            navigator.clipboard.writeText(gameId);
+            remote.clipboard.writeText(gameId);
           }
         },
         {
@@ -1429,7 +1429,7 @@ export class App extends React.Component<AppProps> {
   };
 
   copyCrashLog = () => {
-    navigator.clipboard.writeText(this.props.main.mainOutput || '');
+    remote.clipboard.writeText(this.props.main.mainOutput || '');
   };
 
   render() {

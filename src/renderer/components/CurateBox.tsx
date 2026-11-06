@@ -1,20 +1,20 @@
 import * as remote from '@electron/remote';
 import {
-  CurateBoxDropdownInputRow,
-  CurateBoxInputEntryRow,
-  CurateBoxInputRow,
-  CurateBoxTagDropdownInputRow,
-  DropdownItem
+    CurateBoxDropdownInputRow,
+    CurateBoxInputEntryRow,
+    CurateBoxInputRow,
+    CurateBoxTagDropdownInputRow,
+    DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import {
-  AddAppType,
-  addPlatform,
-  addTag, createAddApp,
-  editCurationMeta,
-  removePlatform,
-  removeTag,
-  setPrimaryPlatform, toggleContentNodeView
+    AddAppType,
+    addPlatform,
+    addTag, createAddApp,
+    editCurationMeta,
+    removePlatform,
+    removeTag,
+    setPrimaryPlatform, toggleContentNodeView
 } from '@renderer/store/curate/slice';
 import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
@@ -231,13 +231,13 @@ export function CurateBox(props: CurateBoxProps) {
   const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => () => {
     const contextButtons: MenuItemConstructorOptions[] = [{
       label: strings.curate.contextCopyName,
-      click: () => navigator.clipboard.writeText(node.name)
+      click: () => remote.clipboard.writeText(node.name)
     }, {
       label: strings.curate.contextCopyPath,
-      click: () => navigator.clipboard.writeText(tree.join(path.sep))
+      click: () => remote.clipboard.writeText(tree.join(path.sep))
     }, {
       label: strings.curate.contextCopyAsURL,
-      click: () => navigator.clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
+      click: () => remote.clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
     }, {
       type: 'separator'
     }];

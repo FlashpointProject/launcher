@@ -31,7 +31,7 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   const pollUrl = `${fpfssBaseUrl}/auth/token`;
   const profileUrl = `${fpfssBaseUrl}/api/profile`;
   await remote.shell.openExternal(token.verification_uri_complete);
-  navigator.clipboard.writeText(token.verification_uri_complete);
+  remote.clipboard.writeText(token.verification_uri_complete);
 
   const dialog: DialogState = {
     largeMessage: true,

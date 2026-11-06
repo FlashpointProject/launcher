@@ -1079,7 +1079,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 <>
                   <SimpleButton
                     value={allStrings.menu.copyGameUUID}
-                    onClick={() => this.props.currentGame && navigator.clipboard.writeText(this.props.currentGame.id)} />
+                    onClick={() => this.props.currentGame && remote.clipboard.writeText(this.props.currentGame.id)} />
                 </>
               )}
               { this.state.gameDataBrowserOpen && (

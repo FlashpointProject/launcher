@@ -268,6 +268,8 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
           tagGroupIconBase64={tagGroupIcon || ''}
           thumbnail={game ? getGameImageURL(game.logoPath) : ''}
           screenshot={game ? getGameImageURL(game.screenshotPath) : ''}
+          logoPath={game ? game.logoPath : ''}
+          screenshotPath={game ? game.screenshotPath : ''}
           screenshotPreviewMode={this.props.screenshotPreviewMode}
           screenshotPreviewDelay={this.props.screenshotPreviewDelay}
           logoVersion={this.props.logoVersion}

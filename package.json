@@ -88,7 +88,7 @@
     "@types/tail": "2.2.3",
     "@types/ws": "8.18.2",
     "cross-env": "10.1.0",
-    "electron": "^45.2.3",
+    "electron": "43.8.7",
     "electron-builder": "26.18.0",
     "esbuild": "0.28.2",
     "eslint": "^8.57.0",

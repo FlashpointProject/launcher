@@ -139,7 +139,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     const template: MenuItemConstructorOptions[] = [
       {
         label: this.context.menu.copyAdditionalApplicationUUID,
-        click: () => { navigator.clipboard.writeText(this.props.addApp.id); },
+        click: () => { remote.clipboard.writeText(this.props.addApp.id); },
         enabled: true
       }
     ];

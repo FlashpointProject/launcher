@@ -999,8 +999,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return await fpDatabase.findGame(id);
-    // TODO: Reimplement game configs
+    return getGame(state, id);
   });
 
   state.socketServer.register(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, async (event, mIds) => {
@@ -1057,34 +1056,17 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
     const gameData = await fpDatabase.findGameDataById(id);
-    // Verify it's still on disk
     if (gameData) {
-      const gameDataFilename = getGameDataFilename(gameData);
-      const filePath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
-      try {
-        await fs.promises.access(filePath, fs.constants.F_OK);
-        if (!gameData.presentOnDisk) {
-          gameData.presentOnDisk = true;
-          return fpDatabase.saveGameData(gameData);
-        }
-      } catch (err) {
-        // No file found, check archive data
-        const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(state.config.flashpointPath, filePath)));
-        if (gameData.presentOnDisk && state.archiveData.getZipDataOffset(ultPath) === null) {
-          gameData.presentOnDisk = false;
-          return fpDatabase.saveGameData(gameData);
-        } else if (!gameData.presentOnDisk) {
-          gameData.presentOnDisk = true;
-          return fpDatabase.saveGameData(gameData);
-        }
-      }
+      return verifyGameDataOnDisk(state, gameData);
     }
     return gameData;
   });
 
   state.socketServer.register(BackIn.GET_GAMES_GAME_DATA, async (event, id) => {
-    return fpDatabase.findGameData(id);
+    const gameDataList = await fpDatabase.findGameData(id);
+    return Promise.all(gameDataList.map(gd => verifyGameDataOnDisk(state, gd)));
   });
+  
 
   state.socketServer.register(BackIn.SAVE_GAME_DATAS, async (event, data) => {
     // Ignore presentOnDisk, client isn't the most aware
@@ -1140,11 +1122,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
+    console.log('uninstall');
     const gameData = await fpDatabase.findGameDataById(id);
     if (gameData && gameData.presentOnDisk) {
+      console.log('on disk');
       const gameDataFilename = getGameDataFilename(gameData);
       await onWillUninstallGameData.fire(gameData);
       // Delete Game Data
+      console.log('unlinking');
       const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
       await fs.promises.unlink(gameDataPath)
       .catch((error) => {
@@ -1164,6 +1149,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         return fpDatabase.saveGame(game);
       }
     }
+    console.log('done');
     return null;
   });
 
@@ -2922,3 +2908,41 @@ const downloadJsonDataToBuffer = async (url: string): Promise<Buffer> => {
     });
   });
 };
+
+async function getGame(state: BackState, id: string) {
+  const game = await fpDatabase.findGame(id);
+  if (game?.gameData) {
+    for (let i = 0; i < game.gameData.length; i++) {
+      game.gameData[i] = await verifyGameDataOnDisk(state, game.gameData[i]);
+    }
+  }
+  return game;
+}
+
+async function verifyGameDataOnDisk(state: BackState, gameData: GameData): Promise<GameData> {
+  const gameDataFilename = getGameDataFilename(gameData);
+  const filePath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
+  
+  try {
+    await fs.promises.access(filePath, fs.constants.F_OK);
+    // File exists on disk
+    if (!gameData.presentOnDisk) {
+      gameData.presentOnDisk = true;
+      return fpDatabase.saveGameData(gameData);
+    }
+  } catch {
+    // File not on disk, check archive
+    const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(state.config.flashpointPath, filePath)));
+    const inArchive = (await state.archiveData.getZipDataOffset(ultPath)) !== null;  // ✅ awaited
+
+    if (gameData.presentOnDisk && !inArchive) {
+      gameData.presentOnDisk = false;
+      return fpDatabase.saveGameData(gameData);
+    } else if (!gameData.presentOnDisk && inArchive) {
+      gameData.presentOnDisk = true;
+      return fpDatabase.saveGameData(gameData);
+    }
+  }
+
+  return gameData;
+}

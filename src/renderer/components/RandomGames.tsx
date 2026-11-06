@@ -62,6 +62,8 @@ export function RandomGames(props: RandomGamesProps) {
           tagGroupIconBase64={props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64 || ''}
           thumbnail={getGameImageURL(game.logoPath)}
           screenshot={getGameImageURL(game.screenshotPath)}
+          logoPath={game ? game.logoPath : ''}
+          screenshotPath={game ? game.screenshotPath : ''}
           screenshotPreviewMode={props.screenshotPreviewMode}
           screenshotPreviewDelay={props.screenshotPreviewDelay}
           hideExtremeScreenshots={props.hideExtremeScreenshots}

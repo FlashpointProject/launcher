@@ -221,7 +221,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
       return `[${LogLevel[formedLog.logLevel].padEnd(5)}] [${(new Date(formedLog.timestamp)).toLocaleTimeString('en-GB')}]: (${formedLog.source}) - ${formedLog.content}`;
     })
     .join('\n');
-    navigator.clipboard.writeText(logData);
+    remote.clipboard.writeText(logData);
   };
 
   onClearClick = (): void => {
@@ -244,7 +244,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
       }
     }
     // Copy with each URL on a new line
-    navigator.clipboard.writeText(urls.join('\n'));
+    remote.clipboard.writeText(urls.join('\n'));
   };
 
   onOpenLogsWindowClick = async (): Promise<void> => {
@@ -255,7 +255,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     window.Shared.back.request(BackIn.FETCH_DIAGNOSTICS)
     .then((diagnostics) => {
       this.setState({ fetchedDiagnostics: true });
-      navigator.clipboard.writeText(diagnostics);
+      remote.clipboard.writeText(diagnostics);
     });
   };
 
@@ -276,7 +276,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
         this.setState({ uploaded: true, uploading: false });
         if (data) {
           // Write log URL to clipboard
-          navigator.clipboard.writeText(data);
+          remote.clipboard.writeText(data);
         }
       });
     } else {

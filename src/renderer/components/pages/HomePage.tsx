@@ -347,6 +347,8 @@ export function HomePage(props: HomePageProps) {
                     tagGroupIconBase64={tagGroupIcons.find(tg => tg.tagFilter.find(t => loadedGotd?.tags.includes(t)))?.iconBase64 || ''}
                     thumbnail={getGameImageURL(loadedGotd.logoPath)}
                     screenshot={getGameImageURL(loadedGotd.screenshotPath)}
+                    logoPath={loadedGotd.logoPath}
+                    screenshotPath={loadedGotd.screenshotPath}
                     screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
                     screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
                     hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
