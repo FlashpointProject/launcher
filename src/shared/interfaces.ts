@@ -1,11 +1,11 @@
 import { SocketClient } from '@shared/back/SocketClient';
 import { OpenDialogOptions } from 'electron';
+import { EventEmitter } from 'events';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import { AppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { ITheme } from './ThemeFile';
-import { EventEmitter } from 'events';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -103,6 +103,9 @@ export interface IMainWindowExternal {
    * @returns A promise that resolves when initialization is complete, or nothing if already initialized.
    */
   waitUntilInitialized(): Promise<void> | void;
+
+  /** Flashpoint path as defined in the config file */
+  rawFlashpointPath: string;
 }
 
 /** Callback for Electron.dialog.showOpenDialog */

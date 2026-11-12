@@ -340,6 +340,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       language: state.languageContainer,
       themes: Array.from(state.registry.themes.values()),
       localeCode: state.localeCode,
+      rawFlashpointPath: state.rawFlashpointPath,
     };
 
   });

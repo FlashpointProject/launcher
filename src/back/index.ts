@@ -119,6 +119,7 @@ const state: BackState = {
   versionStr: createErrorProxy('versionStr'),
   suggestions: createErrorProxy('suggestions'),
   acceptRemote: createErrorProxy('acceptRemote'),
+  rawFlashpointPath: createErrorProxy('rawFlashpointPath'),
   customVersion: undefined,
   messageQueue: [],
   isHandling: false,
@@ -336,6 +337,7 @@ async function prepForInit(message: any): Promise<void> {
     send({ quit: true, errorMessage: 'Invalid config.json!' });
     return;
   }
+  state.rawFlashpointPath = state.config.flashpointPath;
   state.config.flashpointPath = path.resolve(state.configFolder, state.config.flashpointPath);
 
   console.log('Back - Loaded Config');
@@ -1376,7 +1378,7 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
   const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
   const logoFolder = logoSet && logoSet.files.includes(pathname)
     ? logoSet.fullPath
-    : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
+    : path.resolve(state.config.flashpointPath, state.preferences.logoFolderPath);
   const filePath = path.resolve(logoFolder, pathname);
   if (!filePath.startsWith(logoFolder + path.sep) && filePath !== logoFolder) {
     log.warn('Launcher', `Illegal file request (logos): "${filePath}"`);
@@ -1390,7 +1392,7 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
       try {
         const folder = path.dirname(filePath);
         const filename = path.basename(filePath);
-        if (filePath.startsWith(logoFolder)) {
+        if (filePath.startsWith(logoFolder + path.sep)) {
           const files = await fs.readdir(folder);
           for (const file of files) {
             if (file.toLowerCase() == filename.toLowerCase()) {
@@ -1402,8 +1404,8 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
       } catch { /** Let error drop to return default image instead */ }
       // File doesn't exist, serve default image
       const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
-      const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
-      if (replacementFilePath.startsWith(basePath)) {
+      const replacementFilePath = path.resolve(basePath, 'window/images/Logos', pathname);
+      if (replacementFilePath.startsWith(basePath + path.sep)) {
         fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
           if (err) {
             serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
@@ -1522,7 +1524,7 @@ async function updateFileServerDownloadQueue() {
       // Save response to image file
       const imageData = res.data;
 
-      const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+      const imageFolder = path.resolve(state.config.flashpointPath, state.preferences.imageFolderPath);
       const filePath = path.resolve(imageFolder, item.subPath);
       if (!filePath.startsWith(imageFolder + path.sep)) {
         log.error('Launcher', `Illegal download save path: "${filePath}"`);

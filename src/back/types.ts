@@ -1,5 +1,7 @@
-import { BackInit, ComponentStatus, FpfssUser } from '@shared/back/types';
+import { MultiZipReader } from '@fparchive/multi-zip-reader';
+import { BackInit, ComponentStatus } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
@@ -9,6 +11,7 @@ import * as flashpoint from 'flashpoint-launcher';
 import { Game, GameOrderBy, GameOrderReverse, TagCategory, ViewGame } from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
+import { Downloader } from './Downloader';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
@@ -20,9 +23,6 @@ import { EventQueue } from './util/EventQueue';
 import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
-import { PlatformAppPathSuggestions } from '@shared/curate/types';
-import { Downloader } from './Downloader';
-import { MultiZipReader } from '@fparchive/multi-zip-reader';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -47,6 +47,7 @@ export type BackState = {
   configFolder: string;
   exePath: string;
   localeCode: string;
+  rawFlashpointPath: string;
   version: string;
   versionStr: string;
   suggestions: GamePropSuggestions;

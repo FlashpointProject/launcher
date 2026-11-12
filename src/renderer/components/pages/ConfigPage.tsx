@@ -111,7 +111,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
     this.state = {
       isFlashpointPathValid: undefined,
-      flashpointPath: configData.flashpointPath,
+      flashpointPath: window.Shared.rawFlashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
       nukeInProgress: false,

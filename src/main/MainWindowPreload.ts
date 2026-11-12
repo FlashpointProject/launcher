@@ -8,9 +8,9 @@ import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
 import { ipcRenderer } from 'electron/renderer';
+import { EventEmitter } from 'events';
 import * as path from 'path';
 import { isDev } from './Util';
-import { EventEmitter } from 'events';
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -20,6 +20,8 @@ import { EventEmitter } from 'events';
 
 window.Shared = {
   version: createErrorProxy('version'),
+
+  rawFlashpointPath: createErrorProxy('rawFlashpointPath'),
 
   platform: remote.process.platform + '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
@@ -118,6 +120,7 @@ const onInit = (async () => {
   window.Shared.back.request(BackIn.GET_RENDERER_INIT_DATA)
   .then(data => {
     if (data) {
+      window.Shared.rawFlashpointPath = data.rawFlashpointPath;
       window.Shared.preferences.data = data.preferences;
       window.Shared.config = {
         data: data.config,

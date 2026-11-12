@@ -1,11 +1,11 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '@shared/extensions/interfaces';
 import { readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '@shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
@@ -19,8 +19,8 @@ export async function scanSystemExtensions(isDev: boolean): Promise<IExtension[]
   .then(filenames => {
     // Each folder inside is an Extension
     return Promise.all(filenames.map(async filename => {
-      // Make sure it is a folder or symlink folder
-      const stats = await fs.promises.stat(path.join(extensionPath, filename));
+      // Make sure it is a folder, not a symlink, prevents fileserver escapes
+      const stats = await fs.promises.lstat(path.join(extensionPath, filename));
       if (!stats.isDirectory()) { return; }
       // Read Manifest
       const manifestPath = path.join(extensionPath, filename, 'package.json');
@@ -29,7 +29,7 @@ export async function scanSystemExtensions(isDev: boolean): Promise<IExtension[]
         // Manifest file (package.json) exists, continue loading extension
         if (stats.isFile()) {
           await fsPromises.access(manifestPath);
-          const ext = await parseExtension(manifestPath, ExtensionType.User);
+          const ext = await parseExtension(manifestPath, ExtensionType.User, extensionPath);
           if (result.get(ext.id) !== undefined) {
             // An Extension with the same id has been registered earlier, latest read survives
             log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(extensionPath, filename)}"`);
@@ -78,8 +78,8 @@ export async function scanExtensions(configData: AppConfigData, extensionPath: s
   .then(filenames => {
     // Each folder inside is an Extension
     return Promise.all(filenames.map(async filename => {
-      // Make sure it is a folder or symlink folder
-      const stats = await fs.promises.stat(path.join(userExtPath, filename));
+      // Make sure it is a folder, not a symlink, prevents fileserver escapes
+      const stats = await fs.promises.lstat(path.join(userExtPath, filename));
       if (!stats.isDirectory()) { return; }
       // Read Manifest
       const manifestPath = path.join(userExtPath, filename, 'package.json');
@@ -88,7 +88,7 @@ export async function scanExtensions(configData: AppConfigData, extensionPath: s
         // Manifest file (package.json) exists, continue loading extension
         if (stats.isFile()) {
           await fsPromises.access(manifestPath);
-          const ext = await parseExtension(manifestPath, ExtensionType.User);
+          const ext = await parseExtension(manifestPath, ExtensionType.User, userExtPath);
           if (UNSUPPORTED_EXTENSION_IDS.includes(ext.id)) {
             log.warn('Extensions', `Ignoring Extension ${ext.id} because of replacement with system extension.`);
             return;
@@ -134,14 +134,21 @@ function getExtensionID(author: string, name: string) {
  * @param type System or User extension
  * @returns Fully formed Extension
  */
-async function parseExtension(extFilePath: string, type: ExtensionType): Promise<IExtension> {
+async function parseExtension(extFilePath: string, type: ExtensionType, rootExtPath: string): Promise<IExtension> {
   const data = await readJsonFile(extFilePath);
   const manifest = await parseExtensionManifest(data);
+  const extensionPath = path.resolve(path.dirname(extFilePath));
+
+  // Ensure extension path is within the extensions root (arguably always true by this point, but caution right?)
+  if (!extensionPath.startsWith(rootExtPath + path.sep) && extensionPath !== rootExtPath) {
+    throw new Error(`Extension path "${extensionPath}" is outside the extensions folder`);
+  }
+
   return {
     id: getExtensionID(manifest.author, manifest.name),
     type: type,
     manifest: manifest,
-    extensionPath: path.resolve(path.dirname(extFilePath))
+    extensionPath,
   };
 }
 
