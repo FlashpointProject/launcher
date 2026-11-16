@@ -75,7 +75,7 @@ jobs:
         ls -la
         cat metadata.json
     - name: Deploy to Nexus
-      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      uses: FlashpointProject/nexus-repo-github-action@master
       with:
         serverUrl: https://nexus-dev.unstable.life
         username: github
@@ -86,7 +86,7 @@ jobs:
         assets: filename=core-launcher.zip
         filename: dist/Flashpoint.zip
     - name: Deploy Metadata to Nexus
-      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      uses: FlashpointProject/nexus-repo-github-action@master
       with:
         serverUrl: https://nexus-dev.unstable.life
         username: github
@@ -102,7 +102,7 @@ jobs:
         cd nexus
         python3 ./merge-metadata.py "https://nexus-dev.unstable.life/service/rest/v1/search?repository=development&name=*.json" components.xml "https://nexus-dev.unstable.life/repository/development/"
     - name: Deploy components.xml to Nexus
-      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      uses: FlashpointProject/nexus-repo-github-action@master
       with:
         serverUrl: https://nexus-dev.unstable.life
         username: github
