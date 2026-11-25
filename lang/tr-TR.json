@@ -25,7 +25,7 @@
     "restoreSearchViews": "Arama Sonuçlarını Geri Yükle",
     "restoreSearchViewsDesc": "Uygulamayı her açtığınızda her arama sayfasının bir kopyasını (metin, filtreler, seçili oyun ve oynatma listesi) kaydeder ve geri yükler.",
     "useSelectedGameScroll": "Oyun Seçimi Klavye Kontrollerini Etkinleştir",
-    "useSelectedGameScrollDesc": "Game Izgaralarında / Listelerinde oyunları seçmek için ok tuşlarının kullanılmasını sağlar. NOT: Bu, kaydedilmiş kaydırma konumunun yerine kaydedilmiş seçili oyun konumunu kullanacaktır.",
+    "useSelectedGameScrollDesc": "Oyun Izgaralarında / Listelerinde oyunları seçmek için ok tuşlarının kullanılmasını sağlar. NOT: Bu, kaydedilmiş kaydırma konumunun yerine kaydedilmiş seçili oyun konumunu kullanacaktır.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
     "symlinkCuration": "Kürasyon içeriği için Symlink kullan",
