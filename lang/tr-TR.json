@@ -405,7 +405,7 @@
     "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster",
     "busy": "Lütfen Bekleyin...",
     "openGameDataBrowser": "Oyun Verileri Tarayıcısını Aç",
-    "allGenericEntries": "Tüm Kayıtlar",
+    "allGenericEntries": "Tüm İçerikler",
     "usePlaylistOrder": "Oynatma Listesi Sırasını Kullan",
     "hideFilters": "Filtreleri gizle",
     "showFilters": "Filtreleri Göster",
@@ -594,7 +594,7 @@
     "makeCurationFromGame": "Oyundan Küratörlük Yap",
     "copyShortcutURL": "Kısayol URL'sini Kopyala",
     "downloadGame": "Oyunu İndir",
-    "downloadPlaylistContent": "Oynatma Listesinin Kayıtlarını İndir"
+    "downloadPlaylistContent": "Oynatma Listesinin İçeriklerini İndir"
   },
   "dialog": {
     "programNotFound": "Program bulunamadı!",
