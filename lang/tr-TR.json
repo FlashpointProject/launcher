@@ -74,7 +74,7 @@
     "editTagFilter": "Etiket Filtreleme Grubunu Düzenle",
     "duplicateTagFilter": "Etiket Filtreleme Grubunu Kopyala",
     "nukeTagFilter": "Etiket Filtreleme Grubunu Sil",
-    "nukeInProgress": "Etiketler siliniyor, lütfen bekleyin...",
+    "nukeInProgress": "Etiketler Siliniyor, lütfen bekleyin...",
     "deleteTagFilter": "Etiket Filtreleme Grubunu Sil",
     "appPathOverrides": "Geçersiz Kılınmış Uygulama Yolları",
     "appPathOverridesDesc": "Oyunları çalıştırırken soldaki uygulama yolunu sağdakiyle geçersiz kılar.",
